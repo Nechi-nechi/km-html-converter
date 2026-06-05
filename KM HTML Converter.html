@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KM Paste-to-HTML Converter</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ice-blue: #DCEEFF;
+    --signal-blue: #4DA3FF;
+    --blue-black: #111827;
+    --soft-white: #F8FBFF;
+    --cool-gray: #A7B4C2;
+    --accent-red: #D94141;
+    --border: #D0DDE8;
+    --panel-width: 320px;
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--soft-white); color: var(--blue-black); min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* HEADER */
+  header { background: #fff; border-bottom: 1.5px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-icon { width: 36px; height: 36px; background: var(--ice-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--signal-blue); font-size: 18px; flex-shrink: 0; }
+  .header-text h1 { font-size: 18px; font-weight: 700; color: var(--blue-black); line-height: 1.2; }
+  .header-text p  { font-size: 12px; color: var(--cool-gray); margin-top: 1px; }
+  .header-badge { background: var(--ice-blue); color: var(--signal-blue); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+
+  /* LAYOUT */
+  .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
+  .main-content { flex: 1; overflow-y: auto; padding: 20px 24px; min-width: 0; transition: margin-right 0.25s ease; }
+  .main-content.panel-open { margin-right: var(--panel-width); }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--signal-blue); margin-bottom: 8px; }
+
+  /* PASTE AREA */
+  .paste-section { margin-bottom: 16px; }
+  #pasteArea { width: 100%; min-height: 160px; max-height: 260px; overflow-y: auto; border: 1.5px solid var(--border); border-radius: 8px; padding: 12px 14px; background: #fff; font-size: 13px; line-height: 1.6; color: var(--blue-black); outline: none; transition: border-color 0.15s; }
+  #pasteArea:focus { border-color: var(--signal-blue); }
+  #pasteArea:empty::before { content: attr(data-placeholder); color: var(--cool-gray); pointer-events: none; font-style: italic; }
+  .paste-hint { font-size: 11px; color: var(--cool-gray); margin-top: 5px; display: flex; align-items: center; justify-content: space-between; }
+
+  /* BUTTONS */
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .btn-primary   { background: var(--signal-blue); color: #fff; border-color: var(--signal-blue); }
+  .btn-primary:hover   { background: #3a8ee0; border-color: #3a8ee0; }
+  .btn-secondary { background: #fff; color: var(--blue-black); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--signal-blue); color: var(--signal-blue); }
+  .btn-danger    { background: #fff; color: var(--accent-red); border-color: #f0c0c0; }
+  .btn-danger:hover    { background: #fff0f0; }
+  .btn-code      { background: var(--blue-black); color: #fff; border-color: var(--blue-black); }
+  .btn-code:hover      { background: #1e2d42; }
+  #copyStatus { font-size: 11px; color: #2a9d2a; font-weight: 600; align-self: center; display: none; }
+
+  /* OUTPUT GRID */
+  .output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .output-grid { grid-template-columns: 1fr; } }
+  .panel-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+  .panel-box-header { padding: 8px 12px; background: var(--ice-blue); font-size: 11px; font-weight: 700; color: var(--signal-blue); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+
+  #previewArea { flex: 1; min-height: 280px; max-height: 480px; overflow-y: auto; padding: 14px 16px; font-size: 13px; line-height: 1.6; }
+  #previewArea:empty::before { content: 'Preview will appear here after conversion.'; color: var(--cool-gray); font-style: italic; font-size: 12px; }
+  #previewArea h2 { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; margin: 12px 0 6px; }
+  #previewArea h3 { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; margin: 10px 0 5px; }
+  #previewArea h4 { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; margin: 8px 0 4px; }
+  #previewArea p  { font-family: Arial, sans-serif; font-size: 12px; margin: 4px 0; }
+  #previewArea ul, #previewArea ol { padding-left: 20px; margin: 4px 0; }
+  #previewArea li { font-family: Arial, sans-serif; font-size: 12px; margin: 2px 0; }
+  #previewArea table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 12px; margin: 8px 0; }
+  #previewArea th { border: 0.5px solid #808080; background-color: #E8F9FF; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px; }
+  #previewArea td { border: 0.5px solid #808080; padding: 4px; vertical-align: top; }
+  #previewArea a  { color: var(--signal-blue); }
+  #previewArea pre { background: #f4f6f8; border-radius: 4px; padding: 10px 12px; font-size: 12px; overflow-x: auto; margin: 6px 0; white-space: pre; }
+  #previewArea code { font-family: 'Consolas','Courier New',monospace; font-size: 12px; }
+  #previewArea hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+  #previewArea blockquote { border-left: 3px solid var(--signal-blue); margin: 6px 0; padding: 6px 12px; background: #f5f9ff; border-radius: 0 4px 4px 0; font-size: 12px; }
+  #previewArea s  { text-decoration: line-through; }
+
+  #htmlOutput { flex: 1; min-height: 280px; max-height: 480px; resize: vertical; padding: 12px 14px; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; color: var(--blue-black); border: none; outline: none; background: #fff; width: 100%; }
+  .output-hint { font-size: 11px; color: var(--cool-gray); padding: 6px 12px; border-top: 1px solid var(--border); background: #fafcff; }
+
+  /* WARNINGS PANEL */
+  .warnings-panel { position: fixed; top: 65px; right: 0; bottom: 0; width: var(--panel-width); background: #fff; border-left: 1.5px solid var(--border); display: flex; flex-direction: column; z-index: 90; transition: transform 0.25s ease; overflow: hidden; }
+  .warnings-panel.hidden { transform: translateX(100%); }
+  .warnings-panel-header { padding: 12px 14px; background: var(--ice-blue); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .warnings-panel-header span { font-size: 12px; font-weight: 700; color: var(--blue-black); text-transform: uppercase; letter-spacing: 0.05em; }
+  .warnings-scroll { flex: 1; overflow-y: auto; padding: 12px; }
+  .warnings-empty { color: var(--cool-gray); font-size: 12px; font-style: italic; text-align: center; margin-top: 40px; padding: 0 16px; }
+  .warning-item { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 12px; line-height: 1.4; }
+  .warning-item.error   { background: #fff2f2; border: 1px solid #f0c0c0; }
+  .warning-item.warning { background: #fffbf0; border: 1px solid #f0e0a0; }
+  .warning-item.info    { background: #f0f8ff; border: 1px solid #c0d8f0; }
+  .warning-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .warning-text strong { display: block; font-size: 12px; font-weight: 700; margin-bottom: 1px; }
+  .warning-text span   { font-size: 11px; color: #555; }
+  .warnings-footer { padding: 8px 12px; border-top: 1px solid var(--border); background: #fafcff; font-size: 11px; color: var(--cool-gray); display: flex; gap: 10px; flex-shrink: 0; }
+  .wf-chip { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
+  .wf-chip.red   { color: var(--accent-red); }
+  .wf-chip.amber { color: #b07800; }
+  .wf-chip.blue  { color: var(--signal-blue); }
+
+  /* PANEL TOGGLE */
+  .panel-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 95; background: #fff; border: 1.5px solid var(--border); border-right: none; border-radius: 8px 0 0 8px; padding: 10px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.25s; box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
+  .panel-toggle:hover { background: var(--ice-blue); }
+  .panel-toggle .toggle-icon  { font-size: 16px; color: var(--signal-blue); }
+  .panel-toggle .toggle-label { font-size: 9px; font-weight: 700; color: var(--cool-gray); text-transform: uppercase; letter-spacing: 0.05em; writing-mode: vertical-rl; text-orientation: mixed; }
+  .panel-toggle.panel-open-toggle { right: var(--panel-width); }
+
+  [data-code-block="true"] { background: #f4f6f8; border-left: 3px solid var(--signal-blue); border-radius: 0 4px 4px 0; padding: 6px 10px; font-family: 'Consolas','Courier New',monospace; font-size: 12px; display: block; margin: 4px 0; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon">&#128203;</div>
+    <div class="header-text">
+      <h1>KM paste-to-HTML converter</h1>
+      <p>Paste content from Word. Convert it into clean Salesforce Knowledge HTML.</p>
+    </div>
+  </div>
+  <div class="header-badge">For Salesforce Knowledge source code</div>
+</header>
+
+<div class="app-body">
+  <div class="main-content" id="mainContent">
+    <div class="paste-section">
+      <div class="section-label">1. Paste copied Word content here</div>
+      <div id="pasteArea" contenteditable="true" data-placeholder="Paste copied Word content here..." spellcheck="false"></div>
+      <div class="paste-hint">
+        <span>Paste directly (Ctrl+V). The app will capture rich content from Microsoft Word.</span>
+        <span>&#128203;</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary"   id="btnConvert">&#8635; Convert to HTML</button>
+      <button class="btn-secondary" id="btnCopy">&#128203; Copy HTML</button>
+      <button class="btn-danger"    id="btnClear">&#128465; Clear</button>
+      <button class="btn-code"      id="btnMarkCode">&lt;/&gt; Mark selection as code</button>
+      <span id="copyStatus">&#10003; HTML copied.</span>
+    </div>
+    <div class="output-grid">
+      <div class="panel-box">
+        <div class="panel-box-header">2. Preview (rendered output)</div>
+        <div id="previewArea"></div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-box-header">3. HTML output (editable)</div>
+        <textarea id="htmlOutput" spellcheck="false" placeholder="Converted HTML will appear here. You can edit before copying."></textarea>
+        <div class="output-hint">You can edit the HTML above before copying.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="warnings-panel hidden" id="warningsPanel">
+    <div class="warnings-panel-header">
+      <span>Warnings &amp; Info</span>
+      <span style="font-size:10px;color:var(--cool-gray);font-weight:400;text-transform:none;letter-spacing:0;">&#9432;</span>
+    </div>
+    <div class="warnings-scroll" id="warningsList">
+      <div class="warnings-empty" id="warningsEmpty">No warnings yet. Paste content and convert to see results.</div>
+    </div>
+    <div class="warnings-footer" id="warningsFooter" style="display:none;">
+      <span class="wf-chip red"   id="countError"></span>
+      <span class="wf-chip amber" id="countWarning"></span>
+      <span class="wf-chip blue"  id="countInfo"></span>
+    </div>
+  </div>
+
+  <button class="panel-toggle" id="panelToggle" title="Toggle Warnings panel">
+    <span class="toggle-icon" id="toggleIcon">&#9664;</span>
+    <span class="toggle-label">Info</span>
+  </button>
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+let storedClipboardHTML = '';
+let pasteAreaDirty = false; // true when user edits paste area after paste
+
+// ─── Panel toggle ─────────────────────────────────────────────────────────────
+let panelOpen = false;
+const warningsPanel = document.getElementById('warningsPanel');
+const panelToggle   = document.getElementById('panelToggle');
+const toggleIcon    = document.getElementById('toggleIcon');
+const mainContent   = document.getElementById('mainContent');
+
+function setPanelOpen(open) {
+  panelOpen = open;
+  if (open) {
+    warningsPanel.classList.remove('hidden');
+    mainContent.classList.add('panel-open');
+    panelToggle.classList.add('panel-open-toggle');
+    toggleIcon.textContent = '\u25B6';
+  } else {
+    warningsPanel.classList.add('hidden');
+    mainContent.classList.remove('panel-open');
+    panelToggle.classList.remove('panel-open-toggle');
+    toggleIcon.textContent = '\u25C4';
+  }
+}
+panelToggle.addEventListener('click', () => setPanelOpen(!panelOpen));
+
+// ─── Paste capture ────────────────────────────────────────────────────────────
+const pasteArea = document.getElementById('pasteArea');
+
+pasteArea.addEventListener('paste', (e) => {
+  e.preventDefault();
+  storedClipboardHTML = '';
+  pasteAreaDirty = false;
+
+  const clipData = e.clipboardData || window.clipboardData;
+  const html = clipData ? (clipData.getData('text/html') || '') : '';
+  const text = clipData ? (clipData.getData('text/plain') || '') : '';
+
+  if (html) {
+    storedClipboardHTML = html;
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    temp.querySelectorAll('style,script,link,meta').forEach(el => el.remove());
+    pasteArea.innerHTML = temp.innerHTML;
+  } else if (text) {
+    pasteArea.textContent = text;
+  }
+});
+
+// Dirty flag: user edited paste area after paste
+pasteArea.addEventListener('input', () => {
+  if (storedClipboardHTML) pasteAreaDirty = true;
+});
+
+// ─── Mark selection as code ───────────────────────────────────────────────────
+document.getElementById('btnMarkCode').addEventListener('click', () => {
+  const sel = window.getSelection();
+
+  if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+    addWarning('info', 'No selection', 'Select text in the paste area first.');
+    setPanelOpen(true);
+    return;
+  }
+
+  const range = sel.getRangeAt(0);
+
+  if (!pasteArea.contains(range.commonAncestorContainer)) {
+    addWarning('info', 'Selection outside paste area', 'Make a selection inside the paste area.');
+    setPanelOpen(true);
+    return;
+  }
+
+  const fragment = range.cloneContents();
+  let selectedText = getPlainTextWithBreaks(fragment);
+  selectedText = cleanCodeText(selectedText);
+
+  if (!selectedText.trim()) return;
+
+  const marker = document.createElement('div');
+  marker.setAttribute('data-code-block', 'true');
+  marker.textContent = selectedText;
+
+  range.deleteContents();
+  range.insertNode(marker);
+
+  sel.removeAllRanges();
+  pasteAreaDirty = true;
+});
+
+// ─── Convert ──────────────────────────────────────────────────────────────────
+document.getElementById('btnConvert').addEventListener('click', () => {
+  const pasteContent = pasteArea.innerHTML || pasteArea.textContent || '';
+  if (!pasteContent.trim()) {
+    addWarning('info', 'Nothing to convert', 'Paste content into the paste area first.');
+    setPanelOpen(true); return;
+  }
+
+  const warnings = [];
+  let converted = '';
+  try {
+    // Use current paste area HTML if dirty (user edited after paste), else use stored clipboard
+    let source;
+    let usedFallback = false;
+    if (pasteAreaDirty || !storedClipboardHTML) {
+      source = pasteArea.innerHTML || pasteArea.textContent || '';
+      if (!source.includes('<')) usedFallback = true;
+      if (pasteAreaDirty) {
+        warnings.push({ level: 'info', title: 'Paste area was edited', msg: 'Content was read from the paste area directly since it was modified after pasting.' });
+      }
+    } else {
+      source = storedClipboardHTML;
+    }
+    converted = convertHTML(source, usedFallback, warnings);
+  } catch (err) {
+    addWarning('error', 'Conversion error', 'An error occurred. Check the paste area content.');
+    setPanelOpen(true); return;
+  }
+
+  document.getElementById('htmlOutput').value = converted;
+  document.getElementById('previewArea').innerHTML = converted;
+
+  clearWarnings();
+  warnings.forEach(w => addWarning(w.level, w.title, w.msg));
+  addWarning('info', 'Conversion complete', 'Review the preview and HTML before copying.');
+  updateWarningsFooter();
+  if (warnings.length > 1) setPanelOpen(true);
+});
+
+// ─── Main converter ───────────────────────────────────────────────────────────
+function convertHTML(source, usedFallback, warnings) {
+  if (usedFallback) {
+    warnings.push({ level: 'warning', title: 'Plain text fallback used', msg: 'Clipboard HTML unavailable. Content converted from plain text.' });
+    return convertPlainText(source);
+  }
+
+  const doc = new DOMParser().parseFromString(source, 'text/html');
+  const body = doc.body || doc.documentElement;
+
+  // Remove Office junk nodes
+  ['script','style','link','meta','xml'].forEach(tag => {
+    try { body.querySelectorAll(tag).forEach(el => el.remove()); } catch(e) {}
+  });
+
+  if (source.includes('mso-') || source.includes('MsoNormal') || source.includes('class="Mso')) {
+    warnings.push({ level: 'info', title: 'Word-specific styling removed', msg: 'MSO styles, classes, and metadata were removed.' });
+  }
+
+  // Pre-passes: run before main conversion
+  removePageBreaks(body);
+  collapseEmptyParagraphs(body, warnings);
+  groupCodeParagraphs(body, warnings);
+  groupManualLists(body, warnings);
+
+  const output = processChildren(body, warnings);
+  return insertHRBeforeH2(output).trim();
+}
+
+// ─── Pre-pass: remove page/section break artifacts ───────────────────────────
+function removePageBreaks(body) {
+  // Word page breaks: <br clear="all">, mso-special-character, empty styled divs
+  body.querySelectorAll('br[clear]').forEach(el => el.remove());
+  body.querySelectorAll('[style]').forEach(el => {
+    const s = el.getAttribute('style') || '';
+    if (s.includes('mso-special-character') || s.includes('page-break')) {
+      el.remove();
+    }
+  });
+}
+
+// ─── Pre-pass: collapse consecutive empty paragraphs into one ────────────────
+function collapseEmptyParagraphs(body, warnings) {
+  const children = Array.from(body.childNodes);
+  let emptyRun = 0;
+  let warned = false;
+  children.forEach(node => {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const tag = node.tagName.toLowerCase();
+      if ((tag === 'p' || tag === 'div') && !node.textContent.trim()) {
+        emptyRun++;
+        if (emptyRun > 1) {
+          node.parentNode.removeChild(node);
+          if (!warned) {
+            warnings.push({ level: 'info', title: 'Empty paragraphs collapsed', msg: 'Multiple consecutive empty paragraphs were reduced to one.' });
+            warned = true;
+          }
+        }
+      } else {
+        emptyRun = 0;
+      }
+    }
+  });
+}
+
+// ─── Pre-pass: group tab/monospace paragraphs into code blocks ───────────────
+function groupCodeParagraphs(body, warnings) {
+  const children = Array.from(body.childNodes);
+  let i = 0;
+  while (i < children.length) {
+    const node = children[i];
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const tag = node.tagName.toLowerCase();
+      if ((tag === 'p' || tag === 'div') && isCodeLikeParagraph(node)) {
+        const group = [node];
+        let j = i + 1;
+        while (j < children.length) {
+          const next = children[j];
+          if (next.nodeType === Node.ELEMENT_NODE) {
+            const nt = next.tagName.toLowerCase();
+            if ((nt === 'p' || nt === 'div') && isCodeLikeParagraph(next)) { group.push(next); j++; }
+            else if (!next.textContent.trim()) { j++; }
+            else break;
+          } else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; }
+          else break;
+        }
+        const lines = group.map(p => getTextWithTabs(p));
+        const combined = lines.join('\n');
+        const sentinel = body.ownerDocument.createElement('div');
+        sentinel.setAttribute('data-pre-code', 'true');
+        sentinel.textContent = combined;
+        group[0].parentNode.insertBefore(sentinel, group[0]);
+        group.forEach(el => { try { el.parentNode.removeChild(el); } catch(e) {} });
+        warnings.push({ level: 'info', title: 'Possible code block detected', msg: 'Tab-indented or monospace content was converted to <pre><code>. Review to confirm.' });
+        i = j; continue;
+      }
+    }
+    i++;
+  }
+}
+
+function getTextWithTabs(node) {
+  let text = '';
+  node.childNodes.forEach(child => {
+    if (child.nodeType === Node.TEXT_NODE) { text += child.textContent; }
+    else if (child.nodeType === Node.ELEMENT_NODE) {
+      const t = child.tagName.toLowerCase();
+      if (t === 'br') text += '\n';
+      else text += getTextWithTabs(child);
+    }
+  });
+  return text;
+}
+
+function isCodeLikeParagraph(node) {
+  const tag = node.tagName.toLowerCase();
+  if (tag === 'pre') return true;
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  const cls   = (node.getAttribute('class') || '').toLowerCase();
+  if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test(style)) return true;
+  if (cls.includes('msocode') || cls.includes('code')) return true;
+  for (const span of node.querySelectorAll('span')) {
+    const ss = (span.getAttribute('style') || '').toLowerCase();
+    if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test(ss)) return true;
+  }
+  const raw = node.textContent;
+  if ((/^\t+\S/.test(raw) || /^\s{4,}\S/.test(raw)) && (/<\w/.test(raw) || />/.test(raw))) return true;
+  return false;
+}
+
+// ─── Pre-pass: detect manual bullet/numbered paragraphs → lists ───────────────
+// Groups consecutive manually-bulleted or numbered paragraphs into proper list HTML sentinels.
+// Supports mixed nesting: 1. → indent bullet → back to 2.
+function groupManualLists(body, warnings) {
+  const MANUAL_BULLET = /^([•\-\*\u2013\u2022])\s+(.+)$/s;
+  const MANUAL_NUMBER = /^(\d+)[.)]\s+(.+)$/s;
+  const INDENT_BULLET = /^[\t\u00a0]{1,}([•\-\*\u2013\u2022])\s+(.+)$/s;
+
+  const children = Array.from(body.childNodes);
+  let i = 0;
+  let warned = false;
+
+  while (i < children.length) {
+    const node = children[i];
+    if (node.nodeType !== Node.ELEMENT_NODE) { i++; continue; }
+    const tag = node.tagName.toLowerCase();
+    if (tag !== 'p' && tag !== 'div') { i++; continue; }
+    const text = node.textContent.trim();
+
+    const isNumbered = MANUAL_NUMBER.test(text);
+    const isBullet   = MANUAL_BULLET.test(text);
+    if (!isNumbered && !isBullet) { i++; continue; }
+
+    // Gather all consecutive list-like paragraphs
+    const items = [node];
+    let j = i + 1;
+    while (j < children.length) {
+      const next = children[j];
+      if (next.nodeType === Node.ELEMENT_NODE) {
+        const nt = next.tagName.toLowerCase();
+        if (nt === 'p' || nt === 'div') {
+          const nt2 = next.textContent.trim();
+          if (MANUAL_NUMBER.test(nt2) || MANUAL_BULLET.test(nt2) || INDENT_BULLET.test(nt2)) {
+            items.push(next); j++;
+          } else break;
+        } else break;
+      } else { j++; }
+    }
+
+    if (items.length < 1) { i++; continue; }
+
+    // Build nested list HTML
+    const listHTML = buildMixedListHTML(items);
+    const sentinel = body.ownerDocument.createElement('div');
+    sentinel.setAttribute('data-manual-list', 'true');
+    sentinel.innerHTML = listHTML;
+    items[0].parentNode.insertBefore(sentinel, items[0]);
+    items.forEach(el => { try { el.parentNode.removeChild(el); } catch(e) {} });
+
+    if (!warned) {
+      warnings.push({ level: 'info', title: 'Manual list formatting detected', msg: 'Paragraphs with manual bullets or numbers were converted to proper list elements.' });
+      warned = true;
+    }
+    i = j; continue;
+  }
+}
+
+function buildMixedListHTML(items) {
+  const MANUAL_NUMBER = /^(\d+)[.)]\s+(.+)$/s;
+  const MANUAL_BULLET = /^([•\-\*\u2013\u2022])\s+(.+)$/s;
+  const INDENT_BULLET = /^([\t\u00a0]+)([•\-\*\u2013\u2022])\s+(.+)$/s;
+
+  // Parse items into a flat structure with type and indent level
+  const parsed = items.map(node => {
+    const raw = node.textContent.trim();
+    let m;
+    if ((m = INDENT_BULLET.exec(raw))) {
+      return { type: 'bullet', level: 1, text: m[3], node };
+    }
+    if ((m = MANUAL_NUMBER.exec(raw))) {
+      return { type: 'ordered', level: 0, num: parseInt(m[1],10), text: m[2], node };
+    }
+    if ((m = MANUAL_BULLET.exec(raw))) {
+      return { type: 'bullet', level: 0, text: m[2], node };
+    }
+    return { type: 'bullet', level: 0, text: raw, node };
+  });
+
+  // Build HTML respecting nesting
+  let html = '';
+  let i = 0;
+  while (i < parsed.length) {
+    const item = parsed[i];
+    if (item.type === 'ordered' && item.level === 0) {
+      // Start/continue ordered list; collect consecutive ordered + indented items
+      html += '<ol>\n';
+      while (i < parsed.length && (parsed[i].type === 'ordered' || parsed[i].level > 0)) {
+        const cur = parsed[i];
+        if (cur.level > 0) {
+          // Indented bullet sub-list
+          html += '<li style="font-family: Arial, sans-serif; font-size: 12px;">\n<ul>\n';
+          while (i < parsed.length && parsed[i].level > 0) {
+            html += `<li style="font-family: Arial, sans-serif; font-size: 12px;">${escapeText(parsed[i].text)}</li>\n`;
+            i++;
+          }
+          html += '</ul>\n</li>\n';
+        } else {
+          html += `<li style="font-family: Arial, sans-serif; font-size: 12px;">${escapeText(cur.text)}</li>\n`;
+          i++;
+        }
+      }
+      html += '</ol>\n';
+    } else if (item.type === 'bullet' && item.level === 0) {
+      html += '<ul>\n';
+      while (i < parsed.length && parsed[i].type === 'bullet' && parsed[i].level === 0) {
+        const cur = parsed[i];
+        // Check if next items are indented
+        let liContent = escapeText(cur.text);
+        i++;
+        if (i < parsed.length && parsed[i].level > 0) {
+          liContent += '\n<ul>\n';
+          while (i < parsed.length && parsed[i].level > 0) {
+            liContent += `<li style="font-family: Arial, sans-serif; font-size: 12px;">${escapeText(parsed[i].text)}</li>\n`;
+            i++;
+          }
+          liContent += '</ul>\n';
+        }
+        html += `<li style="font-family: Arial, sans-serif; font-size: 12px;">${liContent}</li>\n`;
+      }
+      html += '</ul>\n';
+    } else {
+      i++;
+    }
+  }
+  return html;
+}
+
+// ─── Process node → clean HTML string ────────────────────────────────────────
+function processNode(node, warnings) {
+  if (node.nodeType === Node.TEXT_NODE) return escapeText(node.textContent);
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+  const tag = node.tagName.toLowerCase();
+
+  // Drop entirely
+  if (['script','style','link','meta','head','xml','o:p','w:sdt','w:sdtcontent'].includes(tag)) return '';
+
+  // Pass-through containers
+  if (tag === 'html' || tag === 'body') return processChildren(node, warnings);
+
+  // Pre-code sentinel
+  if (tag === 'div' && node.getAttribute('data-pre-code') === 'true') {
+    return `<pre><code>${escapeCode(node.textContent)}</code></pre>\n`;
+  }
+
+  // Manual list sentinel
+  if (tag === 'div' && node.getAttribute('data-manual-list') === 'true') {
+    return node.innerHTML + '\n';
+  }
+
+  // Manual code marker
+  if (node.getAttribute('data-code-block') === 'true') {
+    return `<pre><code>${escapeCode(node.textContent)}</code></pre>\n`;
+  }
+
+  // Images
+  if (tag === 'img') {
+    warnings.push({ level: 'warning', title: 'Image detected', msg: 'Image replaced with [Insert image here]. Add the image manually in Salesforce Knowledge.' });
+    return `<p style="font-family: Arial, sans-serif; font-size: 12px;"><em>[Insert image here]</em></p>\n`;
+  }
+
+  // Native pre / code
+  if (tag === 'pre') {
+    const codeEl = node.querySelector('code');
+    const text   = codeEl ? codeEl.textContent : node.textContent;
+    warnings.push({ level: 'info', title: 'Possible code block detected', msg: 'Content in <pre> was converted to <pre><code>. Review to confirm.' });
+    return `<pre><code>${escapeCode(text)}</code></pre>\n`;
+  }
+  if (tag === 'code') {
+    if (node.parentElement && node.parentElement.tagName.toLowerCase() === 'pre') return escapeCode(node.textContent);
+    return `<code>${escapeCode(node.textContent)}</code>`;
+  }
+
+  // Superscript / subscript
+  if (tag === 'sup') return `<sup>${processChildren(node, warnings)}</sup>`;
+  if (tag === 'sub') return `<sub>${processChildren(node, warnings)}</sub>`;
+
+  // Strikethrough
+  if (tag === 's' || tag === 'strike' || tag === 'del') return `<s>${processChildren(node, warnings)}</s>`;
+
+  // Explicit headings
+  if (tag === 'h1') return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(cleanHeadingText(node.textContent))}</h2>\n`;
+  if (tag === 'h2') return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(cleanHeadingText(node.textContent))}</h2>\n`;
+  if (tag === 'h3') return `<h3 style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold;">${escapeText(cleanHeadingText(node.textContent))}</h3>\n`;
+  if (tag === 'h4') return `<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold;">${escapeText(cleanHeadingText(node.textContent))}</h4>\n`;
+
+  // Paragraphs and divs
+  if (tag === 'p' || tag === 'div') {
+    // 1. MSO heading class/style
+    const msoLevel = detectWordHeadingLevel(node);
+    if (msoLevel >= 1 && msoLevel <= 2) {
+      const inner = cleanHeadingText(node.textContent);
+      if (inner) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(inner)}</h2>\n`;
+    }
+    if (msoLevel === 3) {
+      const inner = cleanHeadingText(node.textContent);
+      if (inner) return `<h3 style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold;">${escapeText(inner)}</h3>\n`;
+    }
+    if (msoLevel === 4) {
+      const inner = cleanHeadingText(node.textContent);
+      if (inner) return `<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold;">${escapeText(inner)}</h4>\n`;
+    }
+
+    // 2. Font-size based heading detection (Arial 18/16/14)
+    const fontLevel = detectFontSizeHeadingLevel(node);
+    if (fontLevel === 2) {
+      const inner = cleanHeadingText(node.textContent);
+      if (inner) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(inner)}</h2>\n`;
+    }
+    if (fontLevel === 3) {
+      const inner = processChildren(node, warnings);
+      if (inner.trim()) return `<h3 style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold;">${inner}</h3>\n`;
+    }
+    if (fontLevel === 4) {
+      const inner = processChildren(node, warnings);
+      if (inner.trim()) return `<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold;">${inner}</h4>\n`;
+    }
+
+    // 3. Bold-only paragraph → h2
+    if (isBoldOnlyParagraph(node)) {
+      const textContent = node.textContent.trim();
+      if (textContent) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(textContent)}</h2>\n`;
+    }
+
+    // 4. All-caps paragraph → h2
+    if (isAllCapsParagraph(node)) {
+      const textContent = node.textContent.trim();
+      if (textContent) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(textContent)}</h2>\n`;
+    }
+
+    // 5. Underlined-only paragraph → h2
+    if (isUnderlinedOnlyParagraph(node)) {
+      const textContent = node.textContent.trim();
+      if (textContent) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(textContent)}</h2>\n`;
+    }
+
+    // 6. Large font-size span as heading (span carries font-size > 14px)
+    const spanLevel = detectSpanFontSizeHeading(node);
+    if (spanLevel === 2) {
+      const inner = processChildren(node, warnings);
+      if (inner.trim()) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${inner}</h2>\n`;
+    }
+    if (spanLevel === 3) {
+      const inner = processChildren(node, warnings);
+      if (inner.trim()) return `<h3 style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold;">${inner}</h3>\n`;
+    }
+    if (spanLevel === 4) {
+      const inner = processChildren(node, warnings);
+      if (inner.trim()) return `<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold;">${inner}</h4>\n`;
+    }
+
+    // Normal paragraph
+    const inner = processChildren(node, warnings).trim();
+    if (!inner) return '';
+
+    // If processed content is already block-level HTML, do not wrap it in another <p>.
+    if (containsBlockHtml(inner)) return inner + (inner.endsWith('\n') ? '' : '\n');
+
+    // Normalize &nbsp; used as spacing
+    const normalised = normalizeNbsp(inner);
+
+    // Note / Important / Warning
+    const noteResult = checkNoteLabel(normalised, node.textContent.trim());
+    if (noteResult) return `<blockquote>${noteResult}</blockquote>\n`;
+
+    // JSON-like or HTTP-request-like plain paragraph → code
+    const rawText = node.textContent.trim();
+    if (isJsonLike(rawText) || isHttpRequestLike(rawText)) {
+      warnings.push({ level: 'info', title: 'Possible code block detected', msg: 'A paragraph with JSON or HTTP request content was converted to <pre><code>. Review to confirm.' });
+      return `<pre><code>${escapeCode(rawText)}</code></pre>\n`;
+    }
+
+    return `<p style="font-family: Arial, sans-serif; font-size: 12px;">${normalised}</p>\n`;
+  }
+
+  // Lists
+  if (tag === 'ul') { const inner = processListItems(node, warnings); return inner ? `<ul>\n${inner}</ul>\n` : ''; }
+  if (tag === 'ol') { const inner = processListItems(node, warnings); return inner ? `<ol>\n${inner}</ol>\n` : ''; }
+  if (tag === 'li') {
+    const inner = processChildren(node, warnings).trim();
+    return inner ? `<li style="font-family: Arial, sans-serif; font-size: 12px;">${inner}</li>\n` : '';
+  }
+
+  // Inline formatting
+  if (tag === 'strong' || tag === 'b') return `<strong>${processChildren(node, warnings)}</strong>`;
+  if (tag === 'em'     || tag === 'i') return `<em>${processChildren(node, warnings)}</em>`;
+  if (tag === 'u')                     return `<u>${processChildren(node, warnings)}</u>`;
+  if (tag === 'br')                    return `<br>`;
+
+  // Strikethrough via style
+  if (tag === 'span') {
+    const ss = (node.getAttribute('style') || '').toLowerCase();
+    if (ss.includes('line-through')) return `<s>${processChildren(node, warnings)}</s>`;
+    return processChildren(node, warnings);
+  }
+
+  // Links
+  if (tag === 'a') {
+    // Strip bookmark anchors (name attribute, no href content)
+    if (node.getAttribute('name') && !node.getAttribute('href')) return processChildren(node, warnings);
+
+    const href = node.getAttribute('href') || '';
+    // Strip fragment-only bookmark links Word inserts
+    if (/^#_/.test(href)) return processChildren(node, warnings);
+
+    const safe = sanitizeHref(href, warnings);
+    const inner = processChildren(node, warnings).trim();
+    if (!inner) return '';
+
+    // Simplify: if display text equals the URL, just output text (no redundant href)
+    if (safe && (inner === safe || inner === escapeText(safe))) return inner;
+
+    return safe ? `<a href="${escapeAttr(safe)}">${inner}</a>` : inner;
+  }
+
+  // Tables
+  if (tag === 'table') return processTable(node, warnings);
+  if (tag === 'thead') return `<thead>\n${processChildren(node, warnings)}</thead>\n`;
+  if (tag === 'tbody') return `<tbody>\n${processChildren(node, warnings)}</tbody>\n`;
+  if (tag === 'tr')    return `<tr>${processChildren(node, warnings)}</tr>\n`;
+  if (tag === 'th') {
+    const attrs  = getCellAttrs(node);
+    const inner  = processTableCellContent(node, warnings) || '&nbsp;';
+    return `<th style="border: 0.5px solid #808080; background-color: #E8F9FF; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px;"${attrs}>${inner}</th>`;
+  }
+  if (tag === 'td') {
+    const attrs  = getCellAttrs(node);
+    const inner  = processTableCellContent(node, warnings) || '&nbsp;';
+    return `<td style="border: 0.5px solid #808080; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px;"${attrs}>${inner}</td>`;
+  }
+
+  // Font — drop tag, keep children
+  if (tag === 'font') return processChildren(node, warnings);
+
+  // HR
+  if (tag === 'hr') return `<hr>\n`;
+
+  // Blockquote
+  if (tag === 'blockquote') {
+    const inner = processChildren(node, warnings).trim();
+    return inner ? `<blockquote>${inner}</blockquote>\n` : '';
+  }
+
+  // Default: drop unknown tag, keep children
+  return processChildren(node, warnings);
+}
+
+// Process table cell content — headings inside cells are handled correctly
+function processTableCellContent(cell, warnings) {
+  // Table cells must not use document heading logic.
+  // Preserve visible text, links, bold, italics, underline, line breaks, lists, and code.
+  // Do not output h2/h3/h4/hr inside tables.
+  const raw = cleanTableText(cell.textContent);
+  if (!raw) return '';
+  if (/^(Y|N|N\/A|Yes|No|\d+(\.\d+)?)$/i.test(raw)) return escapeText(raw);
+
+  const parts = [];
+  Array.from(cell.childNodes).forEach(child => {
+    const html = processTableCellNode(child, warnings).trim();
+    if (html) parts.push(html);
+  });
+
+  return parts.join('<br>');
+}
+
+function processTableCellNode(node, warnings) {
+  if (node.nodeType === Node.TEXT_NODE) return escapeText(normalizePlainSpaces(node.textContent));
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+  const tag = node.tagName.toLowerCase();
+
+  if (['script','style','link','meta','head','xml','o:p','w:sdt','w:sdtcontent'].includes(tag)) return '';
+  if (tag === 'br') return '<br>';
+
+  // Never allow heading or horizontal-rule tags inside table cells.
+  // Keep the text only, with inline formatting where present.
+  if (['h1','h2','h3','h4','h5','h6','p','div'].includes(tag)) {
+    return processTableCellChildren(node, warnings).trim();
+  }
+  if (tag === 'hr') return '';
+
+  if (tag === 'strong' || tag === 'b') return `<strong>${processTableCellChildren(node, warnings)}</strong>`;
+  if (tag === 'em' || tag === 'i') return `<em>${processTableCellChildren(node, warnings)}</em>`;
+  if (tag === 'u') return `<u>${processTableCellChildren(node, warnings)}</u>`;
+  if (tag === 's' || tag === 'strike' || tag === 'del') return `<s>${processTableCellChildren(node, warnings)}</s>`;
+  if (tag === 'sup') return `<sup>${processTableCellChildren(node, warnings)}</sup>`;
+  if (tag === 'sub') return `<sub>${processTableCellChildren(node, warnings)}</sub>`;
+
+  if (tag === 'span' || tag === 'font') {
+    const ss = (node.getAttribute('style') || '').toLowerCase();
+    const inner = processTableCellChildren(node, warnings);
+    if (ss.includes('line-through')) return `<s>${inner}</s>`;
+    if (/font-weight\s*:\s*(bold|700)/i.test(ss)) return `<strong>${inner}</strong>`;
+    if (/font-style\s*:\s*italic/i.test(ss)) return `<em>${inner}</em>`;
+    if (/text-decoration[^;]*underline/i.test(ss)) return `<u>${inner}</u>`;
+    return inner;
+  }
+
+  if (tag === 'a') {
+    const href = node.getAttribute('href') || '';
+    if (node.getAttribute('name') && !href) return processTableCellChildren(node, warnings);
+    if (/^#_/.test(href)) return processTableCellChildren(node, warnings);
+    const safe = sanitizeHref(href, warnings);
+    const inner = processTableCellChildren(node, warnings).trim();
+    if (!inner) return '';
+    return safe ? `<a href="${escapeAttr(safe)}">${inner}</a>` : inner;
+  }
+
+  if (tag === 'ul' || tag === 'ol') {
+    const listTag = tag;
+    const items = Array.from(node.children)
+      .filter(child => child.tagName && child.tagName.toLowerCase() === 'li')
+      .map(li => `<li style="font-family: Arial, sans-serif; font-size: 12px;">${processTableCellChildren(li, warnings).trim()}</li>`)
+      .join('\n');
+    return items ? `<${listTag}>\n${items}\n</${listTag}>` : '';
+  }
+
+  if (tag === 'pre') return `<pre><code>${escapeCode(node.textContent)}</code></pre>`;
+  if (tag === 'code') return `<code>${escapeCode(node.textContent)}</code>`;
+
+  if (tag === 'table') return processTable(node, warnings);
+
+  return processTableCellChildren(node, warnings);
+}
+
+function processTableCellChildren(node, warnings) {
+  return Array.from(node.childNodes)
+    .map(child => processTableCellNode(child, warnings))
+    .join('');
+}
+
+function cleanTableText(text) {
+  return (text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function normalizePlainSpaces(text) {
+  return (text || '').replace(/\u00a0/g, ' ').replace(/[ \t\r\n]+/g, ' ');
+}
+
+function processChildren(node, warnings) {
+  let out = '';
+  node.childNodes.forEach(child => { out += processNode(child, warnings); });
+  return out;
+}
+
+function processListItems(node, warnings) {
+  let out = '';
+  node.childNodes.forEach(child => {
+    if (child.nodeType === Node.ELEMENT_NODE) {
+      const t = child.tagName.toLowerCase();
+      if (t === 'li' || t === 'ul' || t === 'ol') out += processNode(child, warnings);
+    }
+  });
+  return out;
+}
+
+
+function hasBlockChild(node) {
+  const blockTags = new Set(['p','div','h1','h2','h3','h4','h5','h6','ul','ol','li','table','pre','blockquote','hr']);
+  return Array.from(node.childNodes).some(child =>
+    child.nodeType === Node.ELEMENT_NODE && blockTags.has(child.tagName.toLowerCase())
+  );
+}
+
+function containsBlockHtml(html) {
+  return /<(p|div|h1|h2|h3|h4|h5|h6|ul|ol|li|table|thead|tbody|tr|td|th|pre|blockquote|hr)\b/i.test(html);
+}
+
+function cleanHeadingText(text) {
+  return (text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function isSafeHeadingText(node) {
+  const text = cleanHeadingText(node.textContent);
+  if (!text) return false;
+  if (text.length > 60) return false;
+  if (node.querySelector('a')) return false;
+  if (/^https?:\/\//i.test(text) || /^www\./i.test(text)) return false;
+  if (/[.!?;:]$/.test(text)) return false;
+  if (text.split(/\s+/).length > 8) return false;
+  return true;
+}
+
+// ─── Heading detection helpers ────────────────────────────────────────────────
+
+// MSO class/style heading level
+function detectWordHeadingLevel(node) {
+  const cls   = (node.getAttribute('class') || '').toLowerCase().replace(/\s+/g,'');
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  if (/mso-?heading.?1|heading1/.test(cls)) return 1;
+  if (/mso-?heading.?2|heading2/.test(cls)) return 2;
+  if (/mso-?heading.?3|heading3/.test(cls)) return 3;
+  if (/mso-?heading.?4|heading4/.test(cls)) return 4;
+  if (/mso-style-name:\s*['"]?heading\s*1/i.test(style)) return 1;
+  if (/mso-style-name:\s*['"]?heading\s*2/i.test(style)) return 2;
+  if (/mso-style-name:\s*['"]?heading\s*3/i.test(style)) return 3;
+  if (/mso-style-name:\s*['"]?heading\s*4/i.test(style)) return 4;
+  // Do not infer headings from font size. Word table cells and body text often use 12 pt or 16 px.
+  // Only real Word heading classes/styles should become heading tags.
+  return 0;
+}
+
+// Font-size px/pt on the paragraph itself.
+// Guardrails prevent normal Word body text from becoming headings.
+function detectFontSizeHeadingLevel(node) {
+  return 0;
+}
+
+// Span inside paragraph carries a large font-size
+function detectSpanFontSizeHeading(node) {
+  return 0;
+}
+
+// Bold-only paragraph
+function isBoldOnlyParagraph(node) {
+  const text = node.textContent.trim();
+  if (!text) return false;
+  let outsideBold = '';
+  function walk(n) {
+    n.childNodes.forEach(child => {
+      if (child.nodeType === Node.TEXT_NODE) { outsideBold += child.textContent; }
+      else if (child.nodeType === Node.ELEMENT_NODE) {
+        const t = child.tagName.toLowerCase();
+        if (t === 'b' || t === 'strong') { /* inside bold — good */ }
+        else if (t === 'span') {
+          const ss = (child.getAttribute('style') || '').toLowerCase();
+          if (!ss.includes('font-weight:bold') && !ss.includes('font-weight: bold')) walk(child);
+        } else if (t !== 'br' && t !== 'o:p') { outsideBold += child.textContent; }
+      }
+    });
+  }
+  walk(node);
+  return outsideBold.trim() === '';
+}
+
+// All-caps paragraph (letters only, min 2 chars, all uppercase)
+function isAllCapsParagraph(node) {
+  return false;
+}
+
+// Underlined-only paragraph
+function isUnderlinedOnlyParagraph(node) {
+  return false;
+}
+
+// ─── Code content heuristics ──────────────────────────────────────────────────
+function isJsonLike(text) {
+  const t = text.trim();
+  return (t.startsWith('{') || t.startsWith('[')) && (t.endsWith('}') || t.endsWith(']')) && t.includes(':');
+}
+function isHttpRequestLike(text) {
+  return /^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\s+https?:\/\//im.test(text);
+}
+
+// ─── Table processing ─────────────────────────────────────────────────────────
+function processTable(tableNode, warnings) {
+  const rows = getDirectTableRows(tableNode);
+  if (!rows.length) return '';
+
+  let hasMerged = false, hasUneven = false;
+  const hasNested = Array.from(tableNode.querySelectorAll('table')).some(t => t !== tableNode);
+  const rowLengths = [];
+
+  rows.forEach(row => {
+    let len = 0;
+    getDirectRowCells(row).forEach(cell => {
+      const cs = parseInt(getWordColspan(cell), 10);
+      const rs = parseInt(getWordRowspan(cell), 10);
+      len += cs;
+      if (cs > 1 || rs > 1) hasMerged = true;
+    });
+    rowLengths.push(len);
+  });
+
+  const maxLen = Math.max(...rowLengths);
+  if (rowLengths.some(l => l !== maxLen && l > 0)) hasUneven = true;
+
+  if (hasMerged) warnings.push({ level: 'info', title: 'Merged cells detected', msg: 'Colspan and rowspan were preserved. Review the table in the preview before publishing.' });
+  if (hasUneven) warnings.push({ level: 'warning', title: 'Uneven table rows detected', msg: 'Table structure was preserved as much as possible.' });
+  if (hasNested) warnings.push({ level: 'warning', title: 'Nested tables detected', msg: 'Nested tables were preserved. Review output carefully.' });
+
+  let hasEmpty = false;
+  rows.forEach(row => getDirectRowCells(row).forEach(cell => { if (!cell.textContent.trim()) hasEmpty = true; }));
+  if (hasEmpty) warnings.push({ level: 'info', title: 'Empty table cells preserved', msg: 'Empty cells were kept to maintain table structure.' });
+
+  // Important: do not split the first row into <thead> and the rest into <tbody>.
+  // Word tables often use rowspan in the first row. Moving that row to <thead>
+  // breaks alignment because the rowspan can no longer span into the next body row.
+  let inner = '<tbody>\n';
+
+  rows.forEach((row, rowIndex) => {
+    inner += '<tr>';
+    getDirectRowCells(row).forEach(cell => {
+      const attrs = getCellAttrs(cell);
+      const cellInner = processTableCellContent(cell, warnings) || '&nbsp;';
+      const isHeader = rowIndex === 0 || cell.tagName.toLowerCase() === 'th' || isTableHeaderCell(cell);
+
+      if (isHeader) {
+        inner += `<th style="border: 0.5px solid #808080; background-color: #E8F9FF; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px; text-align: left;"${attrs}>${cellInner}</th>`;
+      } else {
+        inner += `<td style="border: 0.5px solid #808080; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px;"${attrs}>${cellInner}</td>`;
+      }
+    });
+    inner += '</tr>\n';
+  });
+
+  inner += '</tbody>\n';
+  return `<table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 12px;">\n${inner}</table>\n`;
+}
+
+function getDirectTableRows(tableNode) {
+  const rows = [];
+  Array.from(tableNode.children).forEach(child => {
+    const tag = child.tagName ? child.tagName.toLowerCase() : '';
+    if (tag === 'tr') rows.push(child);
+    if (tag === 'thead' || tag === 'tbody' || tag === 'tfoot') {
+      Array.from(child.children).forEach(row => {
+        if (row.tagName && row.tagName.toLowerCase() === 'tr') rows.push(row);
+      });
+    }
+  });
+  return rows;
+}
+
+function getDirectRowCells(row) {
+  return Array.from(row.children).filter(child => {
+    if (!child.tagName) return false;
+    const tag = child.tagName.toLowerCase();
+    return tag === 'td' || tag === 'th';
+  });
+}
+
+function getCellAttrs(cell) {
+  let attrs = '';
+  const cs = getWordColspan(cell);
+  const rs = getWordRowspan(cell);
+  if (cs && parseInt(cs,10) > 1) attrs += ` colspan="${cs}"`;
+  if (rs && parseInt(rs,10) > 1) attrs += ` rowspan="${rs}"`;
+  return attrs;
+}
+
+function getWordColspan(cell) {
+  const direct = cell.getAttribute('colspan');
+  if (direct && parseInt(direct, 10) > 1) return direct;
+
+  // Some Word HTML stores merged columns in mso attributes instead of colspan.
+  const style = (cell.getAttribute('style') || '').toLowerCase();
+  const msoGridSpan = style.match(/mso-grid-span\s*:\s*(\d+)/i);
+  if (msoGridSpan && parseInt(msoGridSpan[1], 10) > 1) return msoGridSpan[1];
+
+  return '1';
+}
+
+function getWordRowspan(cell) {
+  const direct = cell.getAttribute('rowspan');
+  if (direct && parseInt(direct, 10) > 1) return direct;
+  return '1';
+}
+
+function isTableHeaderCell(cell) {
+  if (cell.tagName.toLowerCase() === 'th') return true;
+  const text = cleanTableText(cell.textContent);
+  if (!text) return false;
+
+  const style = (cell.getAttribute('style') || '').toLowerCase();
+  if (/font-weight\s*:\s*(bold|700)/i.test(style)) return true;
+  if (cell.querySelector('b,strong')) return true;
+
+  return Array.from(cell.querySelectorAll('[style]')).some(el => {
+    const s = (el.getAttribute('style') || '').toLowerCase();
+    return /font-weight\s*:\s*(bold|700)/i.test(s);
+  });
+}
+
+// ─── Note / Important / Warning ───────────────────────────────────────────────
+function checkNoteLabel(innerHTML, rawText) {
+  const t = (rawText || '').trimStart();
+  if (/^Note:/i.test(t))      return replaceLabel(innerHTML, 'Note:',      `<strong>Note:</strong>`);
+  if (/^Important:/i.test(t)) return replaceLabel(innerHTML, 'Important:', `<strong>Important:</strong>`);
+  if (/^Warning:/i.test(t))   return replaceLabel(innerHTML, 'Warning:',   `<strong style="color: #c00000;">Warning:</strong>`);
+  return null;
+}
+function replaceLabel(innerHTML, label, replacement) {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return innerHTML.replace(new RegExp(escaped, 'i'), replacement);
+}
+
+// ─── HR before h2 (except first) ─────────────────────────────────────────────
+function insertHRBeforeH2(html) {
+  let firstDocumentHeading = true;
+  let tableDepth = 0;
+  const tokens = html.split(/(<\/?table\b[^>]*>|<h2\b[^>]*>)/gi);
+
+  return tokens.map(token => {
+    if (/^<table\b/i.test(token)) {
+      tableDepth++;
+      return token;
+    }
+    if (/^<\/table/i.test(token)) {
+      tableDepth = Math.max(tableDepth - 1, 0);
+      return token;
+    }
+    if (/^<h2\b/i.test(token) && tableDepth === 0) {
+      if (firstDocumentHeading) {
+        firstDocumentHeading = false;
+        return token;
+      }
+      return `<hr>\n${token}`;
+    }
+    return token;
+  }).join('');
+}
+
+// ─── Plain text fallback ──────────────────────────────────────────────────────
+function convertPlainText(text) {
+  const lines = text.split(/\r?\n/);
+  let out = '';
+  lines.forEach(line => {
+    const t = line.trim();
+    if (!t) return;
+    const noteResult = checkNoteLabel(escapeText(t), t);
+    if (noteResult) { out += `<blockquote>${noteResult}</blockquote>\n`; }
+    else { out += `<p style="font-family: Arial, sans-serif; font-size: 12px;">${escapeText(t)}</p>\n`; }
+  });
+  return insertHRBeforeH2(out.trim());
+}
+
+// ─── Utility ──────────────────────────────────────────────────────────────────
+function escapeText(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escapeCode(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escapeAttr(str) {
+  return (str || '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function normalizeNbsp(str) {
+  // Replace &nbsp; used between words with a regular space; collapse multiples
+  return str.replace(/&nbsp;/g, ' ').replace(/\u00a0/g, ' ').replace(/ {2,}/g, ' ');
+}
+function sanitizeHref(href, warnings) {
+  if (!href) return '';
+  href = href.trim();
+  if (href.startsWith('http://') || href.startsWith('https://') ||
+      href.startsWith('mailto:') || href.startsWith('/') || href.startsWith('#')) return href;
+  if (href.length > 0) warnings.push({ level: 'info', title: 'Unsafe link protocol stripped', msg: 'A link with an unsupported protocol was stripped. Link text was preserved.' });
+  return '';
+}
+
+// ─── Warnings panel ───────────────────────────────────────────────────────────
+function clearWarnings() {
+  document.getElementById('warningsList').innerHTML = '';
+  const empty = document.getElementById('warningsEmpty');
+  if (empty) empty.style.display = 'none';
+}
+function addWarning(level, title, msg) {
+  const list  = document.getElementById('warningsList');
+  const empty = document.getElementById('warningsEmpty');
+  if (empty) empty.style.display = 'none';
+  const icons = { error:'🔴', warning:'⚠️', info:'ℹ️' };
+  const item  = document.createElement('div');
+  item.className = `warning-item ${level}`;
+  item.innerHTML = `<span class="warning-icon">${icons[level]||'ℹ️'}</span><div class="warning-text"><strong>${escapeText(title)}</strong><span>${escapeText(msg)}</span></div>`;
+  list.appendChild(item);
+}
+function updateWarningsFooter() {
+  const items  = document.querySelectorAll('.warning-item');
+  const footer = document.getElementById('warningsFooter');
+  if (!items.length) { footer.style.display = 'none'; return; }
+  let errors = 0, warns = 0, infos = 0;
+  items.forEach(i => { if (i.classList.contains('error')) errors++; else if (i.classList.contains('warning')) warns++; else infos++; });
+  document.getElementById('countError').textContent   = errors ? `🔴 ${errors} Issue${errors  !== 1?'s':''}` : '';
+  document.getElementById('countWarning').textContent = warns  ? `⚠️ ${warns} Warning${warns   !== 1?'s':''}` : '';
+  document.getElementById('countInfo').textContent    = infos  ? `ℹ️ ${infos} Info` : '';
+  footer.style.display = (errors||warns||infos) ? 'flex' : 'none';
+}
+
+// ─── Copy HTML ────────────────────────────────────────────────────────────────
+document.getElementById('btnCopy').addEventListener('click', () => {
+  const output = document.getElementById('htmlOutput');
+  if (!output.value.trim()) { addWarning('info','Nothing to copy','Convert content first before copying.'); setPanelOpen(true); return; }
+  navigator.clipboard.writeText(output.value).then(showCopyStatus).catch(() => { output.select(); document.execCommand('copy'); showCopyStatus(); });
+});
+function showCopyStatus() {
+  const s = document.getElementById('copyStatus');
+  s.style.display = 'inline';
+  setTimeout(() => { s.style.display = 'none'; }, 2500);
+}
+
+// ─── Clear ────────────────────────────────────────────────────────────────────
+document.getElementById('btnClear').addEventListener('click', () => {
+  pasteArea.innerHTML = '';
+  document.getElementById('previewArea').innerHTML = '';
+  document.getElementById('htmlOutput').value = '';
+  storedClipboardHTML = '';
+  pasteAreaDirty = false;
+  clearWarnings();
+  const empty = document.getElementById('warningsEmpty');
+  if (empty) empty.style.display = 'block';
+  updateWarningsFooter();
+  document.getElementById('copyStatus').style.display = 'none';
+});
+</script>
+</body>
+</html>

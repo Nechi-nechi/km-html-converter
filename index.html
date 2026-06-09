@@ -67,7 +67,7 @@
   #previewArea ul, #previewArea ol { padding-left: 20px; margin: 4px 0; }
   #previewArea li { font-family: Arial, sans-serif; font-size: 12px; margin: 2px 0; }
   #previewArea table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 12px; margin: 8px 0; }
-  #previewArea th { border: 0.5px solid #808080; background-color: #E8F9FF; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px; }
+  #previewArea th { border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px; }
   #previewArea td { border: 0.5px solid #808080; padding: 4px; vertical-align: top; }
   #previewArea a  { color: var(--signal-blue); }
   #previewArea pre { background: #f4f6f8; border-radius: 4px; padding: 10px 12px; font-size: 12px; overflow-x: auto; margin: 6px 0; white-space: pre; }
@@ -756,7 +756,7 @@ function processNode(node, warnings) {
   if (tag === 'th') {
     const attrs  = getCellAttrs(node);
     const inner  = processTableCellContent(node, warnings) || '&nbsp;';
-    return `<th style="border: 0.5px solid #808080; background-color: #E8F9FF; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px;"${attrs}>${inner}</th>`;
+    return `<th style="border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px;"${attrs}>${inner}</th>`;
   }
   if (tag === 'td') {
     const attrs  = getCellAttrs(node);
@@ -1031,7 +1031,7 @@ function processTable(tableNode, warnings) {
       const isHeader = rowIndex === 0 || cell.tagName.toLowerCase() === 'th' || isTableHeaderCell(cell);
 
       if (isHeader) {
-        inner += `<th style="border: 0.5px solid #808080; background-color: #E8F9FF; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px; text-align: left;"${attrs}>${cellInner}</th>`;
+        inner += `<th style="border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px; text-align: left;"${attrs}>${cellInner}</th>`;
       } else {
         inner += `<td style="border: 0.5px solid #808080; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px;"${attrs}>${cellInner}</td>`;
       }

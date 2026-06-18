@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KM Paste-to-HTML Converter</title>
+<title>KM HTML Converter</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -18,7 +18,6 @@
   }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--soft-white); color: var(--blue-black); min-height: 100vh; display: flex; flex-direction: column; }
 
-  /* HEADER */
   header { background: #fff; border-bottom: 1.5px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 100; }
   .header-left { display: flex; align-items: center; gap: 12px; }
   .header-icon { width: 36px; height: 36px; background: var(--ice-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--signal-blue); font-size: 18px; flex-shrink: 0; }
@@ -26,18 +25,37 @@
   .header-text p  { font-size: 12px; color: var(--cool-gray); margin-top: 1px; }
   .header-badge { background: var(--ice-blue); color: var(--signal-blue); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
 
-  /* LAYOUT */
   .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
   .main-content { flex: 1; overflow-y: auto; padding: 20px 24px; min-width: 0; transition: margin-right 0.25s ease; }
   .main-content.panel-open { margin-right: var(--panel-width); }
   .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--signal-blue); margin-bottom: 8px; }
 
-  /* PASTE AREA */
+  /* PASTE AREA - editable rendered preview */
   .paste-section { margin-bottom: 16px; }
-  #pasteArea { width: 100%; min-height: 160px; max-height: 260px; overflow-y: auto; border: 1.5px solid var(--border); border-radius: 8px; padding: 12px 14px; background: #fff; font-size: 13px; line-height: 1.6; color: var(--blue-black); outline: none; transition: border-color 0.15s; }
-  #pasteArea:focus { border-color: var(--signal-blue); }
-  #pasteArea:empty::before { content: attr(data-placeholder); color: var(--cool-gray); pointer-events: none; font-style: italic; }
-  .paste-hint { font-size: 11px; color: var(--cool-gray); margin-top: 5px; display: flex; align-items: center; justify-content: space-between; }
+  .paste-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; }
+  .paste-box-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #fafcff; border-bottom: 1px solid var(--border); gap: 8px; }
+  .paste-box-toolbar span { font-size: 11px; color: var(--cool-gray); }
+  .paste-clear-btn { font-size: 11px; color: var(--accent-red); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+  .paste-clear-btn:hover { background: #fff0f0; }
+  #pasteRender { min-height: 160px; max-height: 280px; overflow-y: auto; padding: 14px 16px;
+    font-family: Arial, sans-serif; font-size: 12px; line-height: 1.6; color: var(--blue-black); }
+  #pasteRender.empty::before { content: 'Paste copied Word content here (Ctrl+V)...'; color: var(--cool-gray); font-style: italic; }
+  /* Render Word list styles faithfully inside the paste preview */
+  #pasteRender ol { padding-left: 24px; margin: 2px 0; }
+  #pasteRender ul { padding-left: 24px; margin: 2px 0; }
+  #pasteRender li { margin: 1px 0; }
+  #pasteRender p  { margin: 3px 0; }
+  #pasteRender h1, #pasteRender h2, #pasteRender h3, #pasteRender h4 { font-weight: bold; margin: 6px 0 3px; }
+  #pasteRender h1 { font-size: 18px; }
+  #pasteRender h2 { font-size: 16px; }
+  #pasteRender h3 { font-size: 14px; }
+  #pasteRender table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; }
+  #pasteRender td, #pasteRender th { border: 0.5px solid #aaa; padding: 3px 6px; vertical-align: top; }
+  #pasteRender a { color: var(--signal-blue); }
+  #pasteRender pre { background: #f4f6f8; padding: 8px; font-size: 11px; border-radius: 4px; overflow-x: auto; }
+  /* Make the paste area focusable so it can catch paste events */
+  #pasteRender:focus { outline: 2px solid var(--signal-blue); outline-offset: -2px; border-radius: 0 0 8px 8px; }
+  .paste-hint { font-size: 11px; color: var(--cool-gray); margin-top: 5px; }
 
   /* BUTTONS */
   .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
@@ -58,23 +76,22 @@
   .panel-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
   .panel-box-header { padding: 8px 12px; background: var(--ice-blue); font-size: 11px; font-weight: 700; color: var(--signal-blue); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
 
-  #previewArea { flex: 1; min-height: 280px; max-height: 480px; overflow-y: auto; padding: 14px 16px; font-size: 13px; line-height: 1.6; }
+  #previewArea { flex: 1; min-height: 280px; max-height: 480px; overflow-y: auto; padding: 14px 16px; font-size: 12px; line-height: 1.6; font-family: Arial, sans-serif; }
   #previewArea:empty::before { content: 'Preview will appear here after conversion.'; color: var(--cool-gray); font-style: italic; font-size: 12px; }
-  #previewArea h2 { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; margin: 12px 0 6px; }
-  #previewArea h3 { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; margin: 10px 0 5px; }
-  #previewArea h4 { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; margin: 8px 0 4px; }
-  #previewArea p  { font-family: Arial, sans-serif; font-size: 12px; margin: 4px 0; }
-  #previewArea ul, #previewArea ol { padding-left: 20px; margin: 4px 0; }
-  #previewArea li { font-family: Arial, sans-serif; font-size: 12px; margin: 2px 0; }
-  #previewArea table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 12px; margin: 8px 0; }
-  #previewArea th { border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px; }
+  #previewArea h2 { font-size: 18px; font-weight: bold; margin: 10px 0 5px; font-family: Arial, sans-serif; }
+  #previewArea h3 { font-size: 16px; font-weight: bold; margin: 8px 0 4px; font-family: Arial, sans-serif; }
+  #previewArea h4 { font-size: 14px; font-weight: bold; margin: 6px 0 3px; font-family: Arial, sans-serif; }
+  #previewArea p  { font-size: 12px; margin: 3px 0; font-family: Arial, sans-serif; }
+  #previewArea ul, #previewArea ol { padding-left: 22px; margin: 3px 0; }
+  #previewArea li { font-size: 12px; margin: 1px 0; font-family: Arial, sans-serif; }
+  #previewArea table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; font-family: Arial, sans-serif; }
+  #previewArea th { border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; text-align: left; font-size: 12px; }
   #previewArea td { border: 0.5px solid #808080; padding: 4px; vertical-align: top; }
   #previewArea a  { color: var(--signal-blue); }
-  #previewArea pre { background: #f4f6f8; border-radius: 4px; padding: 10px 12px; font-size: 12px; overflow-x: auto; margin: 6px 0; white-space: pre; }
+  #previewArea pre { background: #f4f6f8; border-radius: 4px; padding: 10px 12px; font-size: 12px; overflow-x: auto; margin: 6px 0; }
   #previewArea code { font-family: 'Consolas','Courier New',monospace; font-size: 12px; }
   #previewArea hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
   #previewArea blockquote { border-left: 3px solid var(--signal-blue); margin: 6px 0; padding: 6px 12px; background: #f5f9ff; border-radius: 0 4px 4px 0; font-size: 12px; }
-  #previewArea s  { text-decoration: line-through; }
 
   #htmlOutput { flex: 1; min-height: 280px; max-height: 480px; resize: vertical; padding: 12px 14px; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; color: var(--blue-black); border: none; outline: none; background: #fff; width: 100%; }
   .output-hint { font-size: 11px; color: var(--cool-gray); padding: 6px 12px; border-top: 1px solid var(--border); background: #fafcff; }
@@ -99,14 +116,23 @@
   .wf-chip.amber { color: #b07800; }
   .wf-chip.blue  { color: var(--signal-blue); }
 
-  /* PANEL TOGGLE */
   .panel-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 95; background: #fff; border: 1.5px solid var(--border); border-right: none; border-radius: 8px 0 0 8px; padding: 10px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.25s; box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
-  .panel-toggle:hover { background: var(--ice-blue); }
-  .panel-toggle .toggle-icon  { font-size: 16px; color: var(--signal-blue); }
-  .panel-toggle .toggle-label { font-size: 9px; font-weight: 700; color: var(--cool-gray); text-transform: uppercase; letter-spacing: 0.05em; writing-mode: vertical-rl; text-orientation: mixed; }
-  .panel-toggle.panel-open-toggle { right: var(--panel-width); }
+  /* TOAST NOTIFICATION */
+  #kmToast {
+    position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+    background: var(--blue-black); color: #fff;
+    font-size: 13px; font-weight: 600; font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 10px 18px; border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: translateY(8px);
+  }
+  #kmToast.km-toast-visible {
+    opacity: 1; pointer-events: none; transform: translateY(0);
+  }
+  #kmToast.km-toast-error { background: var(--accent-red); }
 
-  [data-code-block="true"] { background: #f4f6f8; border-left: 3px solid var(--signal-blue); border-radius: 0 4px 4px 0; padding: 6px 10px; font-family: 'Consolas','Courier New',monospace; font-size: 12px; display: block; margin: 4px 0; white-space: pre-wrap; }
 </style>
 </head>
 <body>
@@ -115,30 +141,34 @@
   <div class="header-left">
     <div class="header-icon">&#128203;</div>
     <div class="header-text">
-      <h1>KM paste-to-HTML converter</h1>
-      <p>Paste content from Word. Convert it into clean Salesforce Knowledge HTML.</p>
+      <h1>KM HTML Converter</h1>
+      <p>Paste content from Word and convert it into clean Salesforce Knowledge HTML.</p>
     </div>
   </div>
-  <div class="header-badge">For Salesforce Knowledge source code</div>
 </header>
 
 <div class="app-body">
   <div class="main-content" id="mainContent">
+
     <div class="paste-section">
       <div class="section-label">1. Paste copied Word content here</div>
-      <div id="pasteArea" contenteditable="true" data-placeholder="Paste copied Word content here..." spellcheck="false"></div>
-      <div class="paste-hint">
-        <span>Paste directly (Ctrl+V). The app will capture rich content from Microsoft Word.</span>
-        <span>&#128203;</span>
+      <div class="paste-box">
+        <div class="paste-box-toolbar">
+          <span id="pasteStatus">Click below and paste (Ctrl+V)</span>
+          <button class="paste-clear-btn" id="btnPasteClear">Clear</button>
+        </div>
+        <div id="pasteRender" class="empty" tabindex="0" contenteditable="true" spellcheck="true"></div>
       </div>
+      <div class="paste-hint">The paste area shows a preview of your Word content. The original formatting is preserved for conversion.</div>
     </div>
+
     <div class="actions">
       <button class="btn-primary"   id="btnConvert">&#8635; Convert to HTML</button>
       <button class="btn-secondary" id="btnCopy">&#128203; Copy HTML</button>
-      <button class="btn-danger"    id="btnClear">&#128465; Clear</button>
+      <button class="btn-danger"    id="btnClearAll">&#128465; Clear all</button>
       <button class="btn-code"      id="btnMarkCode">&lt;/&gt; Mark selection as code</button>
-      <span id="copyStatus">&#10003; HTML copied.</span>
     </div>
+
     <div class="output-grid">
       <div class="panel-box">
         <div class="panel-box-header">2. Preview (rendered output)</div>
@@ -147,7 +177,7 @@
       <div class="panel-box">
         <div class="panel-box-header">3. HTML output (editable)</div>
         <textarea id="htmlOutput" spellcheck="false" placeholder="Converted HTML will appear here. You can edit before copying."></textarea>
-        <div class="output-hint">You can edit the HTML above before copying.</div>
+        <div class="output-hint">Edit the HTML above before copying into Salesforce.</div>
       </div>
     </div>
   </div>
@@ -155,7 +185,6 @@
   <div class="warnings-panel hidden" id="warningsPanel">
     <div class="warnings-panel-header">
       <span>Warnings &amp; Info</span>
-      <span style="font-size:10px;color:var(--cool-gray);font-weight:400;text-transform:none;letter-spacing:0;">&#9432;</span>
     </div>
     <div class="warnings-scroll" id="warningsList">
       <div class="warnings-empty" id="warningsEmpty">No warnings yet. Paste content and convert to see results.</div>
@@ -171,14 +200,28 @@
     <span class="toggle-icon" id="toggleIcon">&#9664;</span>
     <span class="toggle-label">Info</span>
   </button>
+  <div id="kmToast" role="status" aria-live="polite"></div>
 </div>
 
 <script>
-// ─── State ────────────────────────────────────────────────────────────────────
-let storedClipboardHTML = '';
-let pasteAreaDirty = false; // true when user edits paste area after paste
+/* ============================================================================
+   CONFIG
+   ============================================================================ */
+const BOLD_TAG   = 'strong';
+const ITALIC_TAG = 'em';
+const SF_FONT    = 'font-family: Arial, sans-serif; font-size: 12px;';
+const CODE_FONT  = "font-family: 'Courier New', Consolas, monospace; font-size: 12px;";
 
-// ─── Panel toggle ─────────────────────────────────────────────────────────────
+/* ============================================================================
+   STATE
+   ============================================================================ */
+let storedClipboardHTML = '';
+let pasteAreaDirty = false;
+let renderingPastePreview = false;
+
+/* ============================================================================
+   PANEL TOGGLE
+   ============================================================================ */
 let panelOpen = false;
 const warningsPanel = document.getElementById('warningsPanel');
 const panelToggle   = document.getElementById('panelToggle');
@@ -187,109 +230,491 @@ const mainContent   = document.getElementById('mainContent');
 
 function setPanelOpen(open) {
   panelOpen = open;
-  if (open) {
-    warningsPanel.classList.remove('hidden');
-    mainContent.classList.add('panel-open');
-    panelToggle.classList.add('panel-open-toggle');
-    toggleIcon.textContent = '\u25B6';
-  } else {
-    warningsPanel.classList.add('hidden');
-    mainContent.classList.remove('panel-open');
-    panelToggle.classList.remove('panel-open-toggle');
-    toggleIcon.textContent = '\u25C4';
-  }
+  warningsPanel.classList.toggle('hidden', !open);
+  mainContent.classList.toggle('panel-open', open);
+  panelToggle.classList.toggle('panel-open-toggle', open);
+  toggleIcon.textContent = open ? '\u25B6' : '\u25C4';
 }
 panelToggle.addEventListener('click', () => setPanelOpen(!panelOpen));
 
-// ─── Paste capture ────────────────────────────────────────────────────────────
-const pasteArea = document.getElementById('pasteArea');
+/* ============================================================================
+   PASTE AREA  (read-only rendered preview)
+   ============================================================================ */
+const pasteRender = document.getElementById('pasteRender');
+const pasteStatus = document.getElementById('pasteStatus');
 
-pasteArea.addEventListener('paste', (e) => {
-  e.preventDefault();
-  storedClipboardHTML = '';
-  pasteAreaDirty = false;
+// Accept paste anywhere on the page, not just when pasteRender is focused.
+document.addEventListener('paste', handlePaste);
+pasteRender.addEventListener('input', () => {
+  if (renderingPastePreview) return;
+  pasteAreaDirty = true;
+  storedClipboardHTML = pasteRender.innerHTML;
+  pasteStatus.textContent = 'Paste preview edited. Ready to convert edited content.';
+});
 
+function handlePaste(e) {
   const clipData = e.clipboardData || window.clipboardData;
-  const html = clipData ? (clipData.getData('text/html') || '') : '';
-  const text = clipData ? (clipData.getData('text/plain') || '') : '';
+  if (!clipData) return;
+
+  const html = clipData.getData('text/html') || '';
+  const text = clipData.getData('text/plain') || '';
+
+  if (!html && !text) return;
+
+  // Don't intercept pastes into the HTML output textarea.
+  if (e.target === document.getElementById('htmlOutput')) return;
+
+  e.preventDefault();
 
   if (html) {
     storedClipboardHTML = html;
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
-    temp.querySelectorAll('style,script,link,meta').forEach(el => el.remove());
-    pasteArea.innerHTML = temp.innerHTML;
-  } else if (text) {
-    pasteArea.textContent = text;
+    pasteAreaDirty = false;
+    renderPastePreview(html);
+  } else {
+    storedClipboardHTML = '';
+    pasteAreaDirty = true;
+    pasteRender.textContent = text;
   }
-});
 
-// Dirty flag: user edited paste area after paste
-pasteArea.addEventListener('input', () => {
-  if (storedClipboardHTML) pasteAreaDirty = true;
-});
+  pasteRender.classList.remove('empty');
+  pasteStatus.textContent = 'Word content pasted. Ready to convert.';
+}
 
-// ─── Mark selection as code ───────────────────────────────────────────────────
+function renderPastePreview(html) {
+  renderingPastePreview = true;
+  // Strip MSO junk but PRESERVE Word list markers.
+  // Word puts the visible marker (1. a. bullet i. o square) inside
+  //   <![if !supportLists]><span style='mso-list:Ignore'>...</span><![endif]>
+  // which is a downlevel-REVEALED conditional comment. We must unwrap it
+  // (remove only the <![if]> / <![endif]> tags) and keep the span inside.
+  // The downlevel-HIDDEN form <!--[if ...]> ... <![endif]--> holds VML/xml junk
+  // and is removed whole.
+  let clean = html
+    .replace(/<!--\[if[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '')   // hidden junk: remove whole
+    .replace(/<!\[if[^\]]*\]>/gi, '')                            // revealed: unwrap, keep marker
+    .replace(/<!\[endif\]>/gi, '')
+    .replace(/<\?xml[^>]*>/gi, '')
+    .replace(/<(script|style|link|meta|xml|o:p)[^>]*>[\s\S]*?<\/\1>/gi, '')
+    .replace(/<(script|style|link|meta|xml)\b[^>]*\/?>/gi, '');
+
+  const temp = document.createElement('div');
+  temp.innerHTML = clean;
+
+  // Word Online / Office 365 web: rebuild nested list from data-aria-level.
+  buildPreviewWordOnlineLists(temp);
+  // Desktop Word mso-list format: rebuild from MsoListParagraph.
+  buildPreviewLists(temp);
+  removePreviewWordArtifacts(temp);
+  stripWordControlText(temp);
+
+  // Drop now-empty paragraphs/divs left behind by Word, then tidy whitespace.
+  temp.querySelectorAll('p, div').forEach(el => {
+    if (!el.querySelector('img, table, ul, ol, br') && !el.textContent.trim()) el.remove();
+  });
+  pasteRender.innerHTML = temp.innerHTML.replace(/(?:\s*\n\s*){2,}/g, '\n').trim();
+  renderingPastePreview = false;
+}
+
+// Preview version of Word Online list rebuilding — same DOM-order logic.
+function buildPreviewWordOnlineLists(root) {
+  // STEP 1: Flatten outer SCXW grouping divs into root's child list.
+  Array.from(root.children).forEach(child => {
+    if (!isWordOnlineOuterDiv(child)) return;
+    const parent = child.parentNode;
+    if (!parent) return;
+    Array.from(child.childNodes).forEach(k => {
+      parent.insertBefore(k.cloneNode(true), child);
+    });
+    parent.removeChild(child);
+  });
+
+  // STEP 2: Walk children, collect consecutive ListContainerWrapper runs.
+  const children = Array.from(root.childNodes);
+  let i = 0;
+
+  while (i < children.length) {
+    const node = children[i];
+    if (!isListContainerWrapper(node)) { i++; continue; }
+
+    const wrappers = [node];
+    let j = i + 1;
+    while (j < children.length) {
+      const next = children[j];
+      if (isListContainerWrapper(next)) { wrappers.push(next); j++; }
+      else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; }
+      else break;
+    }
+
+    const allLis = [];
+    wrappers.forEach(w => {
+      w.querySelectorAll('li[data-aria-level]').forEach(li => allLis.push(li));
+    });
+
+    if (!allLis.length) { i = j; continue; }
+
+    const descriptors = allLis.map(li => {
+      const level = parseInt(li.getAttribute('data-aria-level'), 10) || 1;
+      const { tag, typeAttr, styleAttr } = wordOnlineListType(li);
+      const parentStart = li.parentElement ? parseInt(li.parentElement.getAttribute('start') || '1', 10) : 1;
+      const posInSet = parseInt(li.getAttribute('data-aria-posinset') || '1', 10);
+      const startAttr = (parentStart > 1 && posInSet === 1) ? String(parentStart) : null;
+
+      const clone = li.cloneNode(true);
+      clone.querySelectorAll('.EOP, [data-ccp-props]').forEach(el => el.remove());
+      removePreviewWordArtifacts(clone);
+      stripWordControlText(clone);
+      const pKids = Array.from(clone.children).filter(c => c.tagName.toLowerCase() === 'p');
+      if (pKids.length === 1 && !pKids[0].querySelector('ul,ol,table')) {
+        pKids[0].replaceWith(...Array.from(pKids[0].childNodes));
+      }
+      const html = trimPreviewHTML(clone.innerHTML);
+      return { level, tag, typeAttr, styleAttr, startAttr, html };
+    });
+
+    const listDOM = buildPreviewListDOM(descriptors, document);
+    wrappers[0].parentNode.insertBefore(listDOM, wrappers[0]);
+    wrappers.forEach(w => w.parentNode && w.parentNode.removeChild(w));
+    i = j;
+  }
+}
+
+function buildPreviewLists(root) {
+  const children = Array.from(root.childNodes);
+  let i = 0;
+  while (i < children.length) {
+    const node = children[i];
+    if (!isPreviewWordListPara(node)) { i++; continue; }
+
+    const { run, gaps, next } = collectListRun(children, i, isPreviewWordListPara);
+
+    const rawItems = run.map(p => ({ level: getWordLevel(p), marker: getWordMarkerChar(p) }));
+    const classes = classifyWordRun(rawItems);
+    const items = run.map((p, idx) => {
+      const cls = classes[idx];
+      const contentNode = p.cloneNode(true);
+      // Strip the mso:Ignore span (full Word format).
+      const ignSpan = Array.from(contentNode.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
+      if (ignSpan) {
+        ignSpan.remove();
+      } else {
+        // Chrome format: strip the leading marker text node + adjacent spacer span.
+        let firstChild = contentNode.firstChild;
+        while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
+          firstChild = firstChild.nextSibling;
+        }
+        if (firstChild && isMarkerToken(normalizeWordMarker(
+            firstChild.nodeType === Node.TEXT_NODE ? firstChild.nodeValue.trim() : firstChild.textContent.trim()
+          ))) {
+          firstChild.remove();
+          const spacer = contentNode.firstChild;
+          if (spacer && isSpacerSpan(spacer)) spacer.remove();
+        }
+      }
+      removePreviewWordArtifacts(contentNode);
+      stripWordControlText(contentNode);
+      return { level: rawItems[idx].level, tag: cls.tag, typeAttr: cls.typeAttr, styleAttr: cls.styleAttr, startAttr: cls.startAttr, html: trimPreviewHTML(contentNode.innerHTML) };
+    });
+
+    const listDOM = buildPreviewListDOM(items, document);
+    run[0].parentNode.insertBefore(listDOM, run[0]);
+    run.forEach(el => el.parentNode && el.parentNode.removeChild(el));
+    gaps.forEach(g => g.parentNode && g.parentNode.removeChild(g));
+    i = next;
+  }
+}
+
+function getWordLevel(node) {
+  const style = node.getAttribute('style') || '';
+  const m = style.match(/mso-list\s*:[^;]*\blevel(\d+)/i);
+  if (m) return parseInt(m[1], 10);
+  return wordListLevel(node);
+}
+function getWordMarkerChar(node) {
+  // Path 1: full Word clipboard — marker is in a span with mso-list:Ignore.
+  const ignoreSpan = Array.from(node.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
+  if (ignoreSpan) return normalizeWordMarker(ignoreSpan.textContent);
+
+  // Path 2: Chrome-stripped Word clipboard — marker is the raw leading text/glyph
+  // at the very start of the paragraph (first text node or first element's text),
+  // optionally followed by a spacer span with a tiny font-size.
+  return extractLeadingMarker(node);
+}
+
+// Pull the marker token out of the paragraph's leading content without altering
+// the node. Returns the normalized marker string, or '' if not detected.
+function extractLeadingMarker(node) {
+  let firstChild = node.firstChild;
+  // Skip zero-width / whitespace-only text nodes at the front.
+  while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
+    firstChild = firstChild.nextSibling;
+  }
+  if (!firstChild) return '';
+
+  let rawMarker = '';
+  if (firstChild.nodeType === Node.TEXT_NODE) {
+    rawMarker = firstChild.nodeValue.trim();
+  } else if (firstChild.nodeType === Node.ELEMENT_NODE) {
+    rawMarker = firstChild.textContent.trim();
+  }
+  rawMarker = normalizeWordMarker(rawMarker);
+
+  // Confirm it looks like a list marker token (not real content).
+  if (isMarkerToken(rawMarker)) return rawMarker;
+  return '';
+}
+
+// Returns true if the string is a plausible list marker: a bullet glyph, a
+// number, a lower/upper letter, or a roman numeral — with or without separator.
+function isMarkerToken(s) {
+  if (!s) return false;
+  // Single bullet glyph.
+  if (/^[\u2022\u25cf\u00b7\u2219\u2023\u25aa\u25a0\u25ab\u25a1\u25cb\u25e6\u25ef\u00a7]$/.test(s)) return true;
+  // Word's circle bullet: lone 'o' with no letters around it.
+  if (/^o$/.test(s)) return true;
+  const core = s.replace(/[.)\]]+$/, '').trim();
+  if (/^\d{1,3}$/.test(core)) return true;                       // 1 2 3 ... 99
+  if (/^[a-zA-Z]$/.test(core)) return true;                      // a b ... z A B
+  if (/^[ivxlcdmIVXLCDM]{2,6}$/.test(core)) return true;        // ii iii iv ...
+  return false;
+}
+
+/* ============================================================================
+   SHARED WORD MARKER NORMALISATION + RUN-AWARE CLASSIFICATION
+   Used by BOTH the paste preview and the final HTML output so they always
+   agree on list type, nesting, and start numbers.
+   ============================================================================ */
+
+// Map Word's Symbol/Wingdings private-use bullet glyphs to real unicode bullets,
+// strip other control glyphs, and collapse whitespace. Separators (. ) ]) kept.
+function normalizeWordMarker(text) {
+  return (text || '')
+    .replace(/[\u0009\u000b\u000c\u00a0\u200b-\u200f\ufeff]/g, ' ')
+    .replace(/[\uf0a7\uf0fc]/g, '\u25aa')        // square bullet
+    .replace(/[\uf06f]/g, '\u25e6')              // circle bullet
+    .replace(/[\uf0b7\uf0d8\uf0a8\uf09f]/g, '\u2022') // disc bullet
+    .replace(/[\uf000-\uf0ff]/g, '')             // any other private-use glyph
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isStrictRoman(s) {
+  return s.length >= 2 && /^(m{0,3})(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$/i.test(s);
+}
+function isRomanLetters(s) {
+  return s.length >= 1 && /^[ivxlcdm]+$/i.test(s);
+}
+
+// Classify a single normalized marker. levelIsRoman lets an ambiguous single
+// letter (i, v, x...) be read as roman when a sibling at the same level proves
+// the level is roman (e.g. it also contains "ii"/"iii").
+function classifyWordMarker(marker, levelIsRoman) {
+  const m = (marker || '').trim();
+  if (!m) return { tag:'ol', typeAttr:'1', styleAttr:null, startAttr:null };
+
+  // Bullet glyphs (already normalized to unicode).
+  if (/^[\u25aa\u25a0\u25ab\u25a1\u00a7]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'square', startAttr:null };
+  if (/^[\u25cb\u25e6\u25ef]$/.test(m))             return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
+  if (/^[\u2022\u25cf\u00b7\u2219\u2023]$/.test(m) || /^[-*]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
+
+  const hasSep = /[.)\]]$/.test(m);
+  const core = m.replace(/[.)\]]+$/, '').trim();
+
+  // A lone "o" with no separator is Word's circle bullet, not the letter o.
+  if (!hasSep && /^o$/i.test(core)) return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
+
+  if (/^\d+$/.test(core)) {
+    const n = parseInt(core, 10);
+    return { tag:'ol', typeAttr:'1', styleAttr:null, startAttr: n > 1 ? String(n) : null };
+  }
+  if (isStrictRoman(core) || (levelIsRoman && isRomanLetters(core))) {
+    const n = romanToInt(core);
+    const upper = core === core.toUpperCase();
+    return { tag:'ol', typeAttr: upper ? 'I' : 'i', styleAttr:null, startAttr: n > 1 ? String(n) : null };
+  }
+  if (/^[a-z]$/.test(core)) { const n = alphaToInt(core); return { tag:'ol', typeAttr:'a', styleAttr:null, startAttr: n > 1 ? String(n) : null }; }
+  if (/^[A-Z]$/.test(core)) { const n = alphaToInt(core); return { tag:'ol', typeAttr:'A', styleAttr:null, startAttr: n > 1 ? String(n) : null }; }
+
+  // Unknown marker: treat as a disc bullet rather than inventing a number.
+  return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
+}
+
+// Classify a whole run together so per-level roman detection is consistent.
+// rawItems: [{ level, marker }] with markers already normalized.
+function classifyWordRun(rawItems) {
+  const romanLevels = new Set();
+  rawItems.forEach(it => {
+    const core = (it.marker || '').replace(/[.)\]]+$/, '').trim();
+    if (isStrictRoman(core)) romanLevels.add(it.level);
+  });
+  return rawItems.map(it => classifyWordMarker(it.marker, romanLevels.has(it.level)));
+}
+
+/* ----------------------------------------------------------------------------
+   RUN COLLECTION (shared by preview + output)
+   A Word multilevel list is a sequence of list paragraphs that share the same
+   Word list id (mso-list:lN). Word often drops empty "spacer" paragraphs or
+   <o:p> nodes between items; those must NOT split the list. Real non-empty,
+   non-list content DOES split it.
+   ---------------------------------------------------------------------------- */
+function wordListId(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
+  const m = (node.getAttribute('style') || '').match(/mso-list\s*:\s*(l\d+)/i);
+  return m ? m[1].toLowerCase() : null;
+}
+function sameWordList(a, b) {
+  // If either side lacks an id (margin-only fallback list), allow grouping.
+  if (a == null || b == null) return true;
+  return a === b;
+}
+function isIgnorableGapNode(node) {
+  if (node.nodeType === Node.TEXT_NODE) return !node.textContent.trim();
+  if (node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) return false;
+  const tag = node.tagName.toLowerCase();
+  if (tag === 'br' || tag === 'o:p') return true;
+  if (tag === 'p' || tag === 'div' || tag === 'span') {
+    if (node.querySelector('img, table, ul, ol')) return false;
+    return !node.textContent.trim();
+  }
+  return false;
+}
+// Collect one list run starting at items[startIdx]. isPara(node) decides list
+// membership. Returns { run, gaps, next }.
+function collectListRun(items, startIdx, isPara) {
+  const first = items[startIdx];
+  const listId = wordListId(first);
+  const run = [first];
+  const gaps = [];
+  let j = startIdx + 1;
+  while (j < items.length) {
+    const next = items[j];
+    if (isPara(next) && sameWordList(listId, wordListId(next))) { run.push(next); j++; continue; }
+    if (isIgnorableGapNode(next)) { gaps.push(next); j++; continue; }
+    break;
+  }
+  return { run, gaps, next: j };
+}
+
+function buildPreviewListDOM(items, doc) {
+  const frag = doc.createDocumentFragment();
+  const holder = doc.createElement('div');
+  holder.innerHTML = buildLeveledTree(items).map(serializeList).join('');
+  Array.from(holder.childNodes).forEach(node => frag.appendChild(node));
+  return frag;
+}
+
+function isPreviewWordListPara(node) {
+  if (node.nodeType !== Node.ELEMENT_NODE) return false;
+  const tag = node.tagName.toLowerCase();
+  if (tag !== 'p' && tag !== 'div') return false;
+  const cls = node.getAttribute('class') || '';
+  const style = node.getAttribute('style') || '';
+  if (/MsoListParagraph/i.test(cls) || /mso-list\s*:/i.test(style)) return true;
+  return wordIndentInches(node) >= 0.35 && /text-indent\s*:\s*-\s*[\d.]+/i.test(style);
+}
+
+function wordIndentInches(node) {
+  const style = node.getAttribute('style') || '';
+  const mi = style.match(/margin-left\s*:\s*([\d.]+)\s*(in|pt|px|cm)/i);
+  if (!mi) return 0;
+  const val = parseFloat(mi[1]);
+  const unit = mi[2].toLowerCase();
+  if (unit === 'in') return val;
+  if (unit === 'pt') return val / 72;
+  if (unit === 'px') return val / 96;
+  if (unit === 'cm') return val / 2.54;
+  return 0;
+}
+
+function removePreviewWordArtifacts(root) {
+  root.querySelectorAll('span').forEach(s => {
+    const style = s.getAttribute('style') || '';
+    if (/mso-list\s*:\s*ignore|mso-tab-count/i.test(style)) {
+      s.remove();
+    } else if (/mso-spacerun/i.test(style)) {
+      s.replaceWith(document.createTextNode(' '));
+    }
+  });
+}
+
+function stripWordControlText(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node => {
+    node.nodeValue = cleanWordControlText(node.nodeValue);
+  });
+}
+
+function cleanWordControlText(text) {
+  return (text || '')
+    .replace(/[\u0009\u000b\u000c\u200b-\u200f\ufeff]/g, ' ')
+    .replace(/[\uf020-\uf0ff]/g, '')
+    .replace(/\u00a0+/g, ' ')
+    .replace(/[ \t]{2,}/g, ' ');  // collapse runs, but keep a single trailing space before inline links
+}
+
+function cleanWordMarkerText(text) {
+  const raw = (text || '').replace(/[\u0009\u000b\u000c\u00a0\u200b-\u200f\ufeff]/g, ' ').trim();
+  if (/[\uf0b7\uf0d8]/i.test(raw)) return '\u2022';
+  if (/[\uf0a7\uf0fc]/i.test(raw)) return '\u25aa';
+  if (/[\uf06f]/i.test(raw)) return '\u25e6';
+  return raw;
+}
+
+function trimPreviewHTML(html) {
+  return (html || '').replace(/^(?:&nbsp;|\s)+|(?:&nbsp;|\s)+$/g, '');
+}
+
+/* ============================================================================
+   MARK SELECTION AS CODE
+   ============================================================================ */
 document.getElementById('btnMarkCode').addEventListener('click', () => {
   const sel = window.getSelection();
-
   if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
-    addWarning('info', 'No selection', 'Select text in the paste area first.');
-    setPanelOpen(true);
-    return;
+    addWarning('info', 'No selection', 'Select text in the paste preview first, then click Mark as code.');
+    setPanelOpen(true); return;
   }
-
   const range = sel.getRangeAt(0);
-
-  if (!pasteArea.contains(range.commonAncestorContainer)) {
-    addWarning('info', 'Selection outside paste area', 'Make a selection inside the paste area.');
-    setPanelOpen(true);
-    return;
+  if (!pasteRender.contains(range.commonAncestorContainer)) {
+    addWarning('info', 'Selection outside paste area', 'Select text inside the paste preview area.');
+    setPanelOpen(true); return;
   }
-
-  const fragment = range.cloneContents();
-  let selectedText = getPlainTextWithBreaks(fragment);
-  selectedText = cleanCodeText(selectedText);
-
-  if (!selectedText.trim()) return;
+  const frag = range.cloneContents();
+  const text = cleanCodeText(getPlainText(frag));
+  if (!text.trim()) return;
 
   const marker = document.createElement('div');
   marker.setAttribute('data-code-block', 'true');
-  marker.textContent = selectedText;
+  marker.style.cssText = 'background:#f4f6f8;border-left:3px solid #4DA3FF;padding:6px 10px;font-family:Courier New,monospace;font-size:12px;white-space:pre-wrap;margin:4px 0;border-radius:0 4px 4px 0;';
+  marker.textContent = text;
 
   range.deleteContents();
   range.insertNode(marker);
-
   sel.removeAllRanges();
-  pasteAreaDirty = true;
+
+  // Rebuild storedClipboardHTML from current paste render so conversion picks up the code block.
+  storedClipboardHTML = pasteRender.innerHTML;
+  pasteStatus.textContent = 'Code block marked.';
 });
 
-// ─── Convert ──────────────────────────────────────────────────────────────────
+/* ============================================================================
+   CONVERT
+   ============================================================================ */
 document.getElementById('btnConvert').addEventListener('click', () => {
-  const pasteContent = pasteArea.innerHTML || pasteArea.textContent || '';
-  if (!pasteContent.trim()) {
-    addWarning('info', 'Nothing to convert', 'Paste content into the paste area first.');
+  const hasContent = pasteRender.textContent.trim() || storedClipboardHTML;
+  if (!hasContent) {
+    addWarning('info', 'Nothing to convert', 'Paste Word content first.');
     setPanelOpen(true); return;
   }
 
   const warnings = [];
   let converted = '';
   try {
-    // Use current paste area HTML if dirty (user edited after paste), else use stored clipboard
-    let source;
-    let usedFallback = false;
-    if (pasteAreaDirty || !storedClipboardHTML) {
-      source = pasteArea.innerHTML || pasteArea.textContent || '';
-      if (!source.includes('<')) usedFallback = true;
-      if (pasteAreaDirty) {
-        warnings.push({ level: 'info', title: 'Paste area was edited', msg: 'Content was read from the paste area directly since it was modified after pasting.' });
-      }
-    } else {
-      source = storedClipboardHTML;
-    }
-    converted = convertHTML(source, usedFallback, warnings);
+    const source = pasteAreaDirty ? (pasteRender.innerHTML || pasteRender.textContent || '') : (storedClipboardHTML || pasteRender.innerHTML || pasteRender.textContent || '');
+    const useFallback = !source.includes('<');
+    converted = convertHTML(source, useFallback, warnings);
   } catch (err) {
-    addWarning('error', 'Conversion error', 'An error occurred. Check the paste area content.');
+    addWarning('error', 'Conversion error', 'An unexpected error occurred. Check the paste area content.');
     setPanelOpen(true); return;
   }
 
@@ -297,945 +722,1224 @@ document.getElementById('btnConvert').addEventListener('click', () => {
   document.getElementById('previewArea').innerHTML = converted;
 
   clearWarnings();
-  warnings.forEach(w => addWarning(w.level, w.title, w.msg));
-  addWarning('info', 'Conversion complete', 'Review the preview and HTML before copying.');
+  dedupeWarnings(warnings).forEach(w => addWarning(w.level, w.title, w.msg));
+  addWarning('info', 'Conversion complete', 'Review the preview and HTML output before copying into Salesforce.');
   updateWarningsFooter();
-  if (warnings.length > 1) setPanelOpen(true);
+  if (warnings.some(w => w.level === 'error' || w.level === 'warning') || warnings.length > 1) setPanelOpen(true);
 });
 
-// ─── Main converter ───────────────────────────────────────────────────────────
-function convertHTML(source, usedFallback, warnings) {
-  if (usedFallback) {
-    warnings.push({ level: 'warning', title: 'Plain text fallback used', msg: 'Clipboard HTML unavailable. Content converted from plain text.' });
-    return convertPlainText(source);
+/* ============================================================================
+   MAIN CONVERTER
+   ============================================================================ */
+function convertHTML(source, useFallback, warnings) {
+  if (useFallback) {
+    warnings.push({ level: 'warning', title: 'Plain text fallback', msg: 'No rich HTML found. Converted from plain text.' });
+    return convertPlainText(source, warnings);
   }
 
   const doc = new DOMParser().parseFromString(source, 'text/html');
   const body = doc.body || doc.documentElement;
 
-  // Remove Office junk nodes
   ['script','style','link','meta','xml'].forEach(tag => {
     try { body.querySelectorAll(tag).forEach(el => el.remove()); } catch(e) {}
   });
 
-  if (source.includes('mso-') || source.includes('MsoNormal') || source.includes('class="Mso')) {
-    warnings.push({ level: 'info', title: 'Word-specific styling removed', msg: 'MSO styles, classes, and metadata were removed.' });
+  if (source.includes('mso-') || source.includes('MsoNormal')) {
+    warnings.push({ level: 'info', title: 'Word styling removed', msg: 'MSO styles and metadata were stripped.' });
   }
 
-  // Pre-passes: run before main conversion
   removePageBreaks(body);
   collapseEmptyParagraphs(body, warnings);
-  groupCodeParagraphs(body, warnings);
+  groupWordOnlineLists(body, warnings);   // ← Word Online / Office 365 web
+  groupNativeWordLists(body, warnings);   // ← desktop Word mso-list format
   groupManualLists(body, warnings);
+  groupJsonBlocks(body, warnings);
+  groupCodeParagraphs(body, warnings);
 
-  const output = processChildren(body, warnings);
-  return insertHRBeforeH2(output).trim();
+  return finalizeHr(processChildren(body, warnings))
+    .replace(/^[ \t]+$/gm, '')   // lines that are only spaces/tabs
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
-// ─── Pre-pass: remove page/section break artifacts ───────────────────────────
+/* ============================================================================
+   PRE-PASSES
+   ============================================================================ */
 function removePageBreaks(body) {
-  // Word page breaks: <br clear="all">, mso-special-character, empty styled divs
   body.querySelectorAll('br[clear]').forEach(el => el.remove());
   body.querySelectorAll('[style]').forEach(el => {
     const s = el.getAttribute('style') || '';
-    if (s.includes('mso-special-character') || s.includes('page-break')) {
-      el.remove();
-    }
+    if (s.includes('mso-special-character') || s.includes('page-break')) el.remove();
   });
 }
 
-// ─── Pre-pass: collapse consecutive empty paragraphs into one ────────────────
 function collapseEmptyParagraphs(body, warnings) {
-  const children = Array.from(body.childNodes);
-  let emptyRun = 0;
-  let warned = false;
-  children.forEach(node => {
+  let emptyRun = 0, warned = false;
+  Array.from(body.childNodes).forEach(node => {
     if (node.nodeType === Node.ELEMENT_NODE) {
       const tag = node.tagName.toLowerCase();
-      if ((tag === 'p' || tag === 'div') && !node.textContent.trim()) {
-        emptyRun++;
-        if (emptyRun > 1) {
+      if ((tag === 'p' || tag === 'div') && !isSentinel(node) && !node.textContent.trim()) {
+        if (++emptyRun > 1) {
           node.parentNode.removeChild(node);
-          if (!warned) {
-            warnings.push({ level: 'info', title: 'Empty paragraphs collapsed', msg: 'Multiple consecutive empty paragraphs were reduced to one.' });
-            warned = true;
-          }
+          if (!warned) { warnings.push({ level: 'info', title: 'Empty paragraphs collapsed', msg: 'Consecutive empty paragraphs reduced to one.' }); warned = true; }
         }
-      } else {
-        emptyRun = 0;
-      }
+      } else emptyRun = 0;
     }
   });
 }
 
-// ─── Pre-pass: group tab/monospace paragraphs into code blocks ───────────────
-function groupCodeParagraphs(body, warnings) {
+function isSentinel(node) {
+  return node.nodeType === Node.ELEMENT_NODE &&
+    (node.getAttribute('data-list') === 'true' ||
+     node.getAttribute('data-pre-code') === 'true' ||
+     node.getAttribute('data-code-block') === 'true');
+}
+
+/* ============================================================================
+   MARKER CLASSIFICATION
+   Returns { tag, typeAttr, styleAttr }
+   - typeAttr  used on <ol type="a">  (HTML4, broad Salesforce support)
+   - styleAttr used on <ul style="list-style-type: circle;">
+   ============================================================================ */
+function classifyMarker(marker) {
+  const m = (marker || '').trim();
+  const core = m.replace(/[.)\]]+$/, '').trim();
+
+  // Bullets
+  if (/^[\u25AA\u25A0\u25AB\u25A1\u00A7]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'square', startAttr:null };
+  if (/^[\u25CB\u25E6\u25EF o]$/.test(m))            return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
+  if (/^[\u2022\u25CF\u00B7\u2219\u2023]$/.test(m) || /^[-*]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
+
+  // Ordered
+  if (/^\d+$/.test(core))   return { tag:'ol', typeAttr:'1',   styleAttr:null, startAttr: parseInt(core, 10) > 1 ? String(parseInt(core, 10)) : null };
+  if (isRoman(core))        return { tag:'ol', typeAttr: core === core.toLowerCase() ? 'i' : 'I', styleAttr:null, startAttr: romanToInt(core) > 1 ? String(romanToInt(core)) : null };
+  if (/^[a-z]$/.test(core)) return { tag:'ol', typeAttr:'a',   styleAttr:null, startAttr: alphaToInt(core) > 1 ? String(alphaToInt(core)) : null };
+  if (/^[A-Z]$/.test(core)) return { tag:'ol', typeAttr:'A',   styleAttr:null, startAttr: alphaToInt(core) > 1 ? String(alphaToInt(core)) : null };
+
+  return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
+}
+function isRoman(s) {
+  return s.length >= 2 && /^(m{0,3})(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$/i.test(s);
+}
+function romanToInt(s) {
+  const vals = { i:1, v:5, x:10, l:50, c:100, d:500, m:1000 };
+  const chars = (s || '').toLowerCase().split('');
+  let total = 0;
+  chars.forEach((ch, i) => { total += vals[ch] < vals[chars[i + 1]] ? -vals[ch] : vals[ch]; });
+  return total || 1;
+}
+function alphaToInt(s) {
+  const ch = (s || '').toLowerCase().charCodeAt(0);
+  return ch >= 97 && ch <= 122 ? ch - 96 : 1;
+}
+
+/* ============================================================================
+   LIST TREE SERIALISER
+   ============================================================================ */
+function serializeList(node) {
+  let openTag = `<${node.tag}`;
+  if (node.typeAttr)  openTag += ` type="${node.typeAttr}"`;
+  if (node.styleAttr) openTag += ` style="list-style-type: ${node.styleAttr};"`;
+  if (node.startAttr) openTag += ` start="${node.startAttr}"`;
+  openTag += '>';
+
+  let s = openTag + '\n';
+  node.items.forEach(it => {
+    s += `<li style="${SF_FONT}">${it.html}`;
+    if (it.children && it.children.length) s += '\n' + it.children.map(serializeList).join('');
+    s += '</li>\n';
+  });
+  s += `</${node.tag}>\n`;
+  return s;
+}
+
+/* ============================================================================
+   WORD ONLINE / OFFICE 365 WEB LIST PRE-PASS
+   Word Online puts each list item in its own <ol>/<ul> wrapped in a
+   <div class="ListContainerWrapper">. The nesting metadata lives on the <li>:
+     data-aria-level  = depth (1-based)
+     data-listid      = a list family id (NOT reliable for grouping — multiple
+                        listids can appear interleaved in one logical list)
+   The parent <ol>/<ul> already carries the correct list-style-type.
+
+   Critical insight: Word Online sometimes uses a DIFFERENT listid for a
+   sub-list that is visually and logically nested inside the main list
+   (e.g. roman numeral level-3 items under a level-2 item get listid "21"
+   while the rest of the list uses listid "14"). Grouping by listid breaks
+   these apart. Instead we process ALL Word Online li elements in DOM order
+   as one sequence, using only data-aria-level to drive nesting, and break
+   the sequence only when a non-list element appears between items.
+   ============================================================================ */
+function isWordOnlineLi(node) {
+  return node && node.nodeType === Node.ELEMENT_NODE &&
+    node.tagName.toLowerCase() === 'li' &&
+    node.hasAttribute('data-aria-level') &&
+    node.hasAttribute('data-listid');
+}
+
+// Is this a top-level Word Online wrapper node (ListContainerWrapper div, or
+// an outer SCXW div containing only ListContainerWrapper children)?
+// A ListContainerWrapper div — the direct container of a Word Online <li>.
+function isListContainerWrapper(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  return /ListContainerWrapper/i.test(node.getAttribute('class') || '');
+}
+
+// A Word Online outer SCXW grouping div. These contain a mix of
+// ListContainerWrapper children and OutlineElement (heading/paragraph) children.
+// We must NOT treat the whole div as a list — we need to flatten its children
+// into the body so headings and notes between list items are preserved.
+function isWordOnlineOuterDiv(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  const cls = node.getAttribute('class') || '';
+  return /SCXW\d+/i.test(cls) && !isListContainerWrapper(node);
+}
+
+// An OutlineElement that is NOT a list item (heading, paragraph, note).
+function isWordOnlineNonListOutline(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  const cls = node.getAttribute('class') || '';
+  return /OutlineElement/i.test(cls) && !node.querySelector('li[data-aria-level]');
+}
+
+// Pull list-type info from the <li>'s parent <ol>/<ul>.
+function wordOnlineListType(li) {
+  const parent = li.parentElement;
+  if (!parent) return { tag:'ol', typeAttr:'1', styleAttr:null };
+  const tag = parent.tagName.toLowerCase();
+  const style = (parent.getAttribute('style') || '').toLowerCase();
+  const m = style.match(/list-style-type\s*:\s*([a-z-]+)/);
+  const lsType = m ? m[1] : '';
+  if (tag === 'ul') {
+    if (lsType === 'circle')  return { tag:'ul', typeAttr:null, styleAttr:'circle' };
+    if (lsType === 'square')  return { tag:'ul', typeAttr:null, styleAttr:'square' };
+    return { tag:'ul', typeAttr:null, styleAttr:'disc' };
+  }
+  const typeMap = { 'decimal':'1', 'lower-alpha':'a', 'upper-alpha':'A', 'lower-roman':'i', 'upper-roman':'I' };
+  return { tag:'ol', typeAttr: typeMap[lsType] || '1', styleAttr:null };
+}
+
+// Extract clean text/HTML from a Word Online <li>, preserving inline links.
+function wordOnlineLiContent(li, warnings) {
+  const clone = li.cloneNode(true);
+  clone.querySelectorAll('.EOP, [data-ccp-props]').forEach(el => el.remove());
+  clone.querySelectorAll('[class*="SpellingError"], [class*="GrammarError"], [class*="ContextualSpelling"]').forEach(el => {
+    const txt = (clone.ownerDocument || document).createTextNode(el.textContent);
+    el.replaceWith(txt);
+  });
+  return processInlineChildren(clone, warnings).trim();
+}
+
+// Convert a Word Online OutlineElement non-list node (heading or paragraph)
+// into a body-level sentinel so it can be processed by the normal pipeline.
+function promoteWordOnlineOutline(outlineEl, body) {
+  // The actual content paragraph is inside the OutlineElement div.
+  const pEl = outlineEl.querySelector('p.Paragraph, p[paraid]') || outlineEl.querySelector('p') || outlineEl;
+  const clone = pEl.cloneNode(true);
+  clone.querySelectorAll('.EOP, [data-ccp-props]').forEach(el => el.remove());
+  // Check for heading role on the <p>.
+  const headingRole = pEl.getAttribute('role') === 'heading';
+  const ariaLevel = parseInt(pEl.getAttribute('aria-level') || '0', 10);
+  if (headingRole || ariaLevel > 0) {
+    // Create a real heading element so the heading detector picks it up.
+    const tag = ariaLevel === 1 ? 'h1' : ariaLevel === 2 ? 'h2' : 'h' + ariaLevel;
+    const h = body.ownerDocument.createElement(tag);
+    // Copy font-size style for heading level detection.
+    const fontSize = (pEl.getAttribute('style') || '').match(/font-size\s*:\s*[\d.]+pt/i);
+    if (fontSize) h.setAttribute('style', fontSize[0]);
+    h.innerHTML = clone.innerHTML;
+    return h;
+  }
+  // Plain paragraph — return the cleaned <p>.
+  clone.removeAttribute('class');
+  clone.removeAttribute('paraid');
+  clone.removeAttribute('paraeid');
+  return clone;
+}
+
+function groupWordOnlineLists(body, warnings) {
+  // STEP 1: Flatten outer SCXW grouping divs.
+  // These divs mix ListContainerWrapper children with OutlineElement (heading/para)
+  // children. We replace each outer div with its children in-place so that
+  // headings, Note/Warning paragraphs, and list wrappers all become direct
+  // body children and can be handled in correct document order.
+  Array.from(body.children).forEach(child => {
+    if (!isWordOnlineOuterDiv(child)) return;
+    const parent = child.parentNode;
+    if (!parent) return;
+    const kids = Array.from(child.childNodes);
+    kids.forEach(k => {
+      if (isWordOnlineNonListOutline(k)) {
+        // Promote heading/para outline elements to real elements.
+        parent.insertBefore(promoteWordOnlineOutline(k, body), child);
+      } else {
+        parent.insertBefore(k.cloneNode(true), child);
+      }
+    });
+    parent.removeChild(child);
+  });
+
+  // STEP 2: Walk body children in DOM order. Collect consecutive
+  // ListContainerWrapper nodes as one list run; emit non-list content as-is.
   const children = Array.from(body.childNodes);
-  let i = 0;
+  let i = 0, warned = false;
+
   while (i < children.length) {
     const node = children[i];
-    if (node.nodeType === Node.ELEMENT_NODE) {
+    if (!isListContainerWrapper(node)) { i++; continue; }
+
+    // Collect consecutive ListContainerWrapper nodes (the list run).
+    const wrappers = [node];
+    let j = i + 1;
+    while (j < children.length) {
+      const next = children[j];
+      if (isListContainerWrapper(next)) { wrappers.push(next); j++; }
+      else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; }
+      else break;
+    }
+
+    const allLis = [];
+    wrappers.forEach(w => {
+      w.querySelectorAll('li[data-aria-level]').forEach(li => allLis.push(li));
+    });
+
+    if (!allLis.length) { i = j; continue; }
+
+    const descriptors = allLis.map(li => {
+      const level = parseInt(li.getAttribute('data-aria-level'), 10) || 1;
+      const { tag, typeAttr, styleAttr } = wordOnlineListType(li);
+      const parentStart = li.parentElement ? parseInt(li.parentElement.getAttribute('start') || '1', 10) : 1;
+      const posInSet = parseInt(li.getAttribute('data-aria-posinset') || '1', 10);
+      const startAttr = (parentStart > 1 && posInSet === 1) ? String(parentStart) : null;
+      const html = wordOnlineLiContent(li, warnings);
+      return { level, tag, typeAttr, styleAttr, startAttr, html };
+    });
+
+    const roots = buildLeveledTree(descriptors);
+    const html = roots.map(serializeList).join('');
+
+    const sentinel = body.ownerDocument.createElement('div');
+    sentinel.setAttribute('data-list', 'true');
+    sentinel.innerHTML = html;
+    wrappers[0].parentNode.insertBefore(sentinel, wrappers[0]);
+    wrappers.forEach(w => { try { w.parentNode && w.parentNode.removeChild(w); } catch(e){} });
+
+    if (!warned) {
+      warnings.push({ level:'info', title:'Word Online list rebuilt', msg:'Office 365 web list nesting rebuilt from level metadata.' });
+      warned = true;
+    }
+    i = j;
+  }
+}
+
+/* ============================================================================
+   NATIVE WORD LIST PRE-PASS
+   ============================================================================ */
+function groupNativeWordLists(body, warnings) {
+  const children = Array.from(body.childNodes);
+  let i = 0, warned = false;
+  while (i < children.length) {
+    const node = children[i];
+    if (!isWordListPara(node)) { i++; continue; }
+
+    const { run, gaps, next } = collectListRun(children, i, isWordListPara);
+
+    const rawItems = run.map(p => {
+      const level = wordListLevel(p);
+      const { markerText, contentHTML } = extractWordMarker(p, warnings);
+      return { level, marker: markerText, html: contentHTML };
+    });
+    const classes = classifyWordRun(rawItems);
+    const descriptors = rawItems.map((r, idx) => ({ level: r.level, tag: classes[idx].tag, typeAttr: classes[idx].typeAttr, styleAttr: classes[idx].styleAttr, startAttr: classes[idx].startAttr, html: r.html }));
+
+    const roots = buildLeveledTree(descriptors);
+    replaceWithSentinel(run, roots.map(serializeList).join(''), body);
+    gaps.forEach(g => { try { g.parentNode && g.parentNode.removeChild(g); } catch(e){} });
+    if (!warned) { warnings.push({ level:'info', title:'Word list rebuilt', msg:'Native Word list nesting rebuilt from level metadata.' }); warned=true; }
+    i = next;
+  }
+}
+
+function isWordListPara(node) {
+  if (node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) return false;
+  const tag = node.tagName.toLowerCase();
+  if (tag !== 'p' && tag !== 'div') return false;
+  const cls   = node.getAttribute('class') || '';
+  const style = node.getAttribute('style') || '';
+  // Accept: explicit mso-list style, MsoListParagraph class (with or without mso-list),
+  // or any paragraph that has a margin-left >= 0.4in suggesting Word list indentation.
+  if (/MsoListParagraph/i.test(cls) || /mso-list\s*:/i.test(style)) return true;
+  return wordIndentInches(node) >= 0.35 && /text-indent\s*:\s*-\s*[\d.]+/i.test(style);
+}
+function wordListLevel(node) {
+  // Primary: explicit mso-list level attribute.
+  const m = (node.getAttribute('style') || '').match(/mso-list\s*:[^;]*\blevel(\d+)/i);
+  if (m) return parseInt(m[1], 10);
+  // Fallback: derive level from margin-left for flat indented lists (no mso-list metadata).
+  // Word uses ~0.5in per level. Clipboard HTML expresses this as margin-left in inches or pt/px.
+  const style = node.getAttribute('style') || '';
+  const mi = style.match(/margin-left\s*:\s*([\d.]+)\s*(in|pt|px|cm)/i);
+  if (mi) {
+    const val = parseFloat(mi[1]);
+    const unit = mi[2].toLowerCase();
+    let inches;
+    if (unit === 'in') inches = val;
+    else if (unit === 'pt') inches = val / 72;
+    else if (unit === 'px') inches = val / 96;
+    else if (unit === 'cm') inches = val / 2.54;
+    else inches = 0;
+    // Round to nearest 0.5in step; level 1 starts at 0.5in.
+    return Math.max(1, Math.round(inches / 0.5));
+  }
+  return 1;
+}
+function extractWordMarker(node, warnings) {
+  const clone = node.cloneNode(true);
+  let markerText = '';
+
+  // Path 1: full Word clipboard — marker in mso-list:Ignore span.
+  const ignSpan = Array.from(clone.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
+  if (ignSpan) {
+    markerText = normalizeWordMarker(ignSpan.textContent || '');
+    ignSpan.remove();
+    // Also remove the adjacent spacer span (tiny-font spacer Word adds after the marker).
+    const next = clone.firstChild;
+    if (next && next.nodeType === Node.ELEMENT_NODE && isSpacerSpan(next)) next.remove();
+  } else {
+    // Path 2: Chrome-stripped — marker is the first text node / first child.
+    let firstChild = clone.firstChild;
+    while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
+      firstChild = firstChild.nextSibling;
+    }
+    if (firstChild) {
+      const rawMarker = normalizeWordMarker(firstChild.nodeType === Node.TEXT_NODE
+        ? firstChild.nodeValue.trim()
+        : firstChild.textContent.trim());
+      if (isMarkerToken(rawMarker)) {
+        markerText = rawMarker;
+        firstChild.remove();
+        // Remove the adjacent spacer span (small-font nbsp padding).
+        const spacer = clone.firstChild;
+        if (spacer && isSpacerSpan(spacer)) spacer.remove();
+      }
+    }
+  }
+
+  let contentHTML = processInlineChildren(clone, warnings).trim();
+
+  // Last-resort: if marker still not found, try to strip it from rendered HTML.
+  if (!markerText) {
+    const mx = contentHTML.match(/^\s*([0-9]+[.)]|[A-Za-z][.)]|[\u2022\u25CF\u00B7\u2219\u2023\u25AA\u25A0\u25CB\u25E6o\u25AA\u25a0\-*])\s*(?:&nbsp;|\s)*/);
+    if (mx) { markerText = normalizeWordMarker(mx[1]); contentHTML = contentHTML.slice(mx[0].length); }
+  }
+
+  return { markerText: markerText.trim(), contentHTML: contentHTML.replace(/^(?:&nbsp;|\s)+/, '') };
+}
+
+// A spacer span is the tiny-font padding span Word inserts between the marker
+// and the list item text: <span style="font:7.0pt 'Times New Roman'"> </span>
+// or Chrome's equivalent <span style="font-size:7pt">&nbsp;</span>.
+function isSpacerSpan(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  const tag = node.tagName.toLowerCase();
+  if (tag !== 'span') return false;
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  if (/font-size\s*:\s*[1-9]\s*pt|font\s*:\s*[1-9]/i.test(style)) return true;
+  // Also discard tabs / mso-tab-count spans.
+  if (/mso-tab-count/i.test(style)) return true;
+  return false;
+}
+
+function buildLeveledTree(items) {
+  const roots = [], stack = [];
+  items.forEach(it => {
+    const lvl = Math.max(1, it.level);
+    const li = { html: it.html, children: [] };
+    if (lvl <= stack.length) {
+      stack.length = lvl;
+      const top = stack[lvl - 1];
+      if (top.listNode.typeAttr !== it.typeAttr || top.listNode.styleAttr !== it.styleAttr || top.listNode.tag !== it.tag) {
+        // Type changed at this level: replace the old list node so we don't
+        // create an unwanted sibling list under the same parent item.
+        const listNode = { tag: it.tag, typeAttr: it.typeAttr, styleAttr: it.styleAttr, startAttr: it.startAttr, items: [li] };
+        if (lvl >= 2) {
+          const parentItem = stack[lvl - 2].currentItem;
+          const siblings = parentItem.children;
+          if (siblings.length && siblings[siblings.length - 1] === top.listNode) {
+            siblings[siblings.length - 1] = listNode;
+          } else {
+            siblings.push(listNode);
+          }
+        } else {
+          if (roots.length && roots[roots.length - 1] === top.listNode) {
+            roots[roots.length - 1] = listNode;
+          } else {
+            roots.push(listNode);
+          }
+        }
+        stack[lvl - 1] = { listNode, currentItem: li };
+      } else {
+        top.listNode.items.push(li);
+        top.currentItem = li;
+      }
+    } else {
+      const parentItem = stack.length ? stack[stack.length - 1].currentItem : null;
+      const listNode = { tag: it.tag, typeAttr: it.typeAttr, styleAttr: it.styleAttr, startAttr: it.startAttr, items: [li] };
+      if (parentItem) parentItem.children.push(listNode); else roots.push(listNode);
+      stack.push({ listNode, currentItem: li });
+    }
+  });
+  return roots;
+}
+
+/* ============================================================================
+   MANUAL TYPED LIST PRE-PASS
+   ============================================================================ */
+function groupManualLists(body, warnings) {
+  const MARKER = /^(\s*)([0-9]+[.)]|[A-Za-z][.)]|[\u2022\u25CF\u00B7\u2219\u2023\u25AA\u25A0\u25AB\u25A1\u25CB\u25E6\u25EF]|[-*])\s+\S/;
+  const children = Array.from(body.childNodes);
+  let i = 0, warned = false;
+  while (i < children.length) {
+    const node = children[i];
+    if (node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) { i++; continue; }
+    const tag = node.tagName.toLowerCase();
+    if ((tag !== 'p' && tag !== 'div') || !MARKER.test(node.textContent)) { i++; continue; }
+
+    const run = [node];
+    let j = i + 1;
+    while (j < children.length) {
+      const next = children[j];
+      if (next.nodeType === Node.ELEMENT_NODE && !isSentinel(next)) {
+        const nt = next.tagName.toLowerCase();
+        if ((nt === 'p' || nt === 'div') && MARKER.test(next.textContent)) { run.push(next); j++; continue; }
+      } else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; continue; }
+      break;
+    }
+
+    const romanPresent = run.some(p => { const c = leadingCore(p.textContent); return c && isRoman(c); });
+    const items = run.map(p => {
+      const { markerText, contentHTML } = stripManualMarker(p, warnings);
+      let cls = classifyMarker(markerText);
+      const core = markerText.replace(/[.)\]]+$/, '').trim();
+      if (!romanPresent && (cls.typeAttr === 'i' || cls.typeAttr === 'I') && core.length === 1) {
+        cls = { tag:'ol', typeAttr: /[A-Z]/.test(core) ? 'A' : 'a', styleAttr: null, startAttr: alphaToInt(core) > 1 ? String(alphaToInt(core)) : null };
+      }
+      return { ...cls, html: contentHTML };
+    });
+
+    replaceWithSentinel(run, buildTransitionTree(items).map(serializeList).join(''), body);
+    if (!warned) { warnings.push({ level:'info', title:'Manual list detected', msg:'Typed markers converted to nested lists by marker type.' }); warned=true; }
+    i = j;
+  }
+}
+
+function leadingCore(text) {
+  const m = (text || '').trim().match(/^([0-9]+|[A-Za-z]+)[.)]/);
+  return m ? m[1] : '';
+}
+function stripManualMarker(node, warnings) {
+  let html = processInlineChildren(node, warnings).trim();
+  const m = html.match(/^\s*([0-9]+[.)]|[A-Za-z][.)]|[\u2022\u25CF\u00B7\u2219\u2023\u25AA\u25A0\u25AB\u25A1\u25CB\u25E6\u25EF]|[-*])\s*(?:&nbsp;|\s)*/);
+  let markerText = '';
+  if (m) { markerText = m[1]; html = html.slice(m[0].length); }
+  return { markerText: markerText.trim(), contentHTML: html.replace(/^(?:&nbsp;|\s)+/, '') };
+}
+
+function buildTransitionTree(items) {
+  const roots = [], stack = [];
+  items.forEach(it => {
+    const li = { html: it.html, children: [] };
+    let idx = -1;
+    for (let k = stack.length - 1; k >= 0; k--) {
+      if (stack[k].typeAttr === it.typeAttr && stack[k].styleAttr === it.styleAttr) { idx = k; break; }
+    }
+    if (idx >= 0) {
+      stack.length = idx + 1;
+      stack[idx].listNode.items.push(li);
+      stack[idx].currentItem = li;
+    } else {
+      const listNode = { tag: it.tag, typeAttr: it.typeAttr, styleAttr: it.styleAttr, startAttr: it.startAttr, items: [li] };
+      if (stack.length) stack[stack.length - 1].currentItem.children.push(listNode);
+      else roots.push(listNode);
+      stack.push({ typeAttr: it.typeAttr, styleAttr: it.styleAttr, listNode, currentItem: li });
+    }
+  });
+  return roots;
+}
+
+function replaceWithSentinel(run, html, body) {
+  const s = body.ownerDocument.createElement('div');
+  s.setAttribute('data-list', 'true');
+  s.innerHTML = html;
+  run[0].parentNode.insertBefore(s, run[0]);
+  run.forEach(el => { try { el.parentNode.removeChild(el); } catch(e){} });
+}
+
+/* ============================================================================
+   JSON BLOCK PRE-PASS
+   ============================================================================ */
+function groupJsonBlocks(body, warnings) {
+  const children = Array.from(body.childNodes);
+  let i = 0, warned = false;
+  while (i < children.length) {
+    const node = children[i];
+    if (node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) { i++; continue; }
+    const tag = node.tagName.toLowerCase();
+    if (tag !== 'p' && tag !== 'div') { i++; continue; }
+    const t = node.textContent.trim();
+    if (!(/^[{\[]/.test(t)) || balanceOf(t) <= 0) { i++; continue; }
+
+    let balance = balanceOf(t);
+    const run = [node], lines = [t.replace(/\u00a0/g,' ')];
+    let j = i + 1;
+    while (j < children.length && balance > 0) {
+      const next = children[j];
+      if (next.nodeType === Node.ELEMENT_NODE && !isSentinel(next)) {
+        const nt = next.tagName.toLowerCase();
+        if (nt === 'p' || nt === 'div') {
+          run.push(next);
+          lines.push(next.textContent.replace(/\u00a0/g,' ').replace(/\s+$/,''));
+          balance += balanceOf(next.textContent);
+          j++; continue;
+        }
+      } else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; continue; }
+      break;
+    }
+    if (run.length >= 2 && balance <= 0) {
+      const sentinel = body.ownerDocument.createElement('div');
+      sentinel.setAttribute('data-pre-code','true');
+      sentinel.textContent = cleanCodeText(lines.join('\n'));
+      run[0].parentNode.insertBefore(sentinel, run[0]);
+      run.forEach(el => { try { el.parentNode.removeChild(el); } catch(e){} });
+      if (!warned) { warnings.push({ level:'info', title:'Code block detected', msg:'Multi-line JSON converted to a code block.' }); warned=true; }
+      i = j; continue;
+    }
+    i++;
+  }
+}
+function balanceOf(text) {
+  let b = 0;
+  for (const ch of text) { if (ch==='{' || ch==='[') b++; else if (ch==='}' || ch===']') b--; }
+  return b;
+}
+
+/* ============================================================================
+   MONOSPACE / TAB CODE PRE-PASS
+   ============================================================================ */
+function groupCodeParagraphs(body, warnings) {
+  const children = Array.from(body.childNodes);
+  let i = 0, warned = false;
+  while (i < children.length) {
+    const node = children[i];
+    if (node.nodeType === Node.ELEMENT_NODE && !isSentinel(node)) {
       const tag = node.tagName.toLowerCase();
-      if ((tag === 'p' || tag === 'div') && isCodeLikeParagraph(node)) {
+      if ((tag === 'p' || tag === 'div') && isCodeLike(node)) {
         const group = [node];
         let j = i + 1;
         while (j < children.length) {
           const next = children[j];
-          if (next.nodeType === Node.ELEMENT_NODE) {
+          if (next.nodeType === Node.ELEMENT_NODE && !isSentinel(next)) {
             const nt = next.tagName.toLowerCase();
-            if ((nt === 'p' || nt === 'div') && isCodeLikeParagraph(next)) { group.push(next); j++; }
-            else if (!next.textContent.trim()) { j++; }
+            if ((nt === 'p' || nt === 'div') && isCodeLike(next)) { group.push(next); j++; }
+            else if (!next.textContent.trim()) j++;
             else break;
-          } else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; }
+          } else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) j++;
           else break;
         }
-        const lines = group.map(p => getTextWithTabs(p));
-        const combined = lines.join('\n');
         const sentinel = body.ownerDocument.createElement('div');
-        sentinel.setAttribute('data-pre-code', 'true');
-        sentinel.textContent = combined;
+        sentinel.setAttribute('data-pre-code','true');
+        sentinel.textContent = cleanCodeText(group.map(getTextWithTabs).join('\n'));
         group[0].parentNode.insertBefore(sentinel, group[0]);
-        group.forEach(el => { try { el.parentNode.removeChild(el); } catch(e) {} });
-        warnings.push({ level: 'info', title: 'Possible code block detected', msg: 'Tab-indented or monospace content was converted to <pre><code>. Review to confirm.' });
+        group.forEach(el => { try { el.parentNode.removeChild(el); } catch(e){} });
+        if (!warned) { warnings.push({ level:'info', title:'Code block detected', msg:'Monospace or tab-indented content converted to a code block.' }); warned=true; }
         i = j; continue;
       }
     }
     i++;
   }
 }
-
-function getTextWithTabs(node) {
-  let text = '';
-  node.childNodes.forEach(child => {
-    if (child.nodeType === Node.TEXT_NODE) { text += child.textContent; }
-    else if (child.nodeType === Node.ELEMENT_NODE) {
-      const t = child.tagName.toLowerCase();
-      if (t === 'br') text += '\n';
-      else text += getTextWithTabs(child);
-    }
-  });
-  return text;
-}
-
-function isCodeLikeParagraph(node) {
-  const tag = node.tagName.toLowerCase();
-  if (tag === 'pre') return true;
+function isCodeLike(node) {
+  if (node.tagName.toLowerCase() === 'pre') return true;
   const style = (node.getAttribute('style') || '').toLowerCase();
-  const cls   = (node.getAttribute('class') || '').toLowerCase();
   if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test(style)) return true;
-  if (cls.includes('msocode') || cls.includes('code')) return true;
   for (const span of node.querySelectorAll('span')) {
-    const ss = (span.getAttribute('style') || '').toLowerCase();
-    if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test(ss)) return true;
+    if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test((span.getAttribute('style') || '').toLowerCase())) return true;
   }
-  const raw = node.textContent;
-  if ((/^\t+\S/.test(raw) || /^\s{4,}\S/.test(raw)) && (/<\w/.test(raw) || />/.test(raw))) return true;
   return false;
 }
-
-// ─── Pre-pass: detect manual bullet/numbered paragraphs → lists ───────────────
-// Groups consecutive manually-bulleted or numbered paragraphs into proper list HTML sentinels.
-// Supports mixed nesting: 1. → indent bullet → back to 2.
-function groupManualLists(body, warnings) {
-  const MANUAL_BULLET = /^([•\-\*\u2013\u2022])\s+(.+)$/s;
-  const MANUAL_NUMBER = /^(\d+)[.)]\s+(.+)$/s;
-  const INDENT_BULLET = /^[\t\u00a0]{1,}([•\-\*\u2013\u2022])\s+(.+)$/s;
-
-  const children = Array.from(body.childNodes);
-  let i = 0;
-  let warned = false;
-
-  while (i < children.length) {
-    const node = children[i];
-    if (node.nodeType !== Node.ELEMENT_NODE) { i++; continue; }
-    const tag = node.tagName.toLowerCase();
-    if (tag !== 'p' && tag !== 'div') { i++; continue; }
-    const text = node.textContent.trim();
-
-    const isNumbered = MANUAL_NUMBER.test(text);
-    const isBullet   = MANUAL_BULLET.test(text);
-    if (!isNumbered && !isBullet) { i++; continue; }
-
-    // Gather all consecutive list-like paragraphs
-    const items = [node];
-    let j = i + 1;
-    while (j < children.length) {
-      const next = children[j];
-      if (next.nodeType === Node.ELEMENT_NODE) {
-        const nt = next.tagName.toLowerCase();
-        if (nt === 'p' || nt === 'div') {
-          const nt2 = next.textContent.trim();
-          if (MANUAL_NUMBER.test(nt2) || MANUAL_BULLET.test(nt2) || INDENT_BULLET.test(nt2)) {
-            items.push(next); j++;
-          } else break;
-        } else break;
-      } else { j++; }
+function getTextWithTabs(node) {
+  let t = '';
+  node.childNodes.forEach(ch => {
+    if (ch.nodeType === Node.TEXT_NODE) t += ch.textContent;
+    else if (ch.nodeType === Node.ELEMENT_NODE) {
+      // Skip Word Online EOP / data-ccp-props trailing spans — they add a spurious space.
+      if (/\bEOP\b/.test(ch.getAttribute('class') || '') || ch.hasAttribute('data-ccp-props')) return;
+      t += ch.tagName.toLowerCase() === 'br' ? '\n' : getTextWithTabs(ch);
     }
-
-    if (items.length < 1) { i++; continue; }
-
-    // Build nested list HTML
-    const listHTML = buildMixedListHTML(items);
-    const sentinel = body.ownerDocument.createElement('div');
-    sentinel.setAttribute('data-manual-list', 'true');
-    sentinel.innerHTML = listHTML;
-    items[0].parentNode.insertBefore(sentinel, items[0]);
-    items.forEach(el => { try { el.parentNode.removeChild(el); } catch(e) {} });
-
-    if (!warned) {
-      warnings.push({ level: 'info', title: 'Manual list formatting detected', msg: 'Paragraphs with manual bullets or numbers were converted to proper list elements.' });
-      warned = true;
-    }
-    i = j; continue;
-  }
-}
-
-function buildMixedListHTML(items) {
-  const MANUAL_NUMBER = /^(\d+)[.)]\s+(.+)$/s;
-  const MANUAL_BULLET = /^([•\-\*\u2013\u2022])\s+(.+)$/s;
-  const INDENT_BULLET = /^([\t\u00a0]+)([•\-\*\u2013\u2022])\s+(.+)$/s;
-
-  // Parse items into a flat structure with type and indent level
-  const parsed = items.map(node => {
-    const raw = node.textContent.trim();
-    let m;
-    if ((m = INDENT_BULLET.exec(raw))) {
-      return { type: 'bullet', level: 1, text: m[3], node };
-    }
-    if ((m = MANUAL_NUMBER.exec(raw))) {
-      return { type: 'ordered', level: 0, num: parseInt(m[1],10), text: m[2], node };
-    }
-    if ((m = MANUAL_BULLET.exec(raw))) {
-      return { type: 'bullet', level: 0, text: m[2], node };
-    }
-    return { type: 'bullet', level: 0, text: raw, node };
   });
-
-  // Build HTML respecting nesting
-  let html = '';
-  let i = 0;
-  while (i < parsed.length) {
-    const item = parsed[i];
-    if (item.type === 'ordered' && item.level === 0) {
-      // Start/continue ordered list; collect consecutive ordered + indented items
-      html += '<ol>\n';
-      while (i < parsed.length && (parsed[i].type === 'ordered' || parsed[i].level > 0)) {
-        const cur = parsed[i];
-        if (cur.level > 0) {
-          // Indented bullet sub-list
-          html += '<li style="font-family: Arial, sans-serif; font-size: 12px;">\n<ul>\n';
-          while (i < parsed.length && parsed[i].level > 0) {
-            html += `<li style="font-family: Arial, sans-serif; font-size: 12px;">${escapeText(parsed[i].text)}</li>\n`;
-            i++;
-          }
-          html += '</ul>\n</li>\n';
-        } else {
-          html += `<li style="font-family: Arial, sans-serif; font-size: 12px;">${escapeText(cur.text)}</li>\n`;
-          i++;
-        }
-      }
-      html += '</ol>\n';
-    } else if (item.type === 'bullet' && item.level === 0) {
-      html += '<ul>\n';
-      while (i < parsed.length && parsed[i].type === 'bullet' && parsed[i].level === 0) {
-        const cur = parsed[i];
-        // Check if next items are indented
-        let liContent = escapeText(cur.text);
-        i++;
-        if (i < parsed.length && parsed[i].level > 0) {
-          liContent += '\n<ul>\n';
-          while (i < parsed.length && parsed[i].level > 0) {
-            liContent += `<li style="font-family: Arial, sans-serif; font-size: 12px;">${escapeText(parsed[i].text)}</li>\n`;
-            i++;
-          }
-          liContent += '</ul>\n';
-        }
-        html += `<li style="font-family: Arial, sans-serif; font-size: 12px;">${liContent}</li>\n`;
-      }
-      html += '</ul>\n';
-    } else {
-      i++;
-    }
-  }
-  return html;
+  return t;
 }
 
-// ─── Process node → clean HTML string ────────────────────────────────────────
+/* ============================================================================
+   NODE -> HTML
+   ============================================================================ */
 function processNode(node, warnings) {
-  if (node.nodeType === Node.TEXT_NODE) return escapeText(node.textContent);
+  if (node.nodeType === Node.TEXT_NODE) return esc(node.textContent);
   if (node.nodeType !== Node.ELEMENT_NODE) return '';
 
   const tag = node.tagName.toLowerCase();
-
-  // Drop entirely
   if (['script','style','link','meta','head','xml','o:p','w:sdt','w:sdtcontent'].includes(tag)) return '';
-
-  // Pass-through containers
   if (tag === 'html' || tag === 'body') return processChildren(node, warnings);
 
-  // Pre-code sentinel
-  if (tag === 'div' && node.getAttribute('data-pre-code') === 'true') {
-    return `<pre><code>${escapeCode(node.textContent)}</code></pre>\n`;
-  }
+  // Sentinels
+  if (node.getAttribute('data-list') === 'true')      return node.innerHTML + '\n';
+  if (node.getAttribute('data-pre-code') === 'true')  return codeBlock(node.textContent);
+  if (node.getAttribute('data-code-block') === 'true') return codeBlock(node.textContent);
 
-  // Manual list sentinel
-  if (tag === 'div' && node.getAttribute('data-manual-list') === 'true') {
-    return node.innerHTML + '\n';
-  }
-
-  // Manual code marker
-  if (node.getAttribute('data-code-block') === 'true') {
-    return `<pre><code>${escapeCode(node.textContent)}</code></pre>\n`;
-  }
-
-  // Images
   if (tag === 'img') {
-    warnings.push({ level: 'warning', title: 'Image detected', msg: 'Image replaced with [Insert image here]. Add the image manually in Salesforce Knowledge.' });
-    return `<p style="font-family: Arial, sans-serif; font-size: 12px;"><em>[Insert image here]</em></p>\n`;
+    warnings.push({ level:'warning', title:'Image skipped', msg:'Replace [Insert image here] with the actual image in Salesforce.' });
+    return `<p style="${SF_FONT}"><em>[Insert image here]</em></p>\n`;
   }
-
-  // Native pre / code
   if (tag === 'pre') {
-    const codeEl = node.querySelector('code');
-    const text   = codeEl ? codeEl.textContent : node.textContent;
-    warnings.push({ level: 'info', title: 'Possible code block detected', msg: 'Content in <pre> was converted to <pre><code>. Review to confirm.' });
-    return `<pre><code>${escapeCode(text)}</code></pre>\n`;
+    const txt = (node.querySelector('code') || node).textContent;
+    return codeBlock(txt);
   }
   if (tag === 'code') {
-    if (node.parentElement && node.parentElement.tagName.toLowerCase() === 'pre') return escapeCode(node.textContent);
-    return `<code>${escapeCode(node.textContent)}</code>`;
+    if (node.parentElement && node.parentElement.tagName.toLowerCase() === 'pre') return escCode(node.textContent);
+    return `<code style="${CODE_FONT}">${escCode(node.textContent)}</code>`;
   }
 
-  // Superscript / subscript
   if (tag === 'sup') return `<sup>${processChildren(node, warnings)}</sup>`;
   if (tag === 'sub') return `<sub>${processChildren(node, warnings)}</sub>`;
-
-  // Strikethrough
   if (tag === 's' || tag === 'strike' || tag === 'del') return `<s>${processChildren(node, warnings)}</s>`;
 
-  // Explicit headings
-  if (tag === 'h1') return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(cleanHeadingText(node.textContent))}</h2>\n`;
-  if (tag === 'h2') return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(cleanHeadingText(node.textContent))}</h2>\n`;
-  if (tag === 'h3') return `<h3 style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold;">${escapeText(cleanHeadingText(node.textContent))}</h3>\n`;
-  if (tag === 'h4') return `<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold;">${escapeText(cleanHeadingText(node.textContent))}</h4>\n`;
-
-  // Paragraphs and divs
-  if (tag === 'p' || tag === 'div') {
-    // 1. MSO heading class/style
-    const msoLevel = detectWordHeadingLevel(node);
-    if (msoLevel >= 1 && msoLevel <= 2) {
-      const inner = cleanHeadingText(node.textContent);
-      if (inner) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(inner)}</h2>\n`;
-    }
-    if (msoLevel === 3) {
-      const inner = cleanHeadingText(node.textContent);
-      if (inner) return `<h3 style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold;">${escapeText(inner)}</h3>\n`;
-    }
-    if (msoLevel === 4) {
-      const inner = cleanHeadingText(node.textContent);
-      if (inner) return `<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold;">${escapeText(inner)}</h4>\n`;
-    }
-
-    // 2. Font-size based heading detection (Arial 18/16/14)
-    const fontLevel = detectFontSizeHeadingLevel(node);
-    if (fontLevel === 2) {
-      const inner = cleanHeadingText(node.textContent);
-      if (inner) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(inner)}</h2>\n`;
-    }
-    if (fontLevel === 3) {
-      const inner = processChildren(node, warnings);
-      if (inner.trim()) return `<h3 style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold;">${inner}</h3>\n`;
-    }
-    if (fontLevel === 4) {
-      const inner = processChildren(node, warnings);
-      if (inner.trim()) return `<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold;">${inner}</h4>\n`;
-    }
-
-    // 3. Bold-only paragraph → h2
-    if (isBoldOnlyParagraph(node)) {
-      const textContent = node.textContent.trim();
-      if (textContent) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(textContent)}</h2>\n`;
-    }
-
-    // 4. All-caps paragraph → h2
-    if (isAllCapsParagraph(node)) {
-      const textContent = node.textContent.trim();
-      if (textContent) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(textContent)}</h2>\n`;
-    }
-
-    // 5. Underlined-only paragraph → h2
-    if (isUnderlinedOnlyParagraph(node)) {
-      const textContent = node.textContent.trim();
-      if (textContent) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${escapeText(textContent)}</h2>\n`;
-    }
-
-    // 6. Large font-size span as heading (span carries font-size > 14px)
-    const spanLevel = detectSpanFontSizeHeading(node);
-    if (spanLevel === 2) {
-      const inner = processChildren(node, warnings);
-      if (inner.trim()) return `<h2 style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold;">${inner}</h2>\n`;
-    }
-    if (spanLevel === 3) {
-      const inner = processChildren(node, warnings);
-      if (inner.trim()) return `<h3 style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold;">${inner}</h3>\n`;
-    }
-    if (spanLevel === 4) {
-      const inner = processChildren(node, warnings);
-      if (inner.trim()) return `<h4 style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold;">${inner}</h4>\n`;
-    }
-
-    // Normal paragraph
-    const inner = processChildren(node, warnings).trim();
-    if (!inner) return '';
-
-    // If processed content is already block-level HTML, do not wrap it in another <p>.
-    if (containsBlockHtml(inner)) return inner + (inner.endsWith('\n') ? '' : '\n');
-
-    // Normalize &nbsp; used as spacing
-    const normalised = normalizeNbsp(inner);
-
-    // Note / Important / Warning
-    const noteResult = checkNoteLabel(normalised, node.textContent.trim());
-    if (noteResult) return `<blockquote>${noteResult}</blockquote>\n`;
-
-    // JSON-like or HTTP-request-like plain paragraph → code
-    const rawText = node.textContent.trim();
-    if (isJsonLike(rawText) || isHttpRequestLike(rawText)) {
-      warnings.push({ level: 'info', title: 'Possible code block detected', msg: 'A paragraph with JSON or HTTP request content was converted to <pre><code>. Review to confirm.' });
-      return `<pre><code>${escapeCode(rawText)}</code></pre>\n`;
-    }
-
-    return `<p style="font-family: Arial, sans-serif; font-size: 12px;">${normalised}</p>\n`;
+  // Native headings
+  if (/^h[1-6]$/.test(tag)) {
+    const lvl = detectHeadingLevel(node, tag);
+    return headingHtml(lvl || 2, cleanText(node.textContent));
   }
 
-  // Lists
-  if (tag === 'ul') { const inner = processListItems(node, warnings); return inner ? `<ul>\n${inner}</ul>\n` : ''; }
-  if (tag === 'ol') { const inner = processListItems(node, warnings); return inner ? `<ol>\n${inner}</ol>\n` : ''; }
+  if (tag === 'p' || tag === 'div') {
+    const raw = cleanText(node.textContent);
+
+    // Note/Warning/Important detection: try DOM-aware version first so inline
+    // markup in the remainder is preserved (Word Online uses bold spans).
+    const note = buildNoteFromNode(node, raw, warnings);
+    if (note) return note;
+
+    const lvl = detectHeadingLevel(node, tag);
+    if (lvl && raw) return headingHtml(lvl, raw);
+
+    if (isJsonLike(raw) || isHttpLike(raw)) {
+      warnings.push({ level:'info', title:'Code block detected', msg:'JSON or HTTP line converted to a code block.' });
+      return codeBlock(node.textContent.trim());
+    }
+
+    const inner = processChildren(node, warnings).trim();
+    if (!inner) return '';
+    if (hasBlock(inner)) return inner + (inner.endsWith('\n') ? '' : '\n');
+    return `<p style="${SF_FONT}">${normalizeNbsp(inner)}</p>\n`;
+  }
+
+  if (tag === 'ul' || tag === 'ol') return processSourceList(node, tag, warnings, 0);
   if (tag === 'li') {
     const inner = processChildren(node, warnings).trim();
-    return inner ? `<li style="font-family: Arial, sans-serif; font-size: 12px;">${inner}</li>\n` : '';
+    return inner ? `<li style="${SF_FONT}">${inner}</li>\n` : '';
   }
 
-  // Inline formatting
-  if (tag === 'strong' || tag === 'b') return `<strong>${processChildren(node, warnings)}</strong>`;
-  if (tag === 'em'     || tag === 'i') return `<em>${processChildren(node, warnings)}</em>`;
-  if (tag === 'u')                     return `<u>${processChildren(node, warnings)}</u>`;
-  if (tag === 'br')                    return `<br>`;
-
-  // Strikethrough via style
-  if (tag === 'span') {
-    const ss = (node.getAttribute('style') || '').toLowerCase();
-    if (ss.includes('line-through')) return `<s>${processChildren(node, warnings)}</s>`;
-    return processChildren(node, warnings);
-  }
-
-  // Links
-  if (tag === 'a') {
-    // Strip bookmark anchors (name attribute, no href content)
-    if (node.getAttribute('name') && !node.getAttribute('href')) return processChildren(node, warnings);
-
-    const href = node.getAttribute('href') || '';
-    // Strip fragment-only bookmark links Word inserts
-    if (/^#_/.test(href)) return processChildren(node, warnings);
-
-    const safe = sanitizeHref(href, warnings);
-    const inner = processChildren(node, warnings).trim();
-    if (!inner) return '';
-
-    // Simplify: if display text equals the URL, just output text (no redundant href)
-    if (safe && (inner === safe || inner === escapeText(safe))) return inner;
-
-    return safe ? `<a href="${escapeAttr(safe)}">${inner}</a>` : inner;
-  }
-
-  // Tables
-  if (tag === 'table') return processTable(node, warnings);
-  if (tag === 'thead') return `<thead>\n${processChildren(node, warnings)}</thead>\n`;
-  if (tag === 'tbody') return `<tbody>\n${processChildren(node, warnings)}</tbody>\n`;
-  if (tag === 'tr')    return `<tr>${processChildren(node, warnings)}</tr>\n`;
-  if (tag === 'th') {
-    const attrs  = getCellAttrs(node);
-    const inner  = processTableCellContent(node, warnings) || '&nbsp;';
-    return `<th style="border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px;"${attrs}>${inner}</th>`;
-  }
-  if (tag === 'td') {
-    const attrs  = getCellAttrs(node);
-    const inner  = processTableCellContent(node, warnings) || '&nbsp;';
-    return `<td style="border: 0.5px solid #808080; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px;"${attrs}>${inner}</td>`;
-  }
-
-  // Font — drop tag, keep children
-  if (tag === 'font') return processChildren(node, warnings);
-
-  // HR
-  if (tag === 'hr') return `<hr>\n`;
-
-  // Blockquote
-  if (tag === 'blockquote') {
-    const inner = processChildren(node, warnings).trim();
-    return inner ? `<blockquote>${inner}</blockquote>\n` : '';
-  }
-
-  // Default: drop unknown tag, keep children
-  return processChildren(node, warnings);
-}
-
-// Process table cell content — headings inside cells are handled correctly
-function processTableCellContent(cell, warnings) {
-  // Table cells must not use document heading logic.
-  // Preserve visible text, links, bold, italics, underline, line breaks, lists, and code.
-  // Do not output h2/h3/h4/hr inside tables.
-  const raw = cleanTableText(cell.textContent);
-  if (!raw) return '';
-  if (/^(Y|N|N\/A|Yes|No|\d+(\.\d+)?)$/i.test(raw)) return escapeText(raw);
-
-  const parts = [];
-  Array.from(cell.childNodes).forEach(child => {
-    const html = processTableCellNode(child, warnings).trim();
-    if (html) parts.push(html);
-  });
-
-  return parts.join('<br>');
-}
-
-function processTableCellNode(node, warnings) {
-  if (node.nodeType === Node.TEXT_NODE) return escapeText(normalizePlainSpaces(node.textContent));
-  if (node.nodeType !== Node.ELEMENT_NODE) return '';
-
-  const tag = node.tagName.toLowerCase();
-
-  if (['script','style','link','meta','head','xml','o:p','w:sdt','w:sdtcontent'].includes(tag)) return '';
+  if (tag === 'strong' || tag === 'b') return `<${BOLD_TAG}>${processChildren(node, warnings)}</${BOLD_TAG}>`;
+  if (tag === 'em' || tag === 'i')     return `<${ITALIC_TAG}>${processChildren(node, warnings)}</${ITALIC_TAG}>`;
+  if (tag === 'u')  return `<u>${processChildren(node, warnings)}</u>`;
   if (tag === 'br') return '<br>';
 
-  // Never allow heading or horizontal-rule tags inside table cells.
-  // Keep the text only, with inline formatting where present.
-  if (['h1','h2','h3','h4','h5','h6','p','div'].includes(tag)) {
-    return processTableCellChildren(node, warnings).trim();
-  }
-  if (tag === 'hr') return '';
-
-  if (tag === 'strong' || tag === 'b') return `<strong>${processTableCellChildren(node, warnings)}</strong>`;
-  if (tag === 'em' || tag === 'i') return `<em>${processTableCellChildren(node, warnings)}</em>`;
-  if (tag === 'u') return `<u>${processTableCellChildren(node, warnings)}</u>`;
-  if (tag === 's' || tag === 'strike' || tag === 'del') return `<s>${processTableCellChildren(node, warnings)}</s>`;
-  if (tag === 'sup') return `<sup>${processTableCellChildren(node, warnings)}</sup>`;
-  if (tag === 'sub') return `<sub>${processTableCellChildren(node, warnings)}</sub>`;
-
-  if (tag === 'span' || tag === 'font') {
+  if (tag === 'span') {
     const ss = (node.getAttribute('style') || '').toLowerCase();
-    const inner = processTableCellChildren(node, warnings);
+    if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
+    if (/mso-spacerun/.test(ss)) return ' ';
+    const inner = processChildren(node, warnings);
     if (ss.includes('line-through')) return `<s>${inner}</s>`;
-    if (/font-weight\s*:\s*(bold|700)/i.test(ss)) return `<strong>${inner}</strong>`;
-    if (/font-style\s*:\s*italic/i.test(ss)) return `<em>${inner}</em>`;
-    if (/text-decoration[^;]*underline/i.test(ss)) return `<u>${inner}</u>`;
     return inner;
   }
 
   if (tag === 'a') {
+    if (node.getAttribute('name') && !node.getAttribute('href')) return processChildren(node, warnings);
     const href = node.getAttribute('href') || '';
-    if (node.getAttribute('name') && !href) return processTableCellChildren(node, warnings);
-    if (/^#_/.test(href)) return processTableCellChildren(node, warnings);
-    const safe = sanitizeHref(href, warnings);
-    const inner = processTableCellChildren(node, warnings).trim();
+    if (/^#_/.test(href)) return processChildren(node, warnings);
+    const safe = safeHref(href, warnings);
+    const inner = processChildren(node, warnings).trim();
     if (!inner) return '';
-    return safe ? `<a href="${escapeAttr(safe)}">${inner}</a>` : inner;
+    return safe ? `<a href="${escAttr(safe)}">${inner}</a>` : inner;
   }
-
-  if (tag === 'ul' || tag === 'ol') {
-    const listTag = tag;
-    const items = Array.from(node.children)
-      .filter(child => child.tagName && child.tagName.toLowerCase() === 'li')
-      .map(li => `<li style="font-family: Arial, sans-serif; font-size: 12px;">${processTableCellChildren(li, warnings).trim()}</li>`)
-      .join('\n');
-    return items ? `<${listTag}>\n${items}\n</${listTag}>` : '';
-  }
-
-  if (tag === 'pre') return `<pre><code>${escapeCode(node.textContent)}</code></pre>`;
-  if (tag === 'code') return `<code>${escapeCode(node.textContent)}</code>`;
 
   if (tag === 'table') return processTable(node, warnings);
+  if (tag === 'font')  return processChildren(node, warnings);
+  if (tag === 'hr')    return '<hr>\n';
 
-  return processTableCellChildren(node, warnings);
-}
+  if (tag === 'blockquote') {
+    const inner = processChildren(node, warnings).trim();
+    if (!inner) return '';
+    if (/<blockquote\b/i.test(inner)) return inner + '\n';
+    return `<blockquote>${inner}</blockquote>\n`;
+  }
 
-function processTableCellChildren(node, warnings) {
-  return Array.from(node.childNodes)
-    .map(child => processTableCellNode(child, warnings))
-    .join('');
-}
-
-function cleanTableText(text) {
-  return (text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function normalizePlainSpaces(text) {
-  return (text || '').replace(/\u00a0/g, ' ').replace(/[ \t\r\n]+/g, ' ');
+  return processChildren(node, warnings);
 }
 
 function processChildren(node, warnings) {
   let out = '';
-  node.childNodes.forEach(child => { out += processNode(child, warnings); });
+  node.childNodes.forEach(ch => { out += processNode(ch, warnings); });
   return out;
 }
 
-function processListItems(node, warnings) {
-  let out = '';
-  node.childNodes.forEach(child => {
-    if (child.nodeType === Node.ELEMENT_NODE) {
-      const t = child.tagName.toLowerCase();
-      if (t === 'li' || t === 'ul' || t === 'ol') out += processNode(child, warnings);
-    }
-  });
-  return out;
-}
+function processSourceList(node, tag, warnings, depth) {
+  // Preserve type attribute from source if present.
+  const typeAttr  = node.getAttribute('type') || sourceListType(node, tag, depth);
+  const styleAttr = sourceListStyle(node);
+  const startAttr = tag === 'ol' && parseInt(node.getAttribute('start') || '', 10) > 1 ? String(parseInt(node.getAttribute('start'), 10)) : null;
+  let openTag = `<${tag}`;
+  if (typeAttr)  openTag += ` type="${typeAttr}"`;
+  if (styleAttr) openTag += ` style="list-style-type: ${styleAttr};"`;
+  if (startAttr) openTag += ` start="${startAttr}"`;
+  openTag += '>';
 
+  let items = '';
+  Array.from(node.children).forEach(ch => {
+    if (!ch.tagName || ch.tagName.toLowerCase() !== 'li') return;
 
-function hasBlockChild(node) {
-  const blockTags = new Set(['p','div','h1','h2','h3','h4','h5','h6','ul','ol','li','table','pre','blockquote','hr']);
-  return Array.from(node.childNodes).some(child =>
-    child.nodeType === Node.ELEMENT_NODE && blockTags.has(child.tagName.toLowerCase())
-  );
-}
+    // Count block-content children (excluding nested lists). A list item whose
+    // only block wrapper is a single <p>/<div> (common after editing the
+    // contenteditable preview) should render as plain text, not <li><p>...</p>.
+    const blockKids = Array.from(ch.children).filter(c => {
+      const t = c.tagName.toLowerCase();
+      return t === 'p' || t === 'div';
+    });
+    const loneWrapper = blockKids.length === 1 && !blockKids[0].querySelector('p, div, ul, ol, table, pre, blockquote');
 
-function containsBlockHtml(html) {
-  return /<(p|div|h1|h2|h3|h4|h5|h6|ul|ol|li|table|thead|tbody|tr|td|th|pre|blockquote|hr)\b/i.test(html);
-}
-
-function cleanHeadingText(text) {
-  return (text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function isSafeHeadingText(node) {
-  const text = cleanHeadingText(node.textContent);
-  if (!text) return false;
-  if (text.length > 60) return false;
-  if (node.querySelector('a')) return false;
-  if (/^https?:\/\//i.test(text) || /^www\./i.test(text)) return false;
-  if (/[.!?;:]$/.test(text)) return false;
-  if (text.split(/\s+/).length > 8) return false;
-  return true;
-}
-
-// ─── Heading detection helpers ────────────────────────────────────────────────
-
-// MSO class/style heading level
-function detectWordHeadingLevel(node) {
-  const cls   = (node.getAttribute('class') || '').toLowerCase().replace(/\s+/g,'');
-  const style = (node.getAttribute('style') || '').toLowerCase();
-  if (/mso-?heading.?1|heading1/.test(cls)) return 1;
-  if (/mso-?heading.?2|heading2/.test(cls)) return 2;
-  if (/mso-?heading.?3|heading3/.test(cls)) return 3;
-  if (/mso-?heading.?4|heading4/.test(cls)) return 4;
-  if (/mso-style-name:\s*['"]?heading\s*1/i.test(style)) return 1;
-  if (/mso-style-name:\s*['"]?heading\s*2/i.test(style)) return 2;
-  if (/mso-style-name:\s*['"]?heading\s*3/i.test(style)) return 3;
-  if (/mso-style-name:\s*['"]?heading\s*4/i.test(style)) return 4;
-  // Do not infer headings from font size. Word table cells and body text often use 12 pt or 16 px.
-  // Only real Word heading classes/styles should become heading tags.
-  return 0;
-}
-
-// Font-size px/pt on the paragraph itself.
-// Guardrails prevent normal Word body text from becoming headings.
-function detectFontSizeHeadingLevel(node) {
-  return 0;
-}
-
-// Span inside paragraph carries a large font-size
-function detectSpanFontSizeHeading(node) {
-  return 0;
-}
-
-// Bold-only paragraph
-function isBoldOnlyParagraph(node) {
-  const text = node.textContent.trim();
-  if (!text) return false;
-  let outsideBold = '';
-  function walk(n) {
-    n.childNodes.forEach(child => {
-      if (child.nodeType === Node.TEXT_NODE) { outsideBold += child.textContent; }
-      else if (child.nodeType === Node.ELEMENT_NODE) {
-        const t = child.tagName.toLowerCase();
-        if (t === 'b' || t === 'strong') { /* inside bold — good */ }
-        else if (t === 'span') {
-          const ss = (child.getAttribute('style') || '').toLowerCase();
-          if (!ss.includes('font-weight:bold') && !ss.includes('font-weight: bold')) walk(child);
-        } else if (t !== 'br' && t !== 'o:p') { outsideBold += child.textContent; }
+    let liInner = '', nested = '';
+    Array.from(ch.childNodes).forEach(gc => {
+      if (gc.nodeType === Node.ELEMENT_NODE && /^(ul|ol)$/i.test(gc.tagName)) {
+        nested += processSourceList(gc, gc.tagName.toLowerCase(), warnings, depth + 1);
+      } else if (loneWrapper && gc === blockKids[0]) {
+        liInner += processChildren(gc, warnings); // unwrap the lone <p>/<div>
+      } else {
+        liInner += processNode(gc, warnings);
       }
     });
+    items += `<li style="${SF_FONT}">${liInner.trim()}${nested ? '\n' + nested : ''}</li>\n`;
+  });
+  if (!items) return '';
+  return `${openTag}\n${items}</${tag}>\n`;
+}
+function sourceListType(node, tag, depth) {
+  if (tag !== 'ol') return null;
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  const m = style.match(/list-style-type\s*:\s*([a-z-]+)/);
+  if (m) {
+    const map = { 'decimal':'1','lower-alpha':'a','upper-alpha':'A','lower-roman':'i','upper-roman':'I' };
+    return map[m[1]] || '1';
   }
-  walk(node);
-  return outsideBold.trim() === '';
+  return '1';
+}
+function sourceListStyle(node) {
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  const m = style.match(/list-style-type\s*:\s*(circle|square|disc)/);
+  return m ? m[1] : null;
 }
 
-// All-caps paragraph (letters only, min 2 chars, all uppercase)
-function isAllCapsParagraph(node) {
-  return false;
+/* ============================================================================
+   INLINE-ONLY PROCESSOR
+   ============================================================================ */
+function processInlineChildren(node, warnings) {
+  let out = '';
+  node.childNodes.forEach(ch => { out += processInlineNode(ch, warnings); });
+  return out;
+}
+function processInlineNode(node, warnings) {
+  if (node.nodeType === Node.TEXT_NODE) return esc(node.textContent);
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+  const tag = node.tagName.toLowerCase();
+  if (['script','style','link','meta','head','xml','o:p'].includes(tag)) return '';
+  if (tag === 'br') return '<br>';
+  if (tag === 'strong' || tag === 'b') return `<${BOLD_TAG}>${processInlineChildren(node, warnings)}</${BOLD_TAG}>`;
+  if (tag === 'em' || tag === 'i')     return `<${ITALIC_TAG}>${processInlineChildren(node, warnings)}</${ITALIC_TAG}>`;
+  if (tag === 'u')  return `<u>${processInlineChildren(node, warnings)}</u>`;
+  if (tag === 's' || tag === 'strike' || tag === 'del') return `<s>${processInlineChildren(node, warnings)}</s>`;
+  if (tag === 'sup') return `<sup>${processInlineChildren(node, warnings)}</sup>`;
+  if (tag === 'sub') return `<sub>${processInlineChildren(node, warnings)}</sub>`;
+  if (tag === 'code') return `<code style="${CODE_FONT}">${escCode(node.textContent)}</code>`;
+  if (tag === 'span' || tag === 'font') {
+    const ss = (node.getAttribute('style') || '').toLowerCase();
+    if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
+    if (/mso-spacerun/.test(ss)) return ' ';
+    const inner = processInlineChildren(node, warnings);
+    if (ss.includes('line-through')) return `<s>${inner}</s>`;
+    if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
+    if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
+    if (/text-decoration[^;]*underline/.test(ss)) return `<u>${inner}</u>`;
+    return inner;
+  }
+  if (tag === 'a') {
+    if (node.getAttribute('name') && !node.getAttribute('href')) return processInlineChildren(node, warnings);
+    const href = node.getAttribute('href') || '';
+    if (/^#_/.test(href)) return processInlineChildren(node, warnings);
+    const safe = safeHref(href, warnings);
+    const inner = processInlineChildren(node, warnings).trim();
+    if (!inner) return '';
+    return safe ? `<a href="${escAttr(safe)}">${inner}</a>` : inner;
+  }
+  return processInlineChildren(node, warnings);
 }
 
-// Underlined-only paragraph
-function isUnderlinedOnlyParagraph(node) {
-  return false;
+/* ============================================================================
+   HEADINGS
+   ============================================================================ */
+function headingHtml(level, text) {
+  const size = level === 2 ? 18 : level === 3 ? 16 : 14;
+  return `<h${level} style="font-family: Arial, sans-serif; font-size: ${size}px; font-weight: bold;">${esc(text)}</h${level}>\n`;
+}
+function detectHeadingLevel(node, tag) {
+  const isNative = /^h[1-6]$/.test(tag);
+  const mso = msoLevel(node);
+  const size = maxFontSize(node);
+  const textLen = cleanText(node.textContent).length;
+  if (!textLen) return 0;
+  const candidate = isNative || mso > 0 || (size != null && size >= 13.5 && textLen <= 140);
+  if (!candidate) return 0;
+  if (size != null) { if (size >= 17) return 2; if (size >= 15) return 3; if (size >= 13.5) return 4; }
+  if (mso === 1) return 2; if (mso === 2) return 3; if (mso >= 3) return 4;
+  if (tag === 'h1') return 2; if (tag === 'h2') return 3; if (/^h[3-6]$/.test(tag)) return 4;
+  return 2;
+}
+function msoLevel(node) {
+  const cls = (node.getAttribute('class') || '').toLowerCase().replace(/\s+/g,'');
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  for (let n = 1; n <= 4; n++) {
+    if (new RegExp(`mso-?heading.?${n}|heading${n}`).test(cls)) return n;
+    if (new RegExp(`mso-style-name:\\s*['"]?heading\\s*${n}`).test(style)) return n;
+  }
+  return 0;
+}
+function maxFontSize(node) {
+  let max = null;
+  const check = el => {
+    const m = ((el.getAttribute && el.getAttribute('style')) || '').match(/font-size\s*:\s*(\d+(?:\.\d+)?)\s*(pt|px)/i);
+    if (m) { let v = parseFloat(m[1]); if (m[2].toLowerCase() === 'px') v *= 0.75; if (max === null || v > max) max = v; }
+  };
+  check(node);
+  if (node.querySelectorAll) node.querySelectorAll('[style]').forEach(check);
+  return max;
 }
 
-// ─── Code content heuristics ──────────────────────────────────────────────────
-function isJsonLike(text) {
-  const t = text.trim();
-  return (t.startsWith('{') || t.startsWith('[')) && (t.endsWith('}') || t.endsWith(']')) && t.includes(':');
-}
-function isHttpRequestLike(text) {
-  return /^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\s+https?:\/\//im.test(text);
+/* ============================================================================
+   NOTE / IMPORTANT / WARNING
+   ============================================================================ */
+function buildNote(raw) {
+  const t = (raw || '').trimStart();
+  const defs = [
+    { re:/^Note:/i,      label:'Note:',      rep:`<${BOLD_TAG}>Note:</${BOLD_TAG}>` },
+    { re:/^Important:/i, label:'Important:', rep:`<${BOLD_TAG}>Important:</${BOLD_TAG}>` },
+    { re:/^Warning:/i,   label:'Warning:',   rep:`<${BOLD_TAG} style="color:#c00000;">Warning:</${BOLD_TAG}>` }
+  ];
+  for (const d of defs) {
+    if (d.re.test(t)) {
+      const rest = t.slice(d.label.length).trim();
+      return `<blockquote>${d.rep}${rest ? ' ' + esc(rest) : ''}</blockquote>\n`;
+    }
+  }
+  return null;
 }
 
-// ─── Table processing ─────────────────────────────────────────────────────────
+// DOM-aware version: detects Note/Warning/Important from raw text but renders
+// the content after the label using processChildren so inline markup is kept.
+function buildNoteFromNode(node, raw, warnings) {
+  const t = (raw || '').trimStart();
+  const defs = [
+    { re:/^Note:/i,      label:'Note:',      rep:`<${BOLD_TAG}>Note:</${BOLD_TAG}>` },
+    { re:/^Important:/i, label:'Important:', rep:`<${BOLD_TAG}>Important:</${BOLD_TAG}>` },
+    { re:/^Warning:/i,   label:'Warning:',   rep:`<${BOLD_TAG} style="color:#c00000;">Warning:</${BOLD_TAG}>` }
+  ];
+  for (const d of defs) {
+    if (!d.re.test(t)) continue;
+    const fullInner = processChildren(node, warnings);
+    const labelEsc = esc(d.label);
+    let rest = fullInner
+      .replace(new RegExp(`^\\s*<(?:strong|b)[^>]*>\\s*${labelEsc.replace(':','\\:')}\\s*</(?:strong|b)>\\s*`, 'i'), '')
+      .replace(new RegExp(`^\\s*${labelEsc.replace(':','\\:')}\\s*`, 'i'), '')
+      .trim();
+    return `<blockquote>${d.rep}${rest ? ' ' + normalizeNbsp(rest) : ''}</blockquote>\n`;
+  }
+  return null;
+}
+
+/* ============================================================================
+   TABLES
+   ============================================================================ */
 function processTable(tableNode, warnings) {
-  const rows = getDirectTableRows(tableNode);
+  const rows = getTableRows(tableNode);
   if (!rows.length) return '';
 
   let hasMerged = false, hasUneven = false;
   const hasNested = Array.from(tableNode.querySelectorAll('table')).some(t => t !== tableNode);
-  const rowLengths = [];
-
-  rows.forEach(row => {
+  const lens = rows.map(row => {
     let len = 0;
-    getDirectRowCells(row).forEach(cell => {
-      const cs = parseInt(getWordColspan(cell), 10);
-      const rs = parseInt(getWordRowspan(cell), 10);
-      len += cs;
-      if (cs > 1 || rs > 1) hasMerged = true;
-    });
-    rowLengths.push(len);
+    getCells(row).forEach(cell => { const cs = parseInt(getColspan(cell),10); len += cs; if (cs>1||parseInt(getRowspan(cell),10)>1) hasMerged=true; });
+    return len;
   });
+  const maxLen = Math.max(...lens);
+  if (lens.some(l => l !== maxLen && l > 0)) hasUneven = true;
 
-  const maxLen = Math.max(...rowLengths);
-  if (rowLengths.some(l => l !== maxLen && l > 0)) hasUneven = true;
+  if (hasMerged) warnings.push({ level:'info',    title:'Merged cells', msg:'Colspan/rowspan preserved. Review before publishing.' });
+  if (hasUneven) warnings.push({ level:'warning', title:'Uneven rows',  msg:'Row cell counts differ. Structure preserved as is.' });
+  if (hasNested) warnings.push({ level:'warning', title:'Nested tables',msg:'Nested tables preserved. Review output carefully.' });
 
-  if (hasMerged) warnings.push({ level: 'info', title: 'Merged cells detected', msg: 'Colspan and rowspan were preserved. Review the table in the preview before publishing.' });
-  if (hasUneven) warnings.push({ level: 'warning', title: 'Uneven table rows detected', msg: 'Table structure was preserved as much as possible.' });
-  if (hasNested) warnings.push({ level: 'warning', title: 'Nested tables detected', msg: 'Nested tables were preserved. Review output carefully.' });
-
-  let hasEmpty = false;
-  rows.forEach(row => getDirectRowCells(row).forEach(cell => { if (!cell.textContent.trim()) hasEmpty = true; }));
-  if (hasEmpty) warnings.push({ level: 'info', title: 'Empty table cells preserved', msg: 'Empty cells were kept to maintain table structure.' });
-
-  // Important: do not split the first row into <thead> and the rest into <tbody>.
-  // Word tables often use rowspan in the first row. Moving that row to <thead>
-  // breaks alignment because the rowspan can no longer span into the next body row.
   let inner = '<tbody>\n';
-
-  rows.forEach((row, rowIndex) => {
+  rows.forEach((row, ri) => {
     inner += '<tr>';
-    getDirectRowCells(row).forEach(cell => {
-      const attrs = getCellAttrs(cell);
-      const cellInner = processTableCellContent(cell, warnings) || '&nbsp;';
-      const isHeader = rowIndex === 0 || cell.tagName.toLowerCase() === 'th' || isTableHeaderCell(cell);
-
-      if (isHeader) {
-        inner += `<th style="border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px; text-align: left;"${attrs}>${cellInner}</th>`;
-      } else {
-        inner += `<td style="border: 0.5px solid #808080; padding: 4px; vertical-align: top; font-family: Arial, sans-serif; font-size: 12px;"${attrs}>${cellInner}</td>`;
-      }
+    getCells(row).forEach(cell => {
+      const attrs = cellAttrs(cell);
+      const cellInner = processTableCell(cell, warnings) || '&nbsp;';
+      const isHdr = ri === 0 || cell.tagName.toLowerCase() === 'th' || isBoldCell(cell);
+      if (isHdr) inner += `<th style="border:0.5px solid #808080;font-weight:bold;padding:4px;vertical-align:top;text-align:left;${SF_FONT}"${attrs}>${cellInner}</th>`;
+      else        inner += `<td style="border:0.5px solid #808080;padding:4px;vertical-align:top;${SF_FONT}"${attrs}>${cellInner}</td>`;
     });
     inner += '</tr>\n';
   });
-
   inner += '</tbody>\n';
-  return `<table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 12px;">\n${inner}</table>\n`;
+  return `<table style="border-collapse:collapse;width:100%;">\n${inner}</table>\n`;
 }
 
-function getDirectTableRows(tableNode) {
+function processTableCell(cell, warnings) {
+  const raw = (cell.textContent || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+  if (!raw) return '';
+  if (/^(Y|N|N\/A|Yes|No|\d+(\.\d+)?)$/i.test(raw)) return esc(raw);
+  return Array.from(cell.childNodes).map(ch => processTableCellNode(ch, warnings).trim()).filter(Boolean).join('<br>');
+}
+function processTableCellNode(node, warnings) {
+  if (node.nodeType === Node.TEXT_NODE) return esc((node.textContent||'').replace(/\u00a0/g,' ').replace(/[ \t\r\n]+/g,' '));
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+  const tag = node.tagName.toLowerCase();
+  if (['script','style','link','meta','xml','o:p'].includes(tag)) return '';
+  if (tag === 'br') return '<br>';
+  if (/^h[1-6]$/.test(tag) || tag === 'p' || tag === 'div') return processTCChildren(node, warnings).trim();
+  if (tag === 'hr') return '';
+  if (tag === 'strong'||tag==='b') return `<${BOLD_TAG}>${processTCChildren(node,warnings)}</${BOLD_TAG}>`;
+  if (tag === 'em'||tag==='i')     return `<${ITALIC_TAG}>${processTCChildren(node,warnings)}</${ITALIC_TAG}>`;
+  if (tag === 'u')  return `<u>${processTCChildren(node,warnings)}</u>`;
+  if (tag === 's'||tag==='strike'||tag==='del') return `<s>${processTCChildren(node,warnings)}</s>`;
+  if (tag === 'sup') return `<sup>${processTCChildren(node,warnings)}</sup>`;
+  if (tag === 'sub') return `<sub>${processTCChildren(node,warnings)}</sub>`;
+  if (tag === 'span'||tag==='font') {
+    const ss = (node.getAttribute('style')||'').toLowerCase();
+    if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
+    if (/mso-spacerun/.test(ss)) return ' ';
+    const inner = processTCChildren(node,warnings);
+    if (ss.includes('line-through')) return `<s>${inner}</s>`;
+    if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
+    if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
+    if (/text-decoration[^;]*underline/.test(ss)) return `<u>${inner}</u>`;
+    return inner;
+  }
+  if (tag === 'a') {
+    const href = node.getAttribute('href')||'';
+    if (node.getAttribute('name')&&!href) return processTCChildren(node,warnings);
+    if (/^#_/.test(href)) return processTCChildren(node,warnings);
+    const safe = safeHref(href,warnings);
+    const inner = processTCChildren(node,warnings).trim();
+    return (safe && inner) ? `<a href="${escAttr(safe)}">${inner}</a>` : inner;
+  }
+  if (tag==='ul'||tag==='ol') {
+    return processSourceList(node, tag, warnings, 0).trim();
+  }
+  if (tag==='pre')  return codeBlock(node.textContent);
+  if (tag==='code') return `<code style="${CODE_FONT}">${escCode(node.textContent)}</code>`;
+  if (tag==='table') return processTable(node,warnings);
+  return processTCChildren(node,warnings);
+}
+function processTCChildren(node,warnings) {
+  return Array.from(node.childNodes).map(c=>processTableCellNode(c,warnings)).join('');
+}
+function getTableRows(t) {
   const rows = [];
-  Array.from(tableNode.children).forEach(child => {
-    const tag = child.tagName ? child.tagName.toLowerCase() : '';
-    if (tag === 'tr') rows.push(child);
-    if (tag === 'thead' || tag === 'tbody' || tag === 'tfoot') {
-      Array.from(child.children).forEach(row => {
-        if (row.tagName && row.tagName.toLowerCase() === 'tr') rows.push(row);
-      });
-    }
+  Array.from(t.children).forEach(ch => {
+    const tag = (ch.tagName||'').toLowerCase();
+    if (tag==='tr') rows.push(ch);
+    if (['thead','tbody','tfoot'].includes(tag)) Array.from(ch.children).forEach(r=>{if((r.tagName||'').toLowerCase()==='tr')rows.push(r);});
   });
   return rows;
 }
+function getCells(row) {
+  return Array.from(row.children).filter(c=>{const t=(c.tagName||'').toLowerCase();return t==='td'||t==='th';});
+}
+function cellAttrs(cell) {
+  let a='';
+  const cs=getColspan(cell),rs=getRowspan(cell);
+  if(parseInt(cs,10)>1)a+=` colspan="${cs}"`;
+  if(parseInt(rs,10)>1)a+=` rowspan="${rs}"`;
+  return a;
+}
+function getColspan(cell) {
+  const d=cell.getAttribute('colspan');
+  if(d&&parseInt(d,10)>1)return d;
+  const m=(cell.getAttribute('style')||'').match(/mso-grid-span\s*:\s*(\d+)/i);
+  return (m&&parseInt(m[1],10)>1)?m[1]:'1';
+}
+function getRowspan(cell) {
+  const d=cell.getAttribute('rowspan');
+  return (d&&parseInt(d,10)>1)?d:'1';
+}
+function isBoldCell(cell) {
+  if((cell.getAttribute('style')||'').toLowerCase().match(/font-weight\s*:\s*(bold|[6-9]00)/)) return true;
+  if(cell.querySelector('b,strong')) return true;
+  return false;
+}
 
-function getDirectRowCells(row) {
-  return Array.from(row.children).filter(child => {
-    if (!child.tagName) return false;
-    const tag = child.tagName.toLowerCase();
-    return tag === 'td' || tag === 'th';
+/* ============================================================================
+   HR  (one before each h2 except the first)
+   ============================================================================ */
+function finalizeHr(html) {
+  let first = true, depth = 0;
+  return html
+    .split(/(<\/?table\b[^>]*>|<h2\b[^>]*>)/gi)
+    .map(tok => {
+      if (/^<table\b/i.test(tok))  { depth++; return tok; }
+      if (/^<\/table/i.test(tok))  { depth = Math.max(depth-1,0); return tok; }
+      if (/^<h2\b/i.test(tok) && depth===0) { if(first){first=false;return tok;} return `<hr>\n${tok}`; }
+      return tok;
+    })
+    .join('')
+    .replace(/(?:<hr\s*\/?>\s*){2,}/gi, '<hr>\n');
+}
+
+/* ============================================================================
+   PLAIN TEXT FALLBACK
+   ============================================================================ */
+function convertPlainText(text, warnings) {
+  const doc = document.implementation.createHTMLDocument('');
+  const body = doc.body;
+  text.split(/\r?\n/).forEach(line => {
+    if (!line.trim()) return;
+    const p = doc.createElement('p');
+    p.textContent = line;
+    body.appendChild(p);
   });
-}
-
-function getCellAttrs(cell) {
-  let attrs = '';
-  const cs = getWordColspan(cell);
-  const rs = getWordRowspan(cell);
-  if (cs && parseInt(cs,10) > 1) attrs += ` colspan="${cs}"`;
-  if (rs && parseInt(rs,10) > 1) attrs += ` rowspan="${rs}"`;
-  return attrs;
-}
-
-function getWordColspan(cell) {
-  const direct = cell.getAttribute('colspan');
-  if (direct && parseInt(direct, 10) > 1) return direct;
-
-  // Some Word HTML stores merged columns in mso attributes instead of colspan.
-  const style = (cell.getAttribute('style') || '').toLowerCase();
-  const msoGridSpan = style.match(/mso-grid-span\s*:\s*(\d+)/i);
-  if (msoGridSpan && parseInt(msoGridSpan[1], 10) > 1) return msoGridSpan[1];
-
-  return '1';
-}
-
-function getWordRowspan(cell) {
-  const direct = cell.getAttribute('rowspan');
-  if (direct && parseInt(direct, 10) > 1) return direct;
-  return '1';
-}
-
-function isTableHeaderCell(cell) {
-  if (cell.tagName.toLowerCase() === 'th') return true;
-  const text = cleanTableText(cell.textContent);
-  if (!text) return false;
-
-  const style = (cell.getAttribute('style') || '').toLowerCase();
-  if (/font-weight\s*:\s*(bold|700)/i.test(style)) return true;
-  if (cell.querySelector('b,strong')) return true;
-
-  return Array.from(cell.querySelectorAll('[style]')).some(el => {
-    const s = (el.getAttribute('style') || '').toLowerCase();
-    return /font-weight\s*:\s*(bold|700)/i.test(s);
-  });
-}
-
-// ─── Note / Important / Warning ───────────────────────────────────────────────
-function checkNoteLabel(innerHTML, rawText) {
-  const t = (rawText || '').trimStart();
-  if (/^Note:/i.test(t))      return replaceLabel(innerHTML, 'Note:',      `<strong>Note:</strong>`);
-  if (/^Important:/i.test(t)) return replaceLabel(innerHTML, 'Important:', `<strong>Important:</strong>`);
-  if (/^Warning:/i.test(t))   return replaceLabel(innerHTML, 'Warning:',   `<strong style="color: #c00000;">Warning:</strong>`);
-  return null;
-}
-function replaceLabel(innerHTML, label, replacement) {
-  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return innerHTML.replace(new RegExp(escaped, 'i'), replacement);
-}
-
-// ─── HR before h2 (except first) ─────────────────────────────────────────────
-function insertHRBeforeH2(html) {
-  let firstDocumentHeading = true;
-  let tableDepth = 0;
-  const tokens = html.split(/(<\/?table\b[^>]*>|<h2\b[^>]*>)/gi);
-
-  return tokens.map(token => {
-    if (/^<table\b/i.test(token)) {
-      tableDepth++;
-      return token;
-    }
-    if (/^<\/table/i.test(token)) {
-      tableDepth = Math.max(tableDepth - 1, 0);
-      return token;
-    }
-    if (/^<h2\b/i.test(token) && tableDepth === 0) {
-      if (firstDocumentHeading) {
-        firstDocumentHeading = false;
-        return token;
-      }
-      return `<hr>\n${token}`;
-    }
-    return token;
-  }).join('');
-}
-
-// ─── Plain text fallback ──────────────────────────────────────────────────────
-function convertPlainText(text) {
-  const lines = text.split(/\r?\n/);
+  groupManualLists(body, warnings || []);
   let out = '';
-  lines.forEach(line => {
-    const t = line.trim();
+  Array.from(body.childNodes).forEach(node => {
+    if (isSentinel(node)) {
+      out += node.innerHTML + '\n';
+      return;
+    }
+    const t = cleanText(node.textContent);
     if (!t) return;
-    const noteResult = checkNoteLabel(escapeText(t), t);
-    if (noteResult) { out += `<blockquote>${noteResult}</blockquote>\n`; }
-    else { out += `<p style="font-family: Arial, sans-serif; font-size: 12px;">${escapeText(t)}</p>\n`; }
+    out += buildNote(t) || `<p style="${SF_FONT}">${esc(t)}</p>\n`;
   });
-  return insertHRBeforeH2(out.trim());
+  return finalizeHr(out.trim());
 }
 
-// ─── Utility ──────────────────────────────────────────────────────────────────
-function escapeText(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* ============================================================================
+   HELPERS
+   ============================================================================ */
+function codeBlock(text) {
+  return `<pre><code style="${CODE_FONT}">${escCode(text)}</code></pre>\n`;
 }
-function escapeCode(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+function isJsonLike(t) { t=t.trim(); return (t.startsWith('{')||t.startsWith('['))&&(t.endsWith('}')||t.endsWith(']'))&&t.includes(':'); }
+function isHttpLike(t) { return /^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\s+https?:\/\//im.test(t); }
+function hasBlock(html) { return /<(p|div|h2|h3|h4|ul|ol|li|table|pre|blockquote|hr)\b/i.test(html); }
+function getPlainText(node) {
+  let t='';
+  node.childNodes.forEach(ch=>{
+    if(ch.nodeType===Node.TEXT_NODE) t+=ch.textContent;
+    else if(ch.nodeType===Node.ELEMENT_NODE){const tg=ch.tagName.toLowerCase();if(tg==='br')t+='\n';else{t+=getPlainText(ch);if(['p','div','li','tr'].includes(tg))t+='\n';}}
+  });
+  return t;
 }
-function escapeAttr(str) {
-  return (str || '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-function normalizeNbsp(str) {
-  // Replace &nbsp; used between words with a regular space; collapse multiples
-  return str.replace(/&nbsp;/g, ' ').replace(/\u00a0/g, ' ').replace(/ {2,}/g, ' ');
-}
-function sanitizeHref(href, warnings) {
+function cleanCodeText(t) { return (t||'').replace(/\u00a0/g,' ').replace(/[ \t]+$/gm,'').replace(/\n{3,}/g,'\n\n').replace(/^\n+|\n+$/g,''); }
+function cleanText(t)     { return (t||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim(); }
+function normalizeNbsp(s) { return s.replace(/&nbsp;/g,' ').replace(/\u00a0/g,' ').replace(/ {2,}/g,' '); }
+function esc(s)     { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escCode(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escAttr(s) { return (s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function safeHref(href, warnings) {
   if (!href) return '';
   href = href.trim();
-  if (href.startsWith('http://') || href.startsWith('https://') ||
-      href.startsWith('mailto:') || href.startsWith('/') || href.startsWith('#')) return href;
-  if (href.length > 0) warnings.push({ level: 'info', title: 'Unsafe link protocol stripped', msg: 'A link with an unsupported protocol was stripped. Link text was preserved.' });
+  if (/^(https?:|mailto:)/i.test(href)) return href;
+  if (href.length) warnings.push({ level:'info', title:'Link protocol stripped', msg:'Unsupported link protocol removed. Text preserved.' });
   return '';
 }
+function dedupeWarnings(warnings) {
+  const seen = new Set();
+  return warnings.filter(w => { const k=w.level+'|'+w.title; if(seen.has(k))return false; seen.add(k);return true; });
+}
 
-// ─── Warnings panel ───────────────────────────────────────────────────────────
+/* ============================================================================
+   WARNINGS
+   ============================================================================ */
 function clearWarnings() {
   document.getElementById('warningsList').innerHTML = '';
-  const empty = document.getElementById('warningsEmpty');
-  if (empty) empty.style.display = 'none';
+  const e = document.getElementById('warningsEmpty'); if(e) e.style.display='none';
 }
 function addWarning(level, title, msg) {
-  const list  = document.getElementById('warningsList');
-  const empty = document.getElementById('warningsEmpty');
-  if (empty) empty.style.display = 'none';
-  const icons = { error:'🔴', warning:'⚠️', info:'ℹ️' };
-  const item  = document.createElement('div');
+  const list = document.getElementById('warningsList');
+  const e = document.getElementById('warningsEmpty'); if(e) e.style.display='none';
+  const icons = { error:'\u{1F534}', warning:'\u26A0\uFE0F', info:'\u2139\uFE0F' };
+  const item = document.createElement('div');
   item.className = `warning-item ${level}`;
-  item.innerHTML = `<span class="warning-icon">${icons[level]||'ℹ️'}</span><div class="warning-text"><strong>${escapeText(title)}</strong><span>${escapeText(msg)}</span></div>`;
+  item.innerHTML = `<span class="warning-icon">${icons[level]||icons.info}</span><div class="warning-text"><strong>${esc(title)}</strong><span>${esc(msg)}</span></div>`;
   list.appendChild(item);
 }
 function updateWarningsFooter() {
-  const items  = document.querySelectorAll('.warning-item');
+  const items = document.querySelectorAll('.warning-item');
   const footer = document.getElementById('warningsFooter');
-  if (!items.length) { footer.style.display = 'none'; return; }
-  let errors = 0, warns = 0, infos = 0;
-  items.forEach(i => { if (i.classList.contains('error')) errors++; else if (i.classList.contains('warning')) warns++; else infos++; });
-  document.getElementById('countError').textContent   = errors ? `🔴 ${errors} Issue${errors  !== 1?'s':''}` : '';
-  document.getElementById('countWarning').textContent = warns  ? `⚠️ ${warns} Warning${warns   !== 1?'s':''}` : '';
-  document.getElementById('countInfo').textContent    = infos  ? `ℹ️ ${infos} Info` : '';
-  footer.style.display = (errors||warns||infos) ? 'flex' : 'none';
+  if (!items.length) { footer.style.display='none'; return; }
+  let e=0,w=0,i=0;
+  items.forEach(x=>{ if(x.classList.contains('error'))e++; else if(x.classList.contains('warning'))w++; else i++; });
+  document.getElementById('countError').textContent   = e ? `\u{1F534} ${e} Issue${e!==1?'s':''}` : '';
+  document.getElementById('countWarning').textContent = w ? `\u26A0\uFE0F ${w} Warning${w!==1?'s':''}` : '';
+  document.getElementById('countInfo').textContent    = i ? `\u2139\uFE0F ${i} Info` : '';
+  footer.style.display = (e||w||i) ? 'flex' : 'none';
 }
 
-// ─── Copy HTML ────────────────────────────────────────────────────────────────
+/* ============================================================================
+   COPY / CLEAR
+   ============================================================================ */
 document.getElementById('btnCopy').addEventListener('click', () => {
-  const output = document.getElementById('htmlOutput');
-  if (!output.value.trim()) { addWarning('info','Nothing to copy','Convert content first before copying.'); setPanelOpen(true); return; }
-  navigator.clipboard.writeText(output.value).then(showCopyStatus).catch(() => { output.select(); document.execCommand('copy'); showCopyStatus(); });
+  const out = document.getElementById('htmlOutput');
+  if (!out.value.trim()) { addWarning('info','Nothing to copy','Convert content first.'); setPanelOpen(true); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(out.value)
+      .then(() => showToast('HTML copied to clipboard'))
+      .catch(() => { out.select(); document.execCommand('copy'); showToast('HTML copied to clipboard'); });
+  } else {
+    try { out.select(); document.execCommand('copy'); showToast('HTML copied to clipboard'); }
+    catch(e) { showToast('Copy failed. Please try again.', true); }
+  }
 });
-function showCopyStatus() {
-  const s = document.getElementById('copyStatus');
-  s.style.display = 'inline';
-  setTimeout(() => { s.style.display = 'none'; }, 2500);
+
+let _toastTimer = null;
+function showToast(msg, isError) {
+  const t = document.getElementById('kmToast');
+  t.textContent = msg;
+  t.className = isError ? 'km-toast-error km-toast-visible' : 'km-toast-visible';
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { t.classList.remove('km-toast-visible'); }, 2000);
 }
 
-// ─── Clear ────────────────────────────────────────────────────────────────────
-document.getElementById('btnClear').addEventListener('click', () => {
-  pasteArea.innerHTML = '';
-  document.getElementById('previewArea').innerHTML = '';
-  document.getElementById('htmlOutput').value = '';
+function doClearAll() {
+  renderingPastePreview = true;
+  pasteRender.innerHTML = '';
+  renderingPastePreview = false;
+  pasteRender.classList.add('empty');
+  pasteStatus.textContent = 'Click below and paste (Ctrl+V)';
   storedClipboardHTML = '';
   pasteAreaDirty = false;
+  document.getElementById('previewArea').innerHTML = '';
+  document.getElementById('htmlOutput').value = '';
   clearWarnings();
-  const empty = document.getElementById('warningsEmpty');
-  if (empty) empty.style.display = 'block';
+  const e = document.getElementById('warningsEmpty'); if(e) e.style.display='block';
   updateWarningsFooter();
-  document.getElementById('copyStatus').style.display = 'none';
-});
+}
+document.getElementById('btnClearAll').addEventListener('click', doClearAll);
+document.getElementById('btnPasteClear').addEventListener('click', doClearAll);
 </script>
 </body>
 </html>

@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KM HTML Converter</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ice-blue: #DCEEFF;
+    --signal-blue: #4DA3FF;
+    --blue-black: #111827;
+    --soft-white: #F8FBFF;
+    --cool-gray: #A7B4C2;
+    --accent-red: #D94141;
+    --border: #D0DDE8;
+    --panel-width: 320px;
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--soft-white); color: var(--blue-black); min-height: 100vh; display: flex; flex-direction: column; }
+
+  header { background: #fff; border-bottom: 1.5px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-icon { width: 36px; height: 36px; background: var(--ice-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--signal-blue); font-size: 18px; flex-shrink: 0; }
+  .header-text h1 { font-size: 18px; font-weight: 700; color: var(--blue-black); line-height: 1.2; }
+  .header-text p  { font-size: 12px; color: var(--cool-gray); margin-top: 1px; }
+  .header-badge { background: var(--ice-blue); color: var(--signal-blue); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+
+  .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
+  .main-content { flex: 1; overflow-y: auto; padding: 20px 24px; min-width: 0; transition: margin-right 0.25s ease; }
+  .main-content.panel-open { margin-right: var(--panel-width); }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--signal-blue); margin-bottom: 8px; }
+
+  /* PASTE AREA - editable rendered preview */
+  .paste-section { margin-bottom: 16px; }
+  .paste-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; }
+  .paste-box-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #fafcff; border-bottom: 1px solid var(--border); gap: 8px; }
+  .paste-box-toolbar span { font-size: 11px; color: var(--cool-gray); }
+  .paste-clear-btn { font-size: 11px; color: var(--accent-red); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+  .paste-clear-btn:hover { background: #fff0f0; }
+  #pasteRender { min-height: 160px; max-height: 280px; overflow-y: auto; padding: 14px 16px;
+    font-family: Arial, sans-serif; font-size: 12px; line-height: 1.6; color: var(--blue-black); }
+  #pasteRender.empty::before { content: 'Paste copied Word content here (Ctrl+V)...'; color: var(--cool-gray); font-style: italic; }
+  /* Render Word list styles faithfully inside the paste preview */
+  #pasteRender ol { padding-left: 24px; margin: 2px 0; }
+  #pasteRender ul { padding-left: 24px; margin: 2px 0; }
+  #pasteRender li { margin: 1px 0; }
+  #pasteRender p  { margin: 3px 0; }
+  #pasteRender h1, #pasteRender h2, #pasteRender h3, #pasteRender h4 { font-weight: bold; margin: 6px 0 3px; }
+  #pasteRender h1 { font-size: 18px; }
+  #pasteRender h2 { font-size: 16px; }
+  #pasteRender h3 { font-size: 14px; }
+  #pasteRender table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; }
+  #pasteRender td, #pasteRender th { border: 0.5px solid #aaa; padding: 3px 6px; vertical-align: top; }
+  #pasteRender a { color: var(--signal-blue); }
+  #pasteRender pre { background: #f4f6f8; padding: 8px; font-size: 11px; border-radius: 4px; overflow-x: auto; }
+  /* Make the paste area focusable so it can catch paste events */
+  #pasteRender:focus { outline: 2px solid var(--signal-blue); outline-offset: -2px; border-radius: 0 0 8px 8px; }
+  .paste-hint { font-size: 11px; color: var(--cool-gray); margin-top: 5px; }
+
+  /* BUTTONS */
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .btn-primary   { background: var(--signal-blue); color: #fff; border-color: var(--signal-blue); }
+  .btn-primary:hover   { background: #3a8ee0; border-color: #3a8ee0; }
+  .btn-secondary { background: #fff; color: var(--blue-black); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--signal-blue); color: var(--signal-blue); }
+  .btn-danger    { background: #fff; color: var(--accent-red); border-color: #f0c0c0; }
+  .btn-danger:hover    { background: #fff0f0; }
+  .btn-code      { background: var(--blue-black); color: #fff; border-color: var(--blue-black); }
+  .btn-code:hover      { background: #1e2d42; }
+  #copyStatus { font-size: 11px; color: #2a9d2a; font-weight: 600; align-self: center; display: none; }
+
+  /* OUTPUT GRID */
+  .output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .output-grid { grid-template-columns: 1fr; } }
+  .panel-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+  .panel-box-header { padding: 8px 12px; background: var(--ice-blue); font-size: 11px; font-weight: 700; color: var(--signal-blue); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+
+  #previewArea { flex: 1; min-height: 280px; max-height: 480px; overflow-y: auto; padding: 14px 16px; font-size: 12px; line-height: 1.6; font-family: Arial, sans-serif; }
+  #previewArea:empty::before { content: 'Preview will appear here after conversion.'; color: var(--cool-gray); font-style: italic; font-size: 12px; }
+  #previewArea h2 { font-size: 18px; font-weight: bold; margin: 10px 0 5px; font-family: Arial, sans-serif; }
+  #previewArea h3 { font-size: 16px; font-weight: bold; margin: 8px 0 4px; font-family: Arial, sans-serif; }
+  #previewArea h4 { font-size: 14px; font-weight: bold; margin: 6px 0 3px; font-family: Arial, sans-serif; }
+  #previewArea p  { font-size: 12px; margin: 3px 0; font-family: Arial, sans-serif; }
+  #previewArea ul, #previewArea ol { padding-left: 22px; margin: 3px 0; }
+  #previewArea li { font-size: 12px; margin: 1px 0; font-family: Arial, sans-serif; }
+  #previewArea table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; font-family: Arial, sans-serif; }
+  #previewArea th { border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; text-align: left; font-size: 12px; }
+  #previewArea td { border: 0.5px solid #808080; padding: 4px; vertical-align: top; }
+  #previewArea a  { color: var(--signal-blue); }
+  #previewArea pre { background: #f4f6f8; border-radius: 4px; padding: 10px 12px; font-size: 12px; overflow-x: auto; margin: 6px 0; }
+  #previewArea code { font-family: 'Consolas','Courier New',monospace; font-size: 12px; }
+  #previewArea hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+  #previewArea blockquote { border-left: 3px solid var(--signal-blue); margin: 6px 0; padding: 6px 12px; background: #f5f9ff; border-radius: 0 4px 4px 0; font-size: 12px; }
+
+  #htmlOutput { flex: 1; min-height: 280px; max-height: 480px; resize: vertical; padding: 12px 14px; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; color: var(--blue-black); border: none; outline: none; background: #fff; width: 100%; }
+  .output-hint { font-size: 11px; color: var(--cool-gray); padding: 6px 12px; border-top: 1px solid var(--border); background: #fafcff; }
+
+  /* WARNINGS PANEL */
+  .warnings-panel { position: fixed; top: 65px; right: 0; bottom: 0; width: var(--panel-width); background: #fff; border-left: 1.5px solid var(--border); display: flex; flex-direction: column; z-index: 90; transition: transform 0.25s ease; overflow: hidden; }
+  .warnings-panel.hidden { transform: translateX(100%); }
+  .warnings-panel-header { padding: 12px 14px; background: var(--ice-blue); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .warnings-panel-header span { font-size: 12px; font-weight: 700; color: var(--blue-black); text-transform: uppercase; letter-spacing: 0.05em; }
+  .warnings-scroll { flex: 1; overflow-y: auto; padding: 12px; }
+  .warnings-empty { color: var(--cool-gray); font-size: 12px; font-style: italic; text-align: center; margin-top: 40px; padding: 0 16px; }
+  .warning-item { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 12px; line-height: 1.4; }
+  .warning-item.error   { background: #fff2f2; border: 1px solid #f0c0c0; }
+  .warning-item.warning { background: #fffbf0; border: 1px solid #f0e0a0; }
+  .warning-item.info    { background: #f0f8ff; border: 1px solid #c0d8f0; }
+  .warning-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .warning-text strong { display: block; font-size: 12px; font-weight: 700; margin-bottom: 1px; }
+  .warning-text span   { font-size: 11px; color: #555; }
+  .warnings-footer { padding: 8px 12px; border-top: 1px solid var(--border); background: #fafcff; font-size: 11px; color: var(--cool-gray); display: flex; gap: 10px; flex-shrink: 0; }
+  .wf-chip { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
+  .wf-chip.red   { color: var(--accent-red); }
+  .wf-chip.amber { color: #b07800; }
+  .wf-chip.blue  { color: var(--signal-blue); }
+
+  .panel-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 95; background: #fff; border: 1.5px solid var(--border); border-right: none; border-radius: 8px 0 0 8px; padding: 10px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.25s; box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
+  /* TOAST NOTIFICATION */
+  #kmToast {
+    position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+    background: var(--blue-black); color: #fff;
+    font-size: 13px; font-weight: 600; font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 10px 18px; border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: translateY(8px);
+  }
+  #kmToast.km-toast-visible {
+    opacity: 1; pointer-events: none; transform: translateY(0);
+  }
+  #kmToast.km-toast-error { background: var(--accent-red); }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon">&#128203;</div>
+    <div class="header-text">
+      <h1>KM HTML Converter</h1>
+      <p>Paste content from Word and convert it into clean Salesforce Knowledge HTML.</p>
+    </div>
+  </div>
+</header>
+
+<div class="app-body">
+  <div class="main-content" id="mainContent">
+
+    <div class="paste-section">
+      <div class="section-label">1. Paste copied Word content here</div>
+      <div class="paste-box">
+        <div class="paste-box-toolbar">
+          <span id="pasteStatus">Click below and paste (Ctrl+V)</span>
+          <button class="paste-clear-btn" id="btnPasteClear">Clear</button>
+        </div>
+        <div id="pasteRender" class="empty" tabindex="0" contenteditable="true" spellcheck="true"></div>
+      </div>
+      <div class="paste-hint">The paste area shows a preview of your Word content. The original formatting is preserved for conversion.</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary"   id="btnConvert">&#8635; Convert to HTML</button>
+      <button class="btn-secondary" id="btnCopy">&#128203; Copy HTML</button>
+      <button class="btn-danger"    id="btnClearAll">&#128465; Clear all</button>
+      <button class="btn-code"      id="btnMarkCode">&lt;/&gt; Mark selection as code</button>
+    </div>
+
+    <div class="output-grid">
+      <div class="panel-box">
+        <div class="panel-box-header">2. Preview (rendered output)</div>
+        <div id="previewArea"></div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-box-header">3. HTML output (editable)</div>
+        <textarea id="htmlOutput" spellcheck="false" placeholder="Converted HTML will appear here. You can edit before copying."></textarea>
+        <div class="output-hint">Edit the HTML above before copying into Salesforce.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="warnings-panel hidden" id="warningsPanel">
+    <div class="warnings-panel-header">
+      <span>Warnings &amp; Info</span>
+    </div>
+    <div class="warnings-scroll" id="warningsList">
+      <div class="warnings-empty" id="warningsEmpty">No warnings yet. Paste content and convert to see results.</div>
+    </div>
+    <div class="warnings-footer" id="warningsFooter" style="display:none;">
+      <span class="wf-chip red"   id="countError"></span>
+      <span class="wf-chip amber" id="countWarning"></span>
+      <span class="wf-chip blue"  id="countInfo"></span>
+    </div>
+  </div>
+
+  <button class="panel-toggle" id="panelToggle" title="Toggle Warnings panel">
+    <span class="toggle-icon" id="toggleIcon">&#9664;</span>
+    <span class="toggle-label">Info</span>
+  </button>
+  <div id="kmToast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+/* ============================================================================
+   CONFIG
+   ============================================================================ */
+const BOLD_TAG   = 'strong';
+const ITALIC_TAG = 'em';
+const SF_FONT    = 'font-family: Arial, sans-serif; font-size: 12px;';
+const CODE_FONT  = "font-family: 'Courier New', Consolas, monospace; font-size: 12px;";
+
+/* ============================================================================
+   STATE
+   ============================================================================ */
+let storedClipboardHTML = '';
+let pasteAreaDirty = false;
+let renderingPastePreview = false;
+
+/* ============================================================================
+   PANEL TOGGLE
+   ============================================================================ */
+let panelOpen = false;
+const warningsPanel = document.getElementById('warningsPanel');
+const panelToggle   = document.getElementById('panelToggle');
+const toggleIcon    = document.getElementById('toggleIcon');
+const mainContent   = document.getElementById('mainContent');
+
+function setPanelOpen(open) {
+  panelOpen = open;
+  warningsPanel.classList.toggle('hidden', !open);
+  mainContent.classList.toggle('panel-open', open);
+  panelToggle.classList.toggle('panel-open-toggle', open);
+  toggleIcon.textContent = open ? '\u25B6' : '\u25C4';
+}
+panelToggle.addEventListener('click', () => setPanelOpen(!panelOpen));
+
+/* ============================================================================
+   PASTE AREA  (read-only rendered preview)
+   ============================================================================ */
+const pasteRender = document.getElementById('pasteRender');
+const pasteStatus = document.getElementById('pasteStatus');
+
+// Accept paste anywhere on the page, not just when pasteRender is focused.
+document.addEventListener('paste', handlePaste);
+pasteRender.addEventListener('input', () => {
+  if (renderingPastePreview) return;
+  pasteAreaDirty = true;
+  storedClipboardHTML = pasteRender.innerHTML;
+  pasteStatus.textContent = 'Paste preview edited. Ready to convert edited content.';
+});
+
+function handlePaste(e) {
+  const clipData = e.clipboardData || window.clipboardData;
+  if (!clipData) return;
+
+  const html = clipData.getData('text/html') || '';
+  const text = clipData.getData('text/plain') || '';
+
+  if (!html && !text) return;
+
+  // Don't intercept pastes into the HTML output textarea.
+  if (e.target === document.getElementById('htmlOutput')) return;
+
+  e.preventDefault();
+
+  if (html) {
+    storedClipboardHTML = html;
+    pasteAreaDirty = false;
+    renderPastePreview(html);
+  } else {
+    storedClipboardHTML = '';
+    pasteAreaDirty = true;
+    pasteRender.textContent = text;
+  }
+
+  pasteRender.classList.remove('empty');
+  pasteStatus.textContent = 'Word content pasted. Ready to convert.';
+}
+
+function renderPastePreview(html) {
+  renderingPastePreview = true;
+  // Strip MSO junk but PRESERVE Word list markers.
+  // Word puts the visible marker (1. a. bullet i. o square) inside
+  //   <![if !supportLists]><span style='mso-list:Ignore'>...</span><![endif]>
+  // which is a downlevel-REVEALED conditional comment. We must unwrap it
+  // (remove only the <![if]> / <![endif]> tags) and keep the span inside.
+  // The downlevel-HIDDEN form <!--[if ...]> ... <![endif]--> holds VML/xml junk
+  // and is removed whole.
+  let clean = html
+    .replace(/<!--\[if[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '')   // hidden junk: remove whole
+    .replace(/<!\[if[^\]]*\]>/gi, '')                            // revealed: unwrap, keep marker
+    .replace(/<!\[endif\]>/gi, '')
+    .replace(/<\?xml[^>]*>/gi, '')
+    .replace(/<(script|style|link|meta|xml|o:p)[^>]*>[\s\S]*?<\/\1>/gi, '')
+    .replace(/<(script|style|link|meta|xml)\b[^>]*\/?>/gi, '');
+
+  const temp = document.createElement('div');
+  temp.innerHTML = clean;
+
+  // Word Online / Office 365 web: rebuild nested list from data-aria-level.
+  buildPreviewWordOnlineLists(temp);
+  // Desktop Word mso-list format: rebuild from MsoListParagraph.
+  buildPreviewLists(temp);
+  removePreviewWordArtifacts(temp);
+  stripWordControlText(temp);
+
+  // Drop now-empty paragraphs/divs left behind by Word, then tidy whitespace.
+  temp.querySelectorAll('p, div').forEach(el => {
+    if (!el.querySelector('img, table, ul, ol, br') && !el.textContent.trim()) el.remove();
+  });
+  pasteRender.innerHTML = temp.innerHTML.replace(/(?:\s*\n\s*){2,}/g, '\n').trim();
+  renderingPastePreview = false;
+}
+
+// Preview version of Word Online list rebuilding — same DOM-order logic.
+function buildPreviewWordOnlineLists(root) {
+  // STEP 1: Flatten outer SCXW grouping divs into root's child list.
+  Array.from(root.children).forEach(child => {
+    if (!isWordOnlineOuterDiv(child)) return;
+    const parent = child.parentNode;
+    if (!parent) return;
+    Array.from(child.childNodes).forEach(k => {
+      parent.insertBefore(k.cloneNode(true), child);
+    });
+    parent.removeChild(child);
+  });
+
+  // STEP 2: Walk children, collect consecutive ListContainerWrapper runs.
+  const children = Array.from(root.childNodes);
+  let i = 0;
+
+  while (i < children.length) {
+    const node = children[i];
+    if (!isListContainerWrapper(node)) { i++; continue; }
+
+    const wrappers = [node];
+    let j = i + 1;
+    while (j < children.length) {
+      const next = children[j];
+      if (isListContainerWrapper(next)) { wrappers.push(next); j++; }
+      else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; }
+      else break;
+    }
+
+    const allLis = [];
+    wrappers.forEach(w => {
+      w.querySelectorAll('li[data-aria-level]').forEach(li => allLis.push(li));
+    });
+
+    if (!allLis.length) { i = j; continue; }
+
+    const descriptors = allLis.map(li => {
+      const level = parseInt(li.getAttribute('data-aria-level'), 10) || 1;
+      const { tag, typeAttr, styleAttr } = wordOnlineListType(li);
+      const parentStart = li.parentElement ? parseInt(li.parentElement.getAttribute('start') || '1', 10) : 1;
+      const posInSet = parseInt(li.getAttribute('data-aria-posinset') || '1', 10);
+      const startAttr = (parentStart > 1 && posInSet === 1) ? String(parentStart) : null;
+
+      const clone = li.cloneNode(true);
+      clone.querySelectorAll('.EOP, [data-ccp-props]').forEach(el => el.remove());
+      removePreviewWordArtifacts(clone);
+      stripWordControlText(clone);
+      const pKids = Array.from(clone.children).filter(c => c.tagName.toLowerCase() === 'p');
+      if (pKids.length === 1 && !pKids[0].querySelector('ul,ol,table')) {
+        pKids[0].replaceWith(...Array.from(pKids[0].childNodes));
+      }
+      const html = trimPreviewHTML(clone.innerHTML);
+      return { level, tag, typeAttr, styleAttr, startAttr, html };
+    });
+
+    const listDOM = buildPreviewListDOM(descriptors, document);
+    wrappers[0].parentNode.insertBefore(listDOM, wrappers[0]);
+    wrappers.forEach(w => w.parentNode && w.parentNode.removeChild(w));
+    i = j;
+  }
+}
+
+function buildPreviewLists(root) {
+  const children = Array.from(root.childNodes);
+  let i = 0;
+  while (i < children.length) {
+    const node = children[i];
+    if (!isPreviewWordListPara(node)) { i++; continue; }
+
+    const { run, gaps, next } = collectListRun(children, i, isPreviewWordListPara);
+
+    const rawItems = run.map(p => ({ level: getWordLevel(p), marker: getWordMarkerChar(p) }));
+    const classes = classifyWordRun(rawItems);
+    const items = run.map((p, idx) => {
+      const cls = classes[idx];
+      const contentNode = p.cloneNode(true);
+      // Strip the mso:Ignore span (full Word format).
+      const ignSpan = Array.from(contentNode.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
+      if (ignSpan) {
+        ignSpan.remove();
+      } else {
+        // Chrome format: strip the leading marker text node + adjacent spacer span.
+        let firstChild = contentNode.firstChild;
+        while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
+          firstChild = firstChild.nextSibling;
+        }
+        if (firstChild && isMarkerToken(normalizeWordMarker(
+            firstChild.nodeType === Node.TEXT_NODE ? firstChild.nodeValue.trim() : firstChild.textContent.trim()
+          ))) {
+          firstChild.remove();
+          const spacer = contentNode.firstChild;
+          if (spacer && isSpacerSpan(spacer)) spacer.remove();
+        }
+      }
+      removePreviewWordArtifacts(contentNode);
+      stripWordControlText(contentNode);
+      return { level: rawItems[idx].level, tag: cls.tag, typeAttr: cls.typeAttr, styleAttr: cls.styleAttr, startAttr: cls.startAttr, html: trimPreviewHTML(contentNode.innerHTML) };
+    });
+
+    const listDOM = buildPreviewListDOM(items, document);
+    run[0].parentNode.insertBefore(listDOM, run[0]);
+    run.forEach(el => el.parentNode && el.parentNode.removeChild(el));
+    gaps.forEach(g => g.parentNode && g.parentNode.removeChild(g));
+    i = next;
+  }
+}
+
+function getWordLevel(node) {
+  const style = node.getAttribute('style') || '';
+  const m = style.match(/mso-list\s*:[^;]*\blevel(\d+)/i);
+  if (m) return parseInt(m[1], 10);
+  return wordListLevel(node);
+}
+function getWordMarkerChar(node) {
+  // Path 1: full Word clipboard — marker is in a span with mso-list:Ignore.
+  const ignoreSpan = Array.from(node.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
+  if (ignoreSpan) return normalizeWordMarker(ignoreSpan.textContent);
+
+  // Path 2: Chrome-stripped Word clipboard — marker is the raw leading text/glyph
+  // at the very start of the paragraph (first text node or first element's text),
+  // optionally followed by a spacer span with a tiny font-size.
+  return extractLeadingMarker(node);
+}
+
+// Pull the marker token out of the paragraph's leading content without altering
+// the node. Returns the normalized marker string, or '' if not detected.
+function extractLeadingMarker(node) {
+  let firstChild = node.firstChild;
+  // Skip zero-width / whitespace-only text nodes at the front.
+  while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
+    firstChild = firstChild.nextSibling;
+  }
+  if (!firstChild) return '';
+
+  let rawMarker = '';
+  if (firstChild.nodeType === Node.TEXT_NODE) {
+    rawMarker = firstChild.nodeValue.trim();
+  } else if (firstChild.nodeType === Node.ELEMENT_NODE) {
+    rawMarker = firstChild.textContent.trim();
+  }
+  rawMarker = normalizeWordMarker(rawMarker);
+
+  // Confirm it looks like a list marker token (not real content).
+  if (isMarkerToken(rawMarker)) return rawMarker;
+  return '';
+}
+
+// Returns true if the string is a plausible list marker: a bullet glyph, a
+// number, a lower/upper letter, or a roman numeral — with or without separator.
+function isMarkerToken(s) {
+  if (!s) return false;
+  // Single bullet glyph.
+  if (/^[\u2022\u25cf\u00b7\u2219\u2023\u25aa\u25a0\u25ab\u25a1\u25cb\u25e6\u25ef\u00a7]$/.test(s)) return true;
+  // Word's circle bullet: lone 'o' with no letters around it.
+  if (/^o$/.test(s)) return true;
+  const core = s.replace(/[.)\]]+$/, '').trim();
+  if (/^\d{1,3}$/.test(core)) return true;                       // 1 2 3 ... 99
+  if (/^[a-zA-Z]$/.test(core)) return true;                      // a b ... z A B
+  if (/^[ivxlcdmIVXLCDM]{2,6}$/.test(core)) return true;        // ii iii iv ...
+  return false;
+}
+
+/* ============================================================================
+   SHARED WORD MARKER NORMALISATION + RUN-AWARE CLASSIFICATION
+   Used by BOTH the paste preview and the final HTML output so they always
+   agree on list type, nesting, and start numbers.
+   ============================================================================ */
+
+// Map Word's Symbol/Wingdings private-use bullet glyphs to real unicode bullets,
+// strip other control glyphs, and collapse whitespace. Separators (. ) ]) kept.
+function normalizeWordMarker(text) {
+  return (text || '')
+    .replace(/[\u0009\u000b\u000c\u00a0\u200b-\u200f\ufeff]/g, ' ')
+    .replace(/[\uf0a7\uf0fc]/g, '\u25aa')        // square bullet
+    .replace(/[\uf06f]/g, '\u25e6')              // circle bullet
+    .replace(/[\uf0b7\uf0d8\uf0a8\uf09f]/g, '\u2022') // disc bullet
+    .replace(/[\uf000-\uf0ff]/g, '')             // any other private-use glyph
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isStrictRoman(s) {
+  return s.length >= 2 && /^(m{0,3})(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$/i.test(s);
+}
+function isRomanLetters(s) {
+  return s.length >= 1 && /^[ivxlcdm]+$/i.test(s);
+}
+
+// Classify a single normalized marker. levelIsRoman lets an ambiguous single
+// letter (i, v, x...) be read as roman when a sibling at the same level proves
+// the level is roman (e.g. it also contains "ii"/"iii").
+function classifyWordMarker(marker, levelIsRoman) {
+  const m = (marker || '').trim();
+  if (!m) return { tag:'ol', typeAttr:'1', styleAttr:null, startAttr:null };
+
+  // Bullet glyphs (already normalized to unicode).
+  if (/^[\u25aa\u25a0\u25ab\u25a1\u00a7]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'square', startAttr:null };
+  if (/^[\u25cb\u25e6\u25ef]$/.test(m))             return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
+  if (/^[\u2022\u25cf\u00b7\u2219\u2023]$/.test(m) || /^[-*]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
+
+  const hasSep = /[.)\]]$/.test(m);
+  const core = m.replace(/[.)\]]+$/, '').trim();
+
+  // A lone "o" with no separator is Word's circle bullet, not the letter o.
+  if (!hasSep && /^o$/i.test(core)) return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
+
+  if (/^\d+$/.test(core)) {
+    const n = parseInt(core, 10);
+    return { tag:'ol', typeAttr:'1', styleAttr:null, startAttr: n > 1 ? String(n) : null };
+  }
+  if (isStrictRoman(core) || (levelIsRoman && isRomanLetters(core))) {
+    const n = romanToInt(core);
+    const upper = core === core.toUpperCase();
+    return { tag:'ol', typeAttr: upper ? 'I' : 'i', styleAttr:null, startAttr: n > 1 ? String(n) : null };
+  }
+  if (/^[a-z]$/.test(core)) { const n = alphaToInt(core); return { tag:'ol', typeAttr:'a', styleAttr:null, startAttr: n > 1 ? String(n) : null }; }
+  if (/^[A-Z]$/.test(core)) { const n = alphaToInt(core); return { tag:'ol', typeAttr:'A', styleAttr:null, startAttr: n > 1 ? String(n) : null }; }
+
+  // Unknown marker: treat as a disc bullet rather than inventing a number.
+  return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
+}
+
+// Classify a whole run together so per-level roman detection is consistent.
+// rawItems: [{ level, marker }] with markers already normalized.
+function classifyWordRun(rawItems) {
+  const romanLevels = new Set();
+  rawItems.forEach(it => {
+    const core = (it.marker || '').replace(/[.)\]]+$/, '').trim();
+    if (isStrictRoman(core)) romanLevels.add(it.level);
+  });
+  return rawItems.map(it => classifyWordMarker(it.marker, romanLevels.has(it.level)));
+}
+
+/* ----------------------------------------------------------------------------
+   RUN COLLECTION (shared by preview + output)
+   A Word multilevel list is a sequence of list paragraphs that share the same
+   Word list id (mso-list:lN). Word often drops empty "spacer" paragraphs or
+   <o:p> nodes between items; those must NOT split the list. Real non-empty,
+   non-list content DOES split it.
+   ---------------------------------------------------------------------------- */
+function wordListId(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
+  const m = (node.getAttribute('style') || '').match(/mso-list\s*:\s*(l\d+)/i);
+  return m ? m[1].toLowerCase() : null;
+}
+function sameWordList(a, b) {
+  // If either side lacks an id (margin-only fallback list), allow grouping.
+  if (a == null || b == null) return true;
+  return a === b;
+}
+function isIgnorableGapNode(node) {
+  if (node.nodeType === Node.TEXT_NODE) return !node.textContent.trim();
+  if (node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) return false;
+  const tag = node.tagName.toLowerCase();
+  if (tag === 'br' || tag === 'o:p') return true;
+  if (tag === 'p' || tag === 'div' || tag === 'span') {
+    if (node.querySelector('img, table, ul, ol')) return false;
+    return !node.textContent.trim();
+  }
+  return false;
+}
+// Collect one list run starting at items[startIdx]. isPara(node) decides list
+// membership. Returns { run, gaps, next }.
+function collectListRun(items, startIdx, isPara) {
+  const first = items[startIdx];
+  const listId = wordListId(first);
+  const run = [first];
+  const gaps = [];
+  let j = startIdx + 1;
+  while (j < items.length) {
+    const next = items[j];
+    if (isPara(next) && sameWordList(listId, wordListId(next))) { run.push(next); j++; continue; }
+    if (isIgnorableGapNode(next)) { gaps.push(next); j++; continue; }
+    break;
+  }
+  return { run, gaps, next: j };
+}
+
+function buildPreviewListDOM(items, doc) {
+  const frag = doc.createDocumentFragment();
+  const holder = doc.createElement('div');
+  holder.innerHTML = buildLeveledTree(items).map(serializeList).join('');
+  Array.from(holder.childNodes).forEach(node => frag.appendChild(node));
+  return frag;
+}
+
+function isPreviewWordListPara(node) {
+  if (node.nodeType !== Node.ELEMENT_NODE) return false;
+  const tag = node.tagName.toLowerCase();
+  if (tag !== 'p' && tag !== 'div') return false;
+  const cls = node.getAttribute('class') || '';
+  const style = node.getAttribute('style') || '';
+  if (/MsoListParagraph/i.test(cls) || /mso-list\s*:/i.test(style)) return true;
+  return wordIndentInches(node) >= 0.35 && /text-indent\s*:\s*-\s*[\d.]+/i.test(style);
+}
+
+function wordIndentInches(node) {
+  const style = node.getAttribute('style') || '';
+  const mi = style.match(/margin-left\s*:\s*([\d.]+)\s*(in|pt|px|cm)/i);
+  if (!mi) return 0;
+  const val = parseFloat(mi[1]);
+  const unit = mi[2].toLowerCase();
+  if (unit === 'in') return val;
+  if (unit === 'pt') return val / 72;
+  if (unit === 'px') return val / 96;
+  if (unit === 'cm') return val / 2.54;
+  return 0;
+}
+
+function removePreviewWordArtifacts(root) {
+  root.querySelectorAll('span').forEach(s => {
+    const style = s.getAttribute('style') || '';
+    if (/mso-list\s*:\s*ignore|mso-tab-count/i.test(style)) {
+      s.remove();
+    } else if (/mso-spacerun/i.test(style)) {
+      s.replaceWith(document.createTextNode(' '));
+    }
+  });
+}
+
+function stripWordControlText(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node => {
+    node.nodeValue = cleanWordControlText(node.nodeValue);
+  });
+}
+
+function cleanWordControlText(text) {
+  return (text || '')
+    .replace(/[\u0009\u000b\u000c\u200b-\u200f\ufeff]/g, ' ')
+    .replace(/[\uf020-\uf0ff]/g, '')
+    .replace(/\u00a0+/g, ' ')
+    .replace(/[ \t]{2,}/g, ' ');  // collapse runs, but keep a single trailing space before inline links
+}
+
+function cleanWordMarkerText(text) {
+  const raw = (text || '').replace(/[\u0009\u000b\u000c\u00a0\u200b-\u200f\ufeff]/g, ' ').trim();
+  if (/[\uf0b7\uf0d8]/i.test(raw)) return '\u2022';
+  if (/[\uf0a7\uf0fc]/i.test(raw)) return '\u25aa';
+  if (/[\uf06f]/i.test(raw)) return '\u25e6';
+  return raw;
+}
+
+function trimPreviewHTML(html) {
+  return (html || '').replace(/^(?:&nbsp;|\s)+|(?:&nbsp;|\s)+$/g, '');
+}
+
+/* ============================================================================
+   MARK SELECTION AS CODE
+   ============================================================================ */
+document.getElementById('btnMarkCode').addEventListener('click', () => {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+    addWarning('info', 'No selection', 'Select text in the paste preview first, then click Mark as code.');
+    setPanelOpen(true); return;
+  }
+  const range = sel.getRangeAt(0);
+  if (!pasteRender.contains(range.commonAncestorContainer)) {
+    addWarning('info', 'Selection outside paste area', 'Select text inside the paste preview area.');
+    setPanelOpen(true); return;
+  }
+  const frag = range.cloneContents();
+  const text = cleanCodeText(getPlainText(frag));
+  if (!text.trim()) return;
+
+  const marker = document.createElement('div');
+  marker.setAttribute('data-code-block', 'true');
+  marker.style.cssText = 'background:#f4f6f8;border-left:3px solid #4DA3FF;padding:6px 10px;font-family:Courier New,monospace;font-size:12px;white-space:pre-wrap;margin:4px 0;border-radius:0 4px 4px 0;';
+  marker.textContent = text;
+
+  range.deleteContents();
+  range.insertNode(marker);
+  sel.removeAllRanges();
+
+  // Rebuild storedClipboardHTML from current paste render so conversion picks up the code block.
+  storedClipboardHTML = pasteRender.innerHTML;
+  pasteStatus.textContent = 'Code block marked.';
+});
+
+/* ============================================================================
+   CONVERT
+   ============================================================================ */
+document.getElementById('btnConvert').addEventListener('click', () => {
+  const hasContent = pasteRender.textContent.trim() || storedClipboardHTML;
+  if (!hasContent) {
+    addWarning('info', 'Nothing to convert', 'Paste Word content first.');
+    setPanelOpen(true); return;
+  }
+
+  const warnings = [];
+  let converted = '';
+  try {
+    const source = pasteAreaDirty ? (pasteRender.innerHTML || pasteRender.textContent || '') : (storedClipboardHTML || pasteRender.innerHTML || pasteRender.textContent || '');
+    const useFallback = !source.includes('<');
+    converted = convertHTML(source, useFallback, warnings);
+  } catch (err) {
+    addWarning('error', 'Conversion error', 'An unexpected error occurred. Check the paste area content.');
+    setPanelOpen(true); return;
+  }
+
+  document.getElementById('htmlOutput').value = converted;
+  document.getElementById('previewArea').innerHTML = converted;
+
+  clearWarnings();
+  dedupeWarnings(warnings).forEach(w => addWarning(w.level, w.title, w.msg));
+  addWarning('info', 'Conversion complete', 'Review the preview and HTML output before copying into Salesforce.');
+  updateWarningsFooter();
+  if (warnings.some(w => w.level === 'error' || w.level === 'warning') || warnings.length > 1) setPanelOpen(true);
+});
+
+/* ============================================================================
+   MAIN CONVERTER
+   ============================================================================ */
+function convertHTML(source, useFallback, warnings) {
+  if (useFallback) {
+    warnings.push({ level: 'warning', title: 'Plain text fallback', msg: 'No rich HTML found. Converted from plain text.' });
+    return convertPlainText(source, warnings);
+  }
+
+  const doc = new DOMParser().parseFromString(source, 'text/html');
+  const body = doc.body || doc.documentElement;
+
+  ['script','style','link','meta','xml'].forEach(tag => {
+    try { body.querySelectorAll(tag).forEach(el => el.remove()); } catch(e) {}
+  });
+
+  if (source.includes('mso-') || source.includes('MsoNormal')) {
+    warnings.push({ level: 'info', title: 'Word styling removed', msg: 'MSO styles and metadata were stripped.' });
+  }
+
+  removePageBreaks(body);
+  collapseEmptyParagraphs(body, warnings);
+  groupWordOnlineLists(body, warnings);   // ← Word Online / Office 365 web
+  groupNativeWordLists(body, warnings);   // ← desktop Word mso-list format
+  groupManualLists(body, warnings);
+  groupJsonBlocks(body, warnings);
+  groupCodeParagraphs(body, warnings);
+
+  return finalizeHr(processChildren(body, warnings))
+    .replace(/^[ \t]+$/gm, '')   // lines that are only spaces/tabs
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/* ============================================================================
+   PRE-PASSES
+   ============================================================================ */
+function removePageBreaks(body) {
+  body.querySelectorAll('br[clear]').forEach(el => el.remove());
+  body.querySelectorAll('[style]').forEach(el => {
+    const s = el.getAttribute('style') || '';
+    if (s.includes('mso-special-character') || s.includes('page-break')) el.remove();
+  });
+}
+
+function collapseEmptyParagraphs(body, warnings) {
+  let emptyRun = 0, warned = false;
+  Array.from(body.childNodes).forEach(node => {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const tag = node.tagName.toLowerCase();
+      if ((tag === 'p' || tag === 'div') && !isSentinel(node) && !node.textContent.trim()) {
+        if (++emptyRun > 1) {
+          node.parentNode.removeChild(node);
+          if (!warned) { warnings.push({ level: 'info', title: 'Empty paragraphs collapsed', msg: 'Consecutive empty paragraphs reduced to one.' }); warned = true; }
+        }
+      } else emptyRun = 0;
+    }
+  });
+}
+
+function isSentinel(node) {
+  return node.nodeType === Node.ELEMENT_NODE &&
+    (node.getAttribute('data-list') === 'true' ||
+     node.getAttribute('data-pre-code') === 'true' ||
+     node.getAttribute('data-code-block') === 'true');
+}
+
+/* ============================================================================
+   MARKER CLASSIFICATION
+   Returns { tag, typeAttr, styleAttr }
+   - typeAttr  used on <ol type="a">  (HTML4, broad Salesforce support)
+   - styleAttr used on <ul style="list-style-type: circle;">
+   ============================================================================ */
+function classifyMarker(marker) {
+  const m = (marker || '').trim();
+  const core = m.replace(/[.)\]]+$/, '').trim();
+
+  // Bullets
+  if (/^[\u25AA\u25A0\u25AB\u25A1\u00A7]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'square', startAttr:null };
+  if (/^[\u25CB\u25E6\u25EF o]$/.test(m))            return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
+  if (/^[\u2022\u25CF\u00B7\u2219\u2023]$/.test(m) || /^[-*]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
+
+  // Ordered
+  if (/^\d+$/.test(core))   return { tag:'ol', typeAttr:'1',   styleAttr:null, startAttr: parseInt(core, 10) > 1 ? String(parseInt(core, 10)) : null };
+  if (isRoman(core))        return { tag:'ol', typeAttr: core === core.toLowerCase() ? 'i' : 'I', styleAttr:null, startAttr: romanToInt(core) > 1 ? String(romanToInt(core)) : null };
+  if (/^[a-z]$/.test(core)) return { tag:'ol', typeAttr:'a',   styleAttr:null, startAttr: alphaToInt(core) > 1 ? String(alphaToInt(core)) : null };
+  if (/^[A-Z]$/.test(core)) return { tag:'ol', typeAttr:'A',   styleAttr:null, startAttr: alphaToInt(core) > 1 ? String(alphaToInt(core)) : null };
+
+  return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
+}
+function isRoman(s) {
+  return s.length >= 2 && /^(m{0,3})(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$/i.test(s);
+}
+function romanToInt(s) {
+  const vals = { i:1, v:5, x:10, l:50, c:100, d:500, m:1000 };
+  const chars = (s || '').toLowerCase().split('');
+  let total = 0;
+  chars.forEach((ch, i) => { total += vals[ch] < vals[chars[i + 1]] ? -vals[ch] : vals[ch]; });
+  return total || 1;
+}
+function alphaToInt(s) {
+  const ch = (s || '').toLowerCase().charCodeAt(0);
+  return ch >= 97 && ch <= 122 ? ch - 96 : 1;
+}
+
+/* ============================================================================
+   LIST TREE SERIALISER
+   ============================================================================ */
+function serializeList(node) {
+  let openTag = `<${node.tag}`;
+  if (node.typeAttr)  openTag += ` type="${node.typeAttr}"`;
+  if (node.styleAttr) openTag += ` style="list-style-type: ${node.styleAttr};"`;
+  if (node.startAttr) openTag += ` start="${node.startAttr}"`;
+  openTag += '>';
+
+  let s = openTag + '\n';
+  node.items.forEach(it => {
+    s += `<li style="${SF_FONT}">${it.html}`;
+    if (it.children && it.children.length) s += '\n' + it.children.map(serializeList).join('');
+    s += '</li>\n';
+  });
+  s += `</${node.tag}>\n`;
+  return s;
+}
+
+/* ============================================================================
+   WORD ONLINE / OFFICE 365 WEB LIST PRE-PASS
+   Word Online puts each list item in its own <ol>/<ul> wrapped in a
+   <div class="ListContainerWrapper">. The nesting metadata lives on the <li>:
+     data-aria-level  = depth (1-based)
+     data-listid      = a list family id (NOT reliable for grouping — multiple
+                        listids can appear interleaved in one logical list)
+   The parent <ol>/<ul> already carries the correct list-style-type.
+
+   Critical insight: Word Online sometimes uses a DIFFERENT listid for a
+   sub-list that is visually and logically nested inside the main list
+   (e.g. roman numeral level-3 items under a level-2 item get listid "21"
+   while the rest of the list uses listid "14"). Grouping by listid breaks
+   these apart. Instead we process ALL Word Online li elements in DOM order
+   as one sequence, using only data-aria-level to drive nesting, and break
+   the sequence only when a non-list element appears between items.
+   ============================================================================ */
+function isWordOnlineLi(node) {
+  return node && node.nodeType === Node.ELEMENT_NODE &&
+    node.tagName.toLowerCase() === 'li' &&
+    node.hasAttribute('data-aria-level') &&
+    node.hasAttribute('data-listid');
+}
+
+// Is this a top-level Word Online wrapper node (ListContainerWrapper div, or
+// an outer SCXW div containing only ListContainerWrapper children)?
+// A ListContainerWrapper div — the direct container of a Word Online <li>.
+function isListContainerWrapper(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  return /ListContainerWrapper/i.test(node.getAttribute('class') || '');
+}
+
+// A Word Online outer SCXW grouping div. These contain a mix of
+// ListContainerWrapper children and OutlineElement (heading/paragraph) children.
+// We must NOT treat the whole div as a list — we need to flatten its children
+// into the body so headings and notes between list items are preserved.
+function isWordOnlineOuterDiv(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  const cls = node.getAttribute('class') || '';
+  return /SCXW\d+/i.test(cls) && !isListContainerWrapper(node);
+}
+
+// An OutlineElement that is NOT a list item (heading, paragraph, note).
+function isWordOnlineNonListOutline(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  const cls = node.getAttribute('class') || '';
+  return /OutlineElement/i.test(cls) && !node.querySelector('li[data-aria-level]');
+}
+
+// Pull list-type info from the <li>'s parent <ol>/<ul>.
+function wordOnlineListType(li) {
+  const parent = li.parentElement;
+  if (!parent) return { tag:'ol', typeAttr:'1', styleAttr:null };
+  const tag = parent.tagName.toLowerCase();
+  const style = (parent.getAttribute('style') || '').toLowerCase();
+  const m = style.match(/list-style-type\s*:\s*([a-z-]+)/);
+  const lsType = m ? m[1] : '';
+  if (tag === 'ul') {
+    if (lsType === 'circle')  return { tag:'ul', typeAttr:null, styleAttr:'circle' };
+    if (lsType === 'square')  return { tag:'ul', typeAttr:null, styleAttr:'square' };
+    return { tag:'ul', typeAttr:null, styleAttr:'disc' };
+  }
+  const typeMap = { 'decimal':'1', 'lower-alpha':'a', 'upper-alpha':'A', 'lower-roman':'i', 'upper-roman':'I' };
+  return { tag:'ol', typeAttr: typeMap[lsType] || '1', styleAttr:null };
+}
+
+// Extract clean text/HTML from a Word Online <li>, preserving inline links.
+function wordOnlineLiContent(li, warnings) {
+  const clone = li.cloneNode(true);
+  clone.querySelectorAll('.EOP, [data-ccp-props]').forEach(el => el.remove());
+  clone.querySelectorAll('[class*="SpellingError"], [class*="GrammarError"], [class*="ContextualSpelling"]').forEach(el => {
+    const txt = (clone.ownerDocument || document).createTextNode(el.textContent);
+    el.replaceWith(txt);
+  });
+  return processInlineChildren(clone, warnings).trim();
+}
+
+// Convert a Word Online OutlineElement non-list node (heading or paragraph)
+// into a body-level sentinel so it can be processed by the normal pipeline.
+function promoteWordOnlineOutline(outlineEl, body) {
+  // The actual content paragraph is inside the OutlineElement div.
+  const pEl = outlineEl.querySelector('p.Paragraph, p[paraid]') || outlineEl.querySelector('p') || outlineEl;
+  const clone = pEl.cloneNode(true);
+  clone.querySelectorAll('.EOP, [data-ccp-props]').forEach(el => el.remove());
+  // Check for heading role on the <p>.
+  const headingRole = pEl.getAttribute('role') === 'heading';
+  const ariaLevel = parseInt(pEl.getAttribute('aria-level') || '0', 10);
+  if (headingRole || ariaLevel > 0) {
+    // Create a real heading element so the heading detector picks it up.
+    const tag = ariaLevel === 1 ? 'h1' : ariaLevel === 2 ? 'h2' : 'h' + ariaLevel;
+    const h = body.ownerDocument.createElement(tag);
+    // Copy font-size style for heading level detection.
+    const fontSize = (pEl.getAttribute('style') || '').match(/font-size\s*:\s*[\d.]+pt/i);
+    if (fontSize) h.setAttribute('style', fontSize[0]);
+    h.innerHTML = clone.innerHTML;
+    return h;
+  }
+  // Plain paragraph — return the cleaned <p>.
+  clone.removeAttribute('class');
+  clone.removeAttribute('paraid');
+  clone.removeAttribute('paraeid');
+  return clone;
+}
+
+function groupWordOnlineLists(body, warnings) {
+  // STEP 1: Flatten outer SCXW grouping divs.
+  // These divs mix ListContainerWrapper children with OutlineElement (heading/para)
+  // children. We replace each outer div with its children in-place so that
+  // headings, Note/Warning paragraphs, and list wrappers all become direct
+  // body children and can be handled in correct document order.
+  Array.from(body.children).forEach(child => {
+    if (!isWordOnlineOuterDiv(child)) return;
+    const parent = child.parentNode;
+    if (!parent) return;
+    const kids = Array.from(child.childNodes);
+    kids.forEach(k => {
+      if (isWordOnlineNonListOutline(k)) {
+        // Promote heading/para outline elements to real elements.
+        parent.insertBefore(promoteWordOnlineOutline(k, body), child);
+      } else {
+        parent.insertBefore(k.cloneNode(true), child);
+      }
+    });
+    parent.removeChild(child);
+  });
+
+  // STEP 2: Walk body children in DOM order. Collect consecutive
+  // ListContainerWrapper nodes as one list run; emit non-list content as-is.
+  const children = Array.from(body.childNodes);
+  let i = 0, warned = false;
+
+  while (i < children.length) {
+    const node = children[i];
+    if (!isListContainerWrapper(node)) { i++; continue; }
+
+    // Collect consecutive ListContainerWrapper nodes (the list run).
+    const wrappers = [node];
+    let j = i + 1;
+    while (j < children.length) {
+      const next = children[j];
+      if (isListContainerWrapper(next)) { wrappers.push(next); j++; }
+      else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; }
+      else break;
+    }
+
+    const allLis = [];
+    wrappers.forEach(w => {
+      w.querySelectorAll('li[data-aria-level]').forEach(li => allLis.push(li));
+    });
+
+    if (!allLis.length) { i = j; continue; }
+
+    const descriptors = allLis.map(li => {
+      const level = parseInt(li.getAttribute('data-aria-level'), 10) || 1;
+      const { tag, typeAttr, styleAttr } = wordOnlineListType(li);
+      const parentStart = li.parentElement ? parseInt(li.parentElement.getAttribute('start') || '1', 10) : 1;
+      const posInSet = parseInt(li.getAttribute('data-aria-posinset') || '1', 10);
+      const startAttr = (parentStart > 1 && posInSet === 1) ? String(parentStart) : null;
+      const html = wordOnlineLiContent(li, warnings);
+      return { level, tag, typeAttr, styleAttr, startAttr, html };
+    });
+
+    const roots = buildLeveledTree(descriptors);
+    const html = roots.map(serializeList).join('');
+
+    const sentinel = body.ownerDocument.createElement('div');
+    sentinel.setAttribute('data-list', 'true');
+    sentinel.innerHTML = html;
+    wrappers[0].parentNode.insertBefore(sentinel, wrappers[0]);
+    wrappers.forEach(w => { try { w.parentNode && w.parentNode.removeChild(w); } catch(e){} });
+
+    if (!warned) {
+      warnings.push({ level:'info', title:'Word Online list rebuilt', msg:'Office 365 web list nesting rebuilt from level metadata.' });
+      warned = true;
+    }
+    i = j;
+  }
+}
+
+/* ============================================================================
+   NATIVE WORD LIST PRE-PASS
+   ============================================================================ */
+function groupNativeWordLists(body, warnings) {
+  const children = Array.from(body.childNodes);
+  let i = 0, warned = false;
+  while (i < children.length) {
+    const node = children[i];
+    if (!isWordListPara(node)) { i++; continue; }
+
+    const { run, gaps, next } = collectListRun(children, i, isWordListPara);
+
+    const rawItems = run.map(p => {
+      const level = wordListLevel(p);
+      const { markerText, contentHTML } = extractWordMarker(p, warnings);
+      return { level, marker: markerText, html: contentHTML };
+    });
+    const classes = classifyWordRun(rawItems);
+    const descriptors = rawItems.map((r, idx) => ({ level: r.level, tag: classes[idx].tag, typeAttr: classes[idx].typeAttr, styleAttr: classes[idx].styleAttr, startAttr: classes[idx].startAttr, html: r.html }));
+
+    const roots = buildLeveledTree(descriptors);
+    replaceWithSentinel(run, roots.map(serializeList).join(''), body);
+    gaps.forEach(g => { try { g.parentNode && g.parentNode.removeChild(g); } catch(e){} });
+    if (!warned) { warnings.push({ level:'info', title:'Word list rebuilt', msg:'Native Word list nesting rebuilt from level metadata.' }); warned=true; }
+    i = next;
+  }
+}
+
+function isWordListPara(node) {
+  if (node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) return false;
+  const tag = node.tagName.toLowerCase();
+  if (tag !== 'p' && tag !== 'div') return false;
+  const cls   = node.getAttribute('class') || '';
+  const style = node.getAttribute('style') || '';
+  // Accept: explicit mso-list style, MsoListParagraph class (with or without mso-list),
+  // or any paragraph that has a margin-left >= 0.4in suggesting Word list indentation.
+  if (/MsoListParagraph/i.test(cls) || /mso-list\s*:/i.test(style)) return true;
+  return wordIndentInches(node) >= 0.35 && /text-indent\s*:\s*-\s*[\d.]+/i.test(style);
+}
+function wordListLevel(node) {
+  // Primary: explicit mso-list level attribute.
+  const m = (node.getAttribute('style') || '').match(/mso-list\s*:[^;]*\blevel(\d+)/i);
+  if (m) return parseInt(m[1], 10);
+  // Fallback: derive level from margin-left for flat indented lists (no mso-list metadata).
+  // Word uses ~0.5in per level. Clipboard HTML expresses this as margin-left in inches or pt/px.
+  const style = node.getAttribute('style') || '';
+  const mi = style.match(/margin-left\s*:\s*([\d.]+)\s*(in|pt|px|cm)/i);
+  if (mi) {
+    const val = parseFloat(mi[1]);
+    const unit = mi[2].toLowerCase();
+    let inches;
+    if (unit === 'in') inches = val;
+    else if (unit === 'pt') inches = val / 72;
+    else if (unit === 'px') inches = val / 96;
+    else if (unit === 'cm') inches = val / 2.54;
+    else inches = 0;
+    // Round to nearest 0.5in step; level 1 starts at 0.5in.
+    return Math.max(1, Math.round(inches / 0.5));
+  }
+  return 1;
+}
+function extractWordMarker(node, warnings) {
+  const clone = node.cloneNode(true);
+  let markerText = '';
+
+  // Path 1: full Word clipboard — marker in mso-list:Ignore span.
+  const ignSpan = Array.from(clone.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
+  if (ignSpan) {
+    markerText = normalizeWordMarker(ignSpan.textContent || '');
+    ignSpan.remove();
+    // Also remove the adjacent spacer span (tiny-font spacer Word adds after the marker).
+    const next = clone.firstChild;
+    if (next && next.nodeType === Node.ELEMENT_NODE && isSpacerSpan(next)) next.remove();
+  } else {
+    // Path 2: Chrome-stripped — marker is the first text node / first child.
+    let firstChild = clone.firstChild;
+    while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
+      firstChild = firstChild.nextSibling;
+    }
+    if (firstChild) {
+      const rawMarker = normalizeWordMarker(firstChild.nodeType === Node.TEXT_NODE
+        ? firstChild.nodeValue.trim()
+        : firstChild.textContent.trim());
+      if (isMarkerToken(rawMarker)) {
+        markerText = rawMarker;
+        firstChild.remove();
+        // Remove the adjacent spacer span (small-font nbsp padding).
+        const spacer = clone.firstChild;
+        if (spacer && isSpacerSpan(spacer)) spacer.remove();
+      }
+    }
+  }
+
+  let contentHTML = processInlineChildren(clone, warnings).trim();
+
+  // Last-resort: if marker still not found, try to strip it from rendered HTML.
+  if (!markerText) {
+    const mx = contentHTML.match(/^\s*([0-9]+[.)]|[A-Za-z][.)]|[\u2022\u25CF\u00B7\u2219\u2023\u25AA\u25A0\u25CB\u25E6o\u25AA\u25a0\-*])\s*(?:&nbsp;|\s)*/);
+    if (mx) { markerText = normalizeWordMarker(mx[1]); contentHTML = contentHTML.slice(mx[0].length); }
+  }
+
+  return { markerText: markerText.trim(), contentHTML: contentHTML.replace(/^(?:&nbsp;|\s)+/, '') };
+}
+
+// A spacer span is the tiny-font padding span Word inserts between the marker
+// and the list item text: <span style="font:7.0pt 'Times New Roman'"> </span>
+// or Chrome's equivalent <span style="font-size:7pt">&nbsp;</span>.
+function isSpacerSpan(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  const tag = node.tagName.toLowerCase();
+  if (tag !== 'span') return false;
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  if (/font-size\s*:\s*[1-9]\s*pt|font\s*:\s*[1-9]/i.test(style)) return true;
+  // Also discard tabs / mso-tab-count spans.
+  if (/mso-tab-count/i.test(style)) return true;
+  return false;
+}
+
+function buildLeveledTree(items) {
+  const roots = [], stack = [];
+  items.forEach(it => {
+    const lvl = Math.max(1, it.level);
+    const li = { html: it.html, children: [] };
+    if (lvl <= stack.length) {
+      stack.length = lvl;
+      const top = stack[lvl - 1];
+      if (top.listNode.typeAttr !== it.typeAttr || top.listNode.styleAttr !== it.styleAttr || top.listNode.tag !== it.tag) {
+        // Type changed at this level: replace the old list node so we don't
+        // create an unwanted sibling list under the same parent item.
+        const listNode = { tag: it.tag, typeAttr: it.typeAttr, styleAttr: it.styleAttr, startAttr: it.startAttr, items: [li] };
+        if (lvl >= 2) {
+          const parentItem = stack[lvl - 2].currentItem;
+          const siblings = parentItem.children;
+          if (siblings.length && siblings[siblings.length - 1] === top.listNode) {
+            siblings[siblings.length - 1] = listNode;
+          } else {
+            siblings.push(listNode);
+          }
+        } else {
+          if (roots.length && roots[roots.length - 1] === top.listNode) {
+            roots[roots.length - 1] = listNode;
+          } else {
+            roots.push(listNode);
+          }
+        }
+        stack[lvl - 1] = { listNode, currentItem: li };
+      } else {
+        top.listNode.items.push(li);
+        top.currentItem = li;
+      }
+    } else {
+      const parentItem = stack.length ? stack[stack.length - 1].currentItem : null;
+      const listNode = { tag: it.tag, typeAttr: it.typeAttr, styleAttr: it.styleAttr, startAttr: it.startAttr, items: [li] };
+      if (parentItem) parentItem.children.push(listNode); else roots.push(listNode);
+      stack.push({ listNode, currentItem: li });
+    }
+  });
+  return roots;
+}
+
+/* ============================================================================
+   MANUAL TYPED LIST PRE-PASS
+   ============================================================================ */
+function groupManualLists(body, warnings) {
+  const MARKER = /^(\s*)([0-9]+[.)]|[A-Za-z][.)]|[\u2022\u25CF\u00B7\u2219\u2023\u25AA\u25A0\u25AB\u25A1\u25CB\u25E6\u25EF]|[-*])\s+\S/;
+  const children = Array.from(body.childNodes);
+  let i = 0, warned = false;
+  while (i < children.length) {
+    const node = children[i];
+    if (node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) { i++; continue; }
+    const tag = node.tagName.toLowerCase();
+    if ((tag !== 'p' && tag !== 'div') || !MARKER.test(node.textContent)) { i++; continue; }
+
+    const run = [node];
+    let j = i + 1;
+    while (j < children.length) {
+      const next = children[j];
+      if (next.nodeType === Node.ELEMENT_NODE && !isSentinel(next)) {
+        const nt = next.tagName.toLowerCase();
+        if ((nt === 'p' || nt === 'div') && MARKER.test(next.textContent)) { run.push(next); j++; continue; }
+      } else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; continue; }
+      break;
+    }
+
+    const romanPresent = run.some(p => { const c = leadingCore(p.textContent); return c && isRoman(c); });
+    const items = run.map(p => {
+      const { markerText, contentHTML } = stripManualMarker(p, warnings);
+      let cls = classifyMarker(markerText);
+      const core = markerText.replace(/[.)\]]+$/, '').trim();
+      if (!romanPresent && (cls.typeAttr === 'i' || cls.typeAttr === 'I') && core.length === 1) {
+        cls = { tag:'ol', typeAttr: /[A-Z]/.test(core) ? 'A' : 'a', styleAttr: null, startAttr: alphaToInt(core) > 1 ? String(alphaToInt(core)) : null };
+      }
+      return { ...cls, html: contentHTML };
+    });
+
+    replaceWithSentinel(run, buildTransitionTree(items).map(serializeList).join(''), body);
+    if (!warned) { warnings.push({ level:'info', title:'Manual list detected', msg:'Typed markers converted to nested lists by marker type.' }); warned=true; }
+    i = j;
+  }
+}
+
+function leadingCore(text) {
+  const m = (text || '').trim().match(/^([0-9]+|[A-Za-z]+)[.)]/);
+  return m ? m[1] : '';
+}
+function stripManualMarker(node, warnings) {
+  let html = processInlineChildren(node, warnings).trim();
+  const m = html.match(/^\s*([0-9]+[.)]|[A-Za-z][.)]|[\u2022\u25CF\u00B7\u2219\u2023\u25AA\u25A0\u25AB\u25A1\u25CB\u25E6\u25EF]|[-*])\s*(?:&nbsp;|\s)*/);
+  let markerText = '';
+  if (m) { markerText = m[1]; html = html.slice(m[0].length); }
+  return { markerText: markerText.trim(), contentHTML: html.replace(/^(?:&nbsp;|\s)+/, '') };
+}
+
+function buildTransitionTree(items) {
+  const roots = [], stack = [];
+  items.forEach(it => {
+    const li = { html: it.html, children: [] };
+    let idx = -1;
+    for (let k = stack.length - 1; k >= 0; k--) {
+      if (stack[k].typeAttr === it.typeAttr && stack[k].styleAttr === it.styleAttr) { idx = k; break; }
+    }
+    if (idx >= 0) {
+      stack.length = idx + 1;
+      stack[idx].listNode.items.push(li);
+      stack[idx].currentItem = li;
+    } else {
+      const listNode = { tag: it.tag, typeAttr: it.typeAttr, styleAttr: it.styleAttr, startAttr: it.startAttr, items: [li] };
+      if (stack.length) stack[stack.length - 1].currentItem.children.push(listNode);
+      else roots.push(listNode);
+      stack.push({ typeAttr: it.typeAttr, styleAttr: it.styleAttr, listNode, currentItem: li });
+    }
+  });
+  return roots;
+}
+
+function replaceWithSentinel(run, html, body) {
+  const s = body.ownerDocument.createElement('div');
+  s.setAttribute('data-list', 'true');
+  s.innerHTML = html;
+  run[0].parentNode.insertBefore(s, run[0]);
+  run.forEach(el => { try { el.parentNode.removeChild(el); } catch(e){} });
+}
+
+/* ============================================================================
+   JSON BLOCK PRE-PASS
+   ============================================================================ */
+function groupJsonBlocks(body, warnings) {
+  const children = Array.from(body.childNodes);
+  let i = 0, warned = false;
+  while (i < children.length) {
+    const node = children[i];
+    if (node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) { i++; continue; }
+    const tag = node.tagName.toLowerCase();
+    if (tag !== 'p' && tag !== 'div') { i++; continue; }
+    const t = node.textContent.trim();
+    if (!(/^[{\[]/.test(t)) || balanceOf(t) <= 0) { i++; continue; }
+
+    let balance = balanceOf(t);
+    const run = [node], lines = [t.replace(/\u00a0/g,' ')];
+    let j = i + 1;
+    while (j < children.length && balance > 0) {
+      const next = children[j];
+      if (next.nodeType === Node.ELEMENT_NODE && !isSentinel(next)) {
+        const nt = next.tagName.toLowerCase();
+        if (nt === 'p' || nt === 'div') {
+          run.push(next);
+          lines.push(next.textContent.replace(/\u00a0/g,' ').replace(/\s+$/,''));
+          balance += balanceOf(next.textContent);
+          j++; continue;
+        }
+      } else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; continue; }
+      break;
+    }
+    if (run.length >= 2 && balance <= 0) {
+      const sentinel = body.ownerDocument.createElement('div');
+      sentinel.setAttribute('data-pre-code','true');
+      sentinel.textContent = cleanCodeText(lines.join('\n'));
+      run[0].parentNode.insertBefore(sentinel, run[0]);
+      run.forEach(el => { try { el.parentNode.removeChild(el); } catch(e){} });
+      if (!warned) { warnings.push({ level:'info', title:'Code block detected', msg:'Multi-line JSON converted to a code block.' }); warned=true; }
+      i = j; continue;
+    }
+    i++;
+  }
+}
+function balanceOf(text) {
+  let b = 0;
+  for (const ch of text) { if (ch==='{' || ch==='[') b++; else if (ch==='}' || ch===']') b--; }
+  return b;
+}
+
+/* ============================================================================
+   MONOSPACE / TAB CODE PRE-PASS
+   ============================================================================ */
+function groupCodeParagraphs(body, warnings) {
+  const children = Array.from(body.childNodes);
+  let i = 0, warned = false;
+  while (i < children.length) {
+    const node = children[i];
+    if (node.nodeType === Node.ELEMENT_NODE && !isSentinel(node)) {
+      const tag = node.tagName.toLowerCase();
+      if ((tag === 'p' || tag === 'div') && isCodeLike(node)) {
+        const group = [node];
+        let j = i + 1;
+        while (j < children.length) {
+          const next = children[j];
+          if (next.nodeType === Node.ELEMENT_NODE && !isSentinel(next)) {
+            const nt = next.tagName.toLowerCase();
+            if ((nt === 'p' || nt === 'div') && isCodeLike(next)) { group.push(next); j++; }
+            else if (!next.textContent.trim()) j++;
+            else break;
+          } else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) j++;
+          else break;
+        }
+        const sentinel = body.ownerDocument.createElement('div');
+        sentinel.setAttribute('data-pre-code','true');
+        sentinel.textContent = cleanCodeText(group.map(getTextWithTabs).join('\n'));
+        group[0].parentNode.insertBefore(sentinel, group[0]);
+        group.forEach(el => { try { el.parentNode.removeChild(el); } catch(e){} });
+        if (!warned) { warnings.push({ level:'info', title:'Code block detected', msg:'Monospace or tab-indented content converted to a code block.' }); warned=true; }
+        i = j; continue;
+      }
+    }
+    i++;
+  }
+}
+function isCodeLike(node) {
+  if (node.tagName.toLowerCase() === 'pre') return true;
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test(style)) return true;
+  for (const span of node.querySelectorAll('span')) {
+    if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test((span.getAttribute('style') || '').toLowerCase())) return true;
+  }
+  return false;
+}
+function getTextWithTabs(node) {
+  let t = '';
+  node.childNodes.forEach(ch => {
+    if (ch.nodeType === Node.TEXT_NODE) t += ch.textContent;
+    else if (ch.nodeType === Node.ELEMENT_NODE) {
+      // Skip Word Online EOP / data-ccp-props trailing spans — they add a spurious space.
+      if (/\bEOP\b/.test(ch.getAttribute('class') || '') || ch.hasAttribute('data-ccp-props')) return;
+      t += ch.tagName.toLowerCase() === 'br' ? '\n' : getTextWithTabs(ch);
+    }
+  });
+  return t;
+}
+
+/* ============================================================================
+   NODE -> HTML
+   ============================================================================ */
+function processNode(node, warnings) {
+  if (node.nodeType === Node.TEXT_NODE) return esc(node.textContent);
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+  const tag = node.tagName.toLowerCase();
+  if (['script','style','link','meta','head','xml','o:p','w:sdt','w:sdtcontent'].includes(tag)) return '';
+  if (tag === 'html' || tag === 'body') return processChildren(node, warnings);
+
+  // Sentinels
+  if (node.getAttribute('data-list') === 'true')      return node.innerHTML + '\n';
+  if (node.getAttribute('data-pre-code') === 'true')  return codeBlock(node.textContent);
+  if (node.getAttribute('data-code-block') === 'true') return codeBlock(node.textContent);
+
+  if (tag === 'img') {
+    warnings.push({ level:'warning', title:'Image skipped', msg:'Replace [Insert image here] with the actual image in Salesforce.' });
+    return `<p style="${SF_FONT}"><em>[Insert image here]</em></p>\n`;
+  }
+  if (tag === 'pre') {
+    const txt = (node.querySelector('code') || node).textContent;
+    return codeBlock(txt);
+  }
+  if (tag === 'code') {
+    if (node.parentElement && node.parentElement.tagName.toLowerCase() === 'pre') return escCode(node.textContent);
+    return `<code style="${CODE_FONT}">${escCode(node.textContent)}</code>`;
+  }
+
+  if (tag === 'sup') return `<sup>${processChildren(node, warnings)}</sup>`;
+  if (tag === 'sub') return `<sub>${processChildren(node, warnings)}</sub>`;
+  if (tag === 's' || tag === 'strike' || tag === 'del') return `<s>${processChildren(node, warnings)}</s>`;
+
+  // Native headings
+  if (/^h[1-6]$/.test(tag)) {
+    const lvl = detectHeadingLevel(node, tag);
+    return headingHtml(lvl || 2, cleanText(node.textContent));
+  }
+
+  if (tag === 'p' || tag === 'div') {
+    const raw = cleanText(node.textContent);
+
+    // Note/Warning/Important detection: try DOM-aware version first so inline
+    // markup in the remainder is preserved (Word Online uses bold spans).
+    const note = buildNoteFromNode(node, raw, warnings);
+    if (note) return note;
+
+    const lvl = detectHeadingLevel(node, tag);
+    if (lvl && raw) return headingHtml(lvl, raw);
+
+    if (isJsonLike(raw) || isHttpLike(raw)) {
+      warnings.push({ level:'info', title:'Code block detected', msg:'JSON or HTTP line converted to a code block.' });
+      return codeBlock(node.textContent.trim());
+    }
+
+    const inner = processChildren(node, warnings).trim();
+    if (!inner) return '';
+    if (hasBlock(inner)) return inner + (inner.endsWith('\n') ? '' : '\n');
+    return `<p style="${SF_FONT}">${normalizeNbsp(inner)}</p>\n`;
+  }
+
+  if (tag === 'ul' || tag === 'ol') return processSourceList(node, tag, warnings, 0);
+  if (tag === 'li') {
+    const inner = processChildren(node, warnings).trim();
+    return inner ? `<li style="${SF_FONT}">${inner}</li>\n` : '';
+  }
+
+  if (tag === 'strong' || tag === 'b') return `<${BOLD_TAG}>${processChildren(node, warnings)}</${BOLD_TAG}>`;
+  if (tag === 'em' || tag === 'i')     return `<${ITALIC_TAG}>${processChildren(node, warnings)}</${ITALIC_TAG}>`;
+  if (tag === 'u')  return `<u>${processChildren(node, warnings)}</u>`;
+  if (tag === 'br') return '<br>';
+
+  if (tag === 'span') {
+    const ss = (node.getAttribute('style') || '').toLowerCase();
+    if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
+    if (/mso-spacerun/.test(ss)) return ' ';
+    const inner = processChildren(node, warnings);
+    if (ss.includes('line-through')) return `<s>${inner}</s>`;
+    return inner;
+  }
+
+  if (tag === 'a') {
+    if (node.getAttribute('name') && !node.getAttribute('href')) return processChildren(node, warnings);
+    const href = node.getAttribute('href') || '';
+    if (/^#_/.test(href)) return processChildren(node, warnings);
+    const safe = safeHref(href, warnings);
+    const inner = processChildren(node, warnings).trim();
+    if (!inner) return '';
+    return safe ? `<a href="${escAttr(safe)}">${inner}</a>` : inner;
+  }
+
+  if (tag === 'table') return processTable(node, warnings);
+  if (tag === 'font')  return processChildren(node, warnings);
+  if (tag === 'hr')    return '<hr>\n';
+
+  if (tag === 'blockquote') {
+    const inner = processChildren(node, warnings).trim();
+    if (!inner) return '';
+    if (/<blockquote\b/i.test(inner)) return inner + '\n';
+    return `<blockquote>${inner}</blockquote>\n`;
+  }
+
+  return processChildren(node, warnings);
+}
+
+function processChildren(node, warnings) {
+  let out = '';
+  node.childNodes.forEach(ch => { out += processNode(ch, warnings); });
+  return out;
+}
+
+function processSourceList(node, tag, warnings, depth) {
+  // Preserve type attribute from source if present.
+  const typeAttr  = node.getAttribute('type') || sourceListType(node, tag, depth);
+  const styleAttr = sourceListStyle(node);
+  const startAttr = tag === 'ol' && parseInt(node.getAttribute('start') || '', 10) > 1 ? String(parseInt(node.getAttribute('start'), 10)) : null;
+  let openTag = `<${tag}`;
+  if (typeAttr)  openTag += ` type="${typeAttr}"`;
+  if (styleAttr) openTag += ` style="list-style-type: ${styleAttr};"`;
+  if (startAttr) openTag += ` start="${startAttr}"`;
+  openTag += '>';
+
+  let items = '';
+  Array.from(node.children).forEach(ch => {
+    if (!ch.tagName || ch.tagName.toLowerCase() !== 'li') return;
+
+    // Count block-content children (excluding nested lists). A list item whose
+    // only block wrapper is a single <p>/<div> (common after editing the
+    // contenteditable preview) should render as plain text, not <li><p>...</p>.
+    const blockKids = Array.from(ch.children).filter(c => {
+      const t = c.tagName.toLowerCase();
+      return t === 'p' || t === 'div';
+    });
+    const loneWrapper = blockKids.length === 1 && !blockKids[0].querySelector('p, div, ul, ol, table, pre, blockquote');
+
+    let liInner = '', nested = '';
+    Array.from(ch.childNodes).forEach(gc => {
+      if (gc.nodeType === Node.ELEMENT_NODE && /^(ul|ol)$/i.test(gc.tagName)) {
+        nested += processSourceList(gc, gc.tagName.toLowerCase(), warnings, depth + 1);
+      } else if (loneWrapper && gc === blockKids[0]) {
+        liInner += processChildren(gc, warnings); // unwrap the lone <p>/<div>
+      } else {
+        liInner += processNode(gc, warnings);
+      }
+    });
+    items += `<li style="${SF_FONT}">${liInner.trim()}${nested ? '\n' + nested : ''}</li>\n`;
+  });
+  if (!items) return '';
+  return `${openTag}\n${items}</${tag}>\n`;
+}
+function sourceListType(node, tag, depth) {
+  if (tag !== 'ol') return null;
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  const m = style.match(/list-style-type\s*:\s*([a-z-]+)/);
+  if (m) {
+    const map = { 'decimal':'1','lower-alpha':'a','upper-alpha':'A','lower-roman':'i','upper-roman':'I' };
+    return map[m[1]] || '1';
+  }
+  return '1';
+}
+function sourceListStyle(node) {
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  const m = style.match(/list-style-type\s*:\s*(circle|square|disc)/);
+  return m ? m[1] : null;
+}
+
+/* ============================================================================
+   INLINE-ONLY PROCESSOR
+   ============================================================================ */
+function processInlineChildren(node, warnings) {
+  let out = '';
+  node.childNodes.forEach(ch => { out += processInlineNode(ch, warnings); });
+  return out;
+}
+function processInlineNode(node, warnings) {
+  if (node.nodeType === Node.TEXT_NODE) return esc(node.textContent);
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+  const tag = node.tagName.toLowerCase();
+  if (['script','style','link','meta','head','xml','o:p'].includes(tag)) return '';
+  if (tag === 'br') return '<br>';
+  if (tag === 'strong' || tag === 'b') return `<${BOLD_TAG}>${processInlineChildren(node, warnings)}</${BOLD_TAG}>`;
+  if (tag === 'em' || tag === 'i')     return `<${ITALIC_TAG}>${processInlineChildren(node, warnings)}</${ITALIC_TAG}>`;
+  if (tag === 'u')  return `<u>${processInlineChildren(node, warnings)}</u>`;
+  if (tag === 's' || tag === 'strike' || tag === 'del') return `<s>${processInlineChildren(node, warnings)}</s>`;
+  if (tag === 'sup') return `<sup>${processInlineChildren(node, warnings)}</sup>`;
+  if (tag === 'sub') return `<sub>${processInlineChildren(node, warnings)}</sub>`;
+  if (tag === 'code') return `<code style="${CODE_FONT}">${escCode(node.textContent)}</code>`;
+  if (tag === 'span' || tag === 'font') {
+    const ss = (node.getAttribute('style') || '').toLowerCase();
+    if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
+    if (/mso-spacerun/.test(ss)) return ' ';
+    const inner = processInlineChildren(node, warnings);
+    if (ss.includes('line-through')) return `<s>${inner}</s>`;
+    if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
+    if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
+    if (/text-decoration[^;]*underline/.test(ss)) return `<u>${inner}</u>`;
+    return inner;
+  }
+  if (tag === 'a') {
+    if (node.getAttribute('name') && !node.getAttribute('href')) return processInlineChildren(node, warnings);
+    const href = node.getAttribute('href') || '';
+    if (/^#_/.test(href)) return processInlineChildren(node, warnings);
+    const safe = safeHref(href, warnings);
+    const inner = processInlineChildren(node, warnings).trim();
+    if (!inner) return '';
+    return safe ? `<a href="${escAttr(safe)}">${inner}</a>` : inner;
+  }
+  return processInlineChildren(node, warnings);
+}
+
+/* ============================================================================
+   HEADINGS
+   ============================================================================ */
+function headingHtml(level, text) {
+  const size = level === 2 ? 18 : level === 3 ? 16 : 14;
+  return `<h${level} style="font-family: Arial, sans-serif; font-size: ${size}px; font-weight: bold;">${esc(text)}</h${level}>\n`;
+}
+function detectHeadingLevel(node, tag) {
+  const isNative = /^h[1-6]$/.test(tag);
+  const mso = msoLevel(node);
+  const size = maxFontSize(node);
+  const textLen = cleanText(node.textContent).length;
+  if (!textLen) return 0;
+  const candidate = isNative || mso > 0 || (size != null && size >= 13.5 && textLen <= 140);
+  if (!candidate) return 0;
+  if (size != null) { if (size >= 17) return 2; if (size >= 15) return 3; if (size >= 13.5) return 4; }
+  if (mso === 1) return 2; if (mso === 2) return 3; if (mso >= 3) return 4;
+  if (tag === 'h1') return 2; if (tag === 'h2') return 3; if (/^h[3-6]$/.test(tag)) return 4;
+  return 2;
+}
+function msoLevel(node) {
+  const cls = (node.getAttribute('class') || '').toLowerCase().replace(/\s+/g,'');
+  const style = (node.getAttribute('style') || '').toLowerCase();
+  for (let n = 1; n <= 4; n++) {
+    if (new RegExp(`mso-?heading.?${n}|heading${n}`).test(cls)) return n;
+    if (new RegExp(`mso-style-name:\\s*['"]?heading\\s*${n}`).test(style)) return n;
+  }
+  return 0;
+}
+function maxFontSize(node) {
+  let max = null;
+  const check = el => {
+    const m = ((el.getAttribute && el.getAttribute('style')) || '').match(/font-size\s*:\s*(\d+(?:\.\d+)?)\s*(pt|px)/i);
+    if (m) { let v = parseFloat(m[1]); if (m[2].toLowerCase() === 'px') v *= 0.75; if (max === null || v > max) max = v; }
+  };
+  check(node);
+  if (node.querySelectorAll) node.querySelectorAll('[style]').forEach(check);
+  return max;
+}
+
+/* ============================================================================
+   NOTE / IMPORTANT / WARNING
+   ============================================================================ */
+function buildNote(raw) {
+  const t = (raw || '').trimStart();
+  const defs = [
+    { re:/^Note:/i,      label:'Note:',      rep:`<${BOLD_TAG}>Note:</${BOLD_TAG}>` },
+    { re:/^Important:/i, label:'Important:', rep:`<${BOLD_TAG}>Important:</${BOLD_TAG}>` },
+    { re:/^Warning:/i,   label:'Warning:',   rep:`<${BOLD_TAG} style="color:#c00000;">Warning:</${BOLD_TAG}>` }
+  ];
+  for (const d of defs) {
+    if (d.re.test(t)) {
+      const rest = t.slice(d.label.length).trim();
+      return `<blockquote>${d.rep}${rest ? ' ' + esc(rest) : ''}</blockquote>\n`;
+    }
+  }
+  return null;
+}
+
+// DOM-aware version: detects Note/Warning/Important from raw text but renders
+// the content after the label using processChildren so inline markup is kept.
+function buildNoteFromNode(node, raw, warnings) {
+  const t = (raw || '').trimStart();
+  const defs = [
+    { re:/^Note:/i,      label:'Note:',      rep:`<${BOLD_TAG}>Note:</${BOLD_TAG}>` },
+    { re:/^Important:/i, label:'Important:', rep:`<${BOLD_TAG}>Important:</${BOLD_TAG}>` },
+    { re:/^Warning:/i,   label:'Warning:',   rep:`<${BOLD_TAG} style="color:#c00000;">Warning:</${BOLD_TAG}>` }
+  ];
+  for (const d of defs) {
+    if (!d.re.test(t)) continue;
+    const fullInner = processChildren(node, warnings);
+    const labelEsc = esc(d.label);
+    let rest = fullInner
+      .replace(new RegExp(`^\\s*<(?:strong|b)[^>]*>\\s*${labelEsc.replace(':','\\:')}\\s*</(?:strong|b)>\\s*`, 'i'), '')
+      .replace(new RegExp(`^\\s*${labelEsc.replace(':','\\:')}\\s*`, 'i'), '')
+      .trim();
+    return `<blockquote>${d.rep}${rest ? ' ' + normalizeNbsp(rest) : ''}</blockquote>\n`;
+  }
+  return null;
+}
+
+/* ============================================================================
+   TABLES
+   ============================================================================ */
+function processTable(tableNode, warnings) {
+  const rows = getTableRows(tableNode);
+  if (!rows.length) return '';
+
+  let hasMerged = false, hasUneven = false;
+  const hasNested = Array.from(tableNode.querySelectorAll('table')).some(t => t !== tableNode);
+  const lens = rows.map(row => {
+    let len = 0;
+    getCells(row).forEach(cell => { const cs = parseInt(getColspan(cell),10); len += cs; if (cs>1||parseInt(getRowspan(cell),10)>1) hasMerged=true; });
+    return len;
+  });
+  const maxLen = Math.max(...lens);
+  if (lens.some(l => l !== maxLen && l > 0)) hasUneven = true;
+
+  if (hasMerged) warnings.push({ level:'info',    title:'Merged cells', msg:'Colspan/rowspan preserved. Review before publishing.' });
+  if (hasUneven) warnings.push({ level:'warning', title:'Uneven rows',  msg:'Row cell counts differ. Structure preserved as is.' });
+  if (hasNested) warnings.push({ level:'warning', title:'Nested tables',msg:'Nested tables preserved. Review output carefully.' });
+
+  let inner = '<tbody>\n';
+  rows.forEach((row, ri) => {
+    inner += '<tr>';
+    getCells(row).forEach(cell => {
+      const attrs = cellAttrs(cell);
+      const cellInner = processTableCell(cell, warnings) || '&nbsp;';
+      const isHdr = ri === 0 || cell.tagName.toLowerCase() === 'th' || isBoldCell(cell);
+      if (isHdr) inner += `<th style="border:0.5px solid #808080;font-weight:bold;padding:4px;vertical-align:top;text-align:left;${SF_FONT}"${attrs}>${cellInner}</th>`;
+      else        inner += `<td style="border:0.5px solid #808080;padding:4px;vertical-align:top;${SF_FONT}"${attrs}>${cellInner}</td>`;
+    });
+    inner += '</tr>\n';
+  });
+  inner += '</tbody>\n';
+  return `<table style="border-collapse:collapse;width:100%;">\n${inner}</table>\n`;
+}
+
+function processTableCell(cell, warnings) {
+  const raw = (cell.textContent || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+  if (!raw) return '';
+  if (/^(Y|N|N\/A|Yes|No|\d+(\.\d+)?)$/i.test(raw)) return esc(raw);
+  return Array.from(cell.childNodes).map(ch => processTableCellNode(ch, warnings).trim()).filter(Boolean).join('<br>');
+}
+function processTableCellNode(node, warnings) {
+  if (node.nodeType === Node.TEXT_NODE) return esc((node.textContent||'').replace(/\u00a0/g,' ').replace(/[ \t\r\n]+/g,' '));
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+  const tag = node.tagName.toLowerCase();
+  if (['script','style','link','meta','xml','o:p'].includes(tag)) return '';
+  if (tag === 'br') return '<br>';
+  if (/^h[1-6]$/.test(tag) || tag === 'p' || tag === 'div') return processTCChildren(node, warnings).trim();
+  if (tag === 'hr') return '';
+  if (tag === 'strong'||tag==='b') return `<${BOLD_TAG}>${processTCChildren(node,warnings)}</${BOLD_TAG}>`;
+  if (tag === 'em'||tag==='i')     return `<${ITALIC_TAG}>${processTCChildren(node,warnings)}</${ITALIC_TAG}>`;
+  if (tag === 'u')  return `<u>${processTCChildren(node,warnings)}</u>`;
+  if (tag === 's'||tag==='strike'||tag==='del') return `<s>${processTCChildren(node,warnings)}</s>`;
+  if (tag === 'sup') return `<sup>${processTCChildren(node,warnings)}</sup>`;
+  if (tag === 'sub') return `<sub>${processTCChildren(node,warnings)}</sub>`;
+  if (tag === 'span'||tag==='font') {
+    const ss = (node.getAttribute('style')||'').toLowerCase();
+    if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
+    if (/mso-spacerun/.test(ss)) return ' ';
+    const inner = processTCChildren(node,warnings);
+    if (ss.includes('line-through')) return `<s>${inner}</s>`;
+    if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
+    if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
+    if (/text-decoration[^;]*underline/.test(ss)) return `<u>${inner}</u>`;
+    return inner;
+  }
+  if (tag === 'a') {
+    const href = node.getAttribute('href')||'';
+    if (node.getAttribute('name')&&!href) return processTCChildren(node,warnings);
+    if (/^#_/.test(href)) return processTCChildren(node,warnings);
+    const safe = safeHref(href,warnings);
+    const inner = processTCChildren(node,warnings).trim();
+    return (safe && inner) ? `<a href="${escAttr(safe)}">${inner}</a>` : inner;
+  }
+  if (tag==='ul'||tag==='ol') {
+    return processSourceList(node, tag, warnings, 0).trim();
+  }
+  if (tag==='pre')  return codeBlock(node.textContent);
+  if (tag==='code') return `<code style="${CODE_FONT}">${escCode(node.textContent)}</code>`;
+  if (tag==='table') return processTable(node,warnings);
+  return processTCChildren(node,warnings);
+}
+function processTCChildren(node,warnings) {
+  return Array.from(node.childNodes).map(c=>processTableCellNode(c,warnings)).join('');
+}
+function getTableRows(t) {
+  const rows = [];
+  Array.from(t.children).forEach(ch => {
+    const tag = (ch.tagName||'').toLowerCase();
+    if (tag==='tr') rows.push(ch);
+    if (['thead','tbody','tfoot'].includes(tag)) Array.from(ch.children).forEach(r=>{if((r.tagName||'').toLowerCase()==='tr')rows.push(r);});
+  });
+  return rows;
+}
+function getCells(row) {
+  return Array.from(row.children).filter(c=>{const t=(c.tagName||'').toLowerCase();return t==='td'||t==='th';});
+}
+function cellAttrs(cell) {
+  let a='';
+  const cs=getColspan(cell),rs=getRowspan(cell);
+  if(parseInt(cs,10)>1)a+=` colspan="${cs}"`;
+  if(parseInt(rs,10)>1)a+=` rowspan="${rs}"`;
+  return a;
+}
+function getColspan(cell) {
+  const d=cell.getAttribute('colspan');
+  if(d&&parseInt(d,10)>1)return d;
+  const m=(cell.getAttribute('style')||'').match(/mso-grid-span\s*:\s*(\d+)/i);
+  return (m&&parseInt(m[1],10)>1)?m[1]:'1';
+}
+function getRowspan(cell) {
+  const d=cell.getAttribute('rowspan');
+  return (d&&parseInt(d,10)>1)?d:'1';
+}
+function isBoldCell(cell) {
+  if((cell.getAttribute('style')||'').toLowerCase().match(/font-weight\s*:\s*(bold|[6-9]00)/)) return true;
+  if(cell.querySelector('b,strong')) return true;
+  return false;
+}
+
+/* ============================================================================
+   HR  (one before each h2 except the first)
+   ============================================================================ */
+function finalizeHr(html) {
+  let first = true, depth = 0;
+  return html
+    .split(/(<\/?table\b[^>]*>|<h2\b[^>]*>)/gi)
+    .map(tok => {
+      if (/^<table\b/i.test(tok))  { depth++; return tok; }
+      if (/^<\/table/i.test(tok))  { depth = Math.max(depth-1,0); return tok; }
+      if (/^<h2\b/i.test(tok) && depth===0) { if(first){first=false;return tok;} return `<hr>\n${tok}`; }
+      return tok;
+    })
+    .join('')
+    .replace(/(?:<hr\s*\/?>\s*){2,}/gi, '<hr>\n');
+}
+
+/* ============================================================================
+   PLAIN TEXT FALLBACK
+   ============================================================================ */
+function convertPlainText(text, warnings) {
+  const doc = document.implementation.createHTMLDocument('');
+  const body = doc.body;
+  text.split(/\r?\n/).forEach(line => {
+    if (!line.trim()) return;
+    const p = doc.createElement('p');
+    p.textContent = line;
+    body.appendChild(p);
+  });
+  groupManualLists(body, warnings || []);
+  let out = '';
+  Array.from(body.childNodes).forEach(node => {
+    if (isSentinel(node)) {
+      out += node.innerHTML + '\n';
+      return;
+    }
+    const t = cleanText(node.textContent);
+    if (!t) return;
+    out += buildNote(t) || `<p style="${SF_FONT}">${esc(t)}</p>\n`;
+  });
+  return finalizeHr(out.trim());
+}
+
+/* ============================================================================
+   HELPERS
+   ============================================================================ */
+function codeBlock(text) {
+  return `<pre><code style="${CODE_FONT}">${escCode(text)}</code></pre>\n`;
+}
+function isJsonLike(t) { t=t.trim(); return (t.startsWith('{')||t.startsWith('['))&&(t.endsWith('}')||t.endsWith(']'))&&t.includes(':'); }
+function isHttpLike(t) { return /^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\s+https?:\/\//im.test(t); }
+function hasBlock(html) { return /<(p|div|h2|h3|h4|ul|ol|li|table|pre|blockquote|hr)\b/i.test(html); }
+function getPlainText(node) {
+  let t='';
+  node.childNodes.forEach(ch=>{
+    if(ch.nodeType===Node.TEXT_NODE) t+=ch.textContent;
+    else if(ch.nodeType===Node.ELEMENT_NODE){const tg=ch.tagName.toLowerCase();if(tg==='br')t+='\n';else{t+=getPlainText(ch);if(['p','div','li','tr'].includes(tg))t+='\n';}}
+  });
+  return t;
+}
+function cleanCodeText(t) { return (t||'').replace(/\u00a0/g,' ').replace(/[ \t]+$/gm,'').replace(/\n{3,}/g,'\n\n').replace(/^\n+|\n+$/g,''); }
+function cleanText(t)     { return (t||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim(); }
+function normalizeNbsp(s) { return s.replace(/&nbsp;/g,' ').replace(/\u00a0/g,' ').replace(/ {2,}/g,' '); }
+function esc(s)     { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escCode(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escAttr(s) { return (s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function safeHref(href, warnings) {
+  if (!href) return '';
+  href = href.trim();
+  if (/^(https?:|mailto:)/i.test(href)) return href;
+  if (href.length) warnings.push({ level:'info', title:'Link protocol stripped', msg:'Unsupported link protocol removed. Text preserved.' });
+  return '';
+}
+function dedupeWarnings(warnings) {
+  const seen = new Set();
+  return warnings.filter(w => { const k=w.level+'|'+w.title; if(seen.has(k))return false; seen.add(k);return true; });
+}
+
+/* ============================================================================
+   WARNINGS
+   ============================================================================ */
+function clearWarnings() {
+  document.getElementById('warningsList').innerHTML = '';
+  const e = document.getElementById('warningsEmpty'); if(e) e.style.display='none';
+}
+function addWarning(level, title, msg) {
+  const list = document.getElementById('warningsList');
+  const e = document.getElementById('warningsEmpty'); if(e) e.style.display='none';
+  const icons = { error:'\u{1F534}', warning:'\u26A0\uFE0F', info:'\u2139\uFE0F' };
+  const item = document.createElement('div');
+  item.className = `warning-item ${level}`;
+  item.innerHTML = `<span class="warning-icon">${icons[level]||icons.info}</span><div class="warning-text"><strong>${esc(title)}</strong><span>${esc(msg)}</span></div>`;
+  list.appendChild(item);
+}
+function updateWarningsFooter() {
+  const items = document.querySelectorAll('.warning-item');
+  const footer = document.getElementById('warningsFooter');
+  if (!items.length) { footer.style.display='none'; return; }
+  let e=0,w=0,i=0;
+  items.forEach(x=>{ if(x.classList.contains('error'))e++; else if(x.classList.contains('warning'))w++; else i++; });
+  document.getElementById('countError').textContent   = e ? `\u{1F534} ${e} Issue${e!==1?'s':''}` : '';
+  document.getElementById('countWarning').textContent = w ? `\u26A0\uFE0F ${w} Warning${w!==1?'s':''}` : '';
+  document.getElementById('countInfo').textContent    = i ? `\u2139\uFE0F ${i} Info` : '';
+  footer.style.display = (e||w||i) ? 'flex' : 'none';
+}
+
+/* ============================================================================
+   COPY / CLEAR
+   ============================================================================ */
+document.getElementById('btnCopy').addEventListener('click', () => {
+  const out = document.getElementById('htmlOutput');
+  if (!out.value.trim()) { addWarning('info','Nothing to copy','Convert content first.'); setPanelOpen(true); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(out.value)
+      .then(() => showToast('HTML copied to clipboard'))
+      .catch(() => { out.select(); document.execCommand('copy'); showToast('HTML copied to clipboard'); });
+  } else {
+    try { out.select(); document.execCommand('copy'); showToast('HTML copied to clipboard'); }
+    catch(e) { showToast('Copy failed. Please try again.', true); }
+  }
+});
+
+let _toastTimer = null;
+function showToast(msg, isError) {
+  const t = document.getElementById('kmToast');
+  t.textContent = msg;
+  t.className = isError ? 'km-toast-error km-toast-visible' : 'km-toast-visible';
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { t.classList.remove('km-toast-visible'); }, 2000);
+}
+
+function doClearAll() {
+  renderingPastePreview = true;
+  pasteRender.innerHTML = '';
+  renderingPastePreview = false;
+  pasteRender.classList.add('empty');
+  pasteStatus.textContent = 'Click below and paste (Ctrl+V)';
+  storedClipboardHTML = '';
+  pasteAreaDirty = false;
+  document.getElementById('previewArea').innerHTML = '';
+  document.getElementById('htmlOutput').value = '';
+  clearWarnings();
+  const e = document.getElementById('warningsEmpty'); if(e) e.style.display='block';
+  updateWarningsFooter();
+}
+document.getElementById('btnClearAll').addEventListener('click', doClearAll);
+document.getElementById('btnPasteClear').addEventListener('click', doClearAll);
+</script>
+</body>
+</html>

@@ -28,7 +28,76 @@
   .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
   .main-content { flex: 1; overflow-y: auto; padding: 20px 24px; min-width: 0; transition: margin-right 0.25s ease; }
   .main-content.panel-open { margin-right: var(--panel-width); }
-  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--signal-blue); margin-bottom: 8px; }
+  .main-inner { max-width: 1180px; margin: 0 auto; }
+  .section-label { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .panel-box-header .step-tag { flex: 1; }
+  .step-tag { color: var(--signal-blue); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .btn-ico { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+  .hdr-ico { width: 20px; height: 20px; fill: currentColor; }
+  /* Expand-to-modal buttons */
+  .expand-btn { background: #fff; border: 1.5px solid var(--border); border-radius: 6px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--signal-blue); flex-shrink: 0; padding: 0; }
+  .expand-btn:hover { background: var(--ice-blue); border-color: var(--signal-blue); }
+  .expand-btn svg { width: 16px; height: 16px; fill: currentColor; }
+  .paste-box { position: relative; }
+  /* Rich-text toolbar above the paste field */
+  .rte-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 5px 6px; background: #fafcff; border: 1.5px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; }
+  .rte-group { display: flex; align-items: center; gap: 2px; }
+  .rte-sep { width: 1px; align-self: stretch; background: var(--border); margin: 2px 4px; }
+  .rte-btn { min-width: 28px; height: 28px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; background: #fff; border: 1px solid transparent; border-radius: 5px; cursor: pointer; color: var(--blue-black); font-size: 13px; line-height: 1; }
+  .rte-btn:hover { background: var(--ice-blue); }
+  .rte-btn.active { background: var(--ice-blue); border-color: var(--signal-blue); color: var(--signal-blue); }
+  .rte-btn svg { width: 17px; height: 17px; fill: currentColor; }
+  .rte-btn b, .rte-btn i, .rte-btn u { font-size: 14px; }
+  .rte-select { height: 28px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--blue-black); font-size: 12px; padding: 0 4px; cursor: pointer; }
+  .rte-split { position: relative; display: inline-flex; }
+  .rte-caret { min-width: 16px; width: 16px; padding: 0; font-size: 9px; color: var(--cool-gray); }
+  .rte-menu { position: absolute; top: 100%; left: 0; margin-top: 2px; background: #fff; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.12); padding: 4px; z-index: 50; display: none; min-width: 130px; }
+  .rte-menu.open { display: block; }
+  .rte-menu-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; color: var(--blue-black); }
+  .rte-menu-item:hover { background: var(--ice-blue); }
+  .rte-menu-item .mk { font-family: 'Courier New', monospace; color: var(--cool-gray); min-width: 22px; }
+  .rte-link-wrap { position: relative; display: inline-flex; }
+  .rte-btn.is-link::after { content: '\00D7'; position: absolute; right: 1px; bottom: -1px; font-size: 10px; font-weight: 700; line-height: 1; color: var(--accent-red); background: #fff; border-radius: 50%; padding: 0 1px; }
+  .rte-spacer { margin-left: auto; }
+  .rte-btn:disabled { opacity: 0.35; cursor: default; }
+  .rte-btn:disabled:hover { background: #fff; }
+  /* Link dialog (image 2 style) */
+  .link-dialog-overlay { position: fixed; inset: 0; background: rgba(20,33,51,0.25); z-index: 250; display: flex; align-items: flex-start; justify-content: center; padding-top: 16vh; }
+  .link-dialog-overlay.hidden { display: none; }
+  .link-dialog { background: #fff; border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,0.25); width: min(540px, 92vw); padding: 16px; }
+  .link-field { border: 1.5px solid var(--border); border-radius: 8px; padding: 7px 12px; margin-bottom: 12px; }
+  .link-field:focus-within { border-color: var(--signal-blue); box-shadow: 0 0 0 3px rgba(77,163,255,0.18); }
+  .link-field label { display: block; font-size: 11px; color: var(--cool-gray); margin-bottom: 1px; }
+  .link-field input { width: 100%; border: none; outline: none; font-size: 15px; color: var(--blue-black); background: transparent; }
+  .link-dialog-row { display: flex; gap: 10px; align-items: stretch; }
+  .link-dialog-row .link-field { flex: 1; margin-bottom: 0; }
+  .link-apply { border: none; background: var(--ice-blue); color: var(--signal-blue); font-weight: 600; border-radius: 8px; padding: 0 20px; cursor: pointer; font-size: 14px; }
+  .link-apply:hover { background: var(--signal-blue); color: #fff; }
+  .link-remove { background: none; border: none; color: var(--accent-red); font-size: 12px; cursor: pointer; margin-top: 10px; padding: 0; }
+  .link-remove.hidden { display: none; }
+  .paste-box.has-toolbar { border-top-left-radius: 0; border-top-right-radius: 0; }
+  /* Field modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(20,33,51,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.hidden { display: none; }
+  .modal-box { background: #fff; border-radius: 10px; width: min(1100px, 96vw); height: min(86vh, 900px); display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.25); overflow: hidden; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #f3f9ff; border-bottom: 1px solid var(--border); }
+  .modal-head span { font-size: 12px; font-weight: 700; color: var(--signal-blue); text-transform: uppercase; letter-spacing: 0.04em; }
+  .modal-close { background: none; border: none; font-size: 20px; line-height: 1; cursor: pointer; color: var(--cool-gray); padding: 2px 6px; border-radius: 4px; }
+  .modal-close:hover { background: var(--ice-blue); color: var(--blue-black); }
+  .modal-body { flex: 1; overflow: auto; padding: 16px 18px; min-height: 0; }
+  .modal-edit { width: 100%; height: 100%; box-sizing: border-box; border: none; outline: none; resize: none; font-size: 13px; line-height: 1.6; color: var(--blue-black); }
+  textarea.modal-edit { font-family: 'SF Mono', Menlo, Consolas, monospace; white-space: pre; }
+  .modal-edit ol { padding-left: 24px; margin: 2px 0; list-style-type: decimal; }
+  .modal-edit ul { padding-left: 24px; margin: 2px 0; list-style-type: disc; }
+  .modal-edit ol ol { list-style-type: lower-alpha; }
+  .modal-edit ol ol ol { list-style-type: lower-roman; }
+  .modal-edit ul ul { list-style-type: circle; }
+  .modal-edit ul ul ul { list-style-type: square; }
+  .modal-view ul, .modal-view ol { padding-left: 22px; margin: 3px 0; }
+  .modal-view ol ol { list-style-type: lower-alpha; }
+  .modal-view ol ol ol { list-style-type: lower-roman; }
+  .modal-view ul ul { list-style-type: circle; }
+  .modal-view ul ul ul { list-style-type: square; }
 
   /* PASTE AREA - editable rendered preview */
   .paste-section { margin-bottom: 16px; }
@@ -39,11 +108,16 @@
   .paste-clear-btn:hover { background: #fff0f0; }
   #pasteRender { min-height: 160px; max-height: 280px; overflow-y: auto; padding: 14px 16px;
     font-family: Arial, sans-serif; font-size: 12px; line-height: 1.6; color: var(--blue-black); }
-  #pasteRender.empty::before { content: 'Paste copied Word content here (Ctrl+V)...'; color: var(--cool-gray); font-style: italic; }
+  #pasteRender.empty::before { content: 'Click this field and paste (Ctrl+V)'; color: var(--cool-gray); font-style: italic; }
   /* Render Word list styles faithfully inside the paste preview */
-  #pasteRender ol { padding-left: 24px; margin: 2px 0; }
-  #pasteRender ul { padding-left: 24px; margin: 2px 0; }
+  #pasteRender ol { padding-left: 24px; margin: 2px 0; list-style-type: decimal; }
+  #pasteRender ul { padding-left: 24px; margin: 2px 0; list-style-type: disc; }
   #pasteRender li { margin: 1px 0; }
+  /* Fallback nested markers by depth (JS sets inline styles which win) */
+  #pasteRender ol ol { list-style-type: lower-alpha; }
+  #pasteRender ol ol ol { list-style-type: lower-roman; }
+  #pasteRender ul ul { list-style-type: circle; }
+  #pasteRender ul ul ul { list-style-type: square; }
   #pasteRender p  { margin: 3px 0; }
   #pasteRender h1, #pasteRender h2, #pasteRender h3, #pasteRender h4 { font-weight: bold; margin: 6px 0 3px; }
   #pasteRender h1 { font-size: 18px; }
@@ -54,11 +128,11 @@
   #pasteRender a { color: var(--signal-blue); }
   #pasteRender pre { background: #f4f6f8; padding: 8px; font-size: 11px; border-radius: 4px; overflow-x: auto; }
   /* Make the paste area focusable so it can catch paste events */
-  #pasteRender:focus { outline: 2px solid var(--signal-blue); outline-offset: -2px; border-radius: 0 0 8px 8px; }
+  #pasteRender:focus { outline: 2px solid var(--signal-blue); outline-offset: -2px; border-radius: 8px; }
   .paste-hint { font-size: 11px; color: var(--cool-gray); margin-top: 5px; }
 
   /* BUTTONS */
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; align-items: center; }
   button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; white-space: nowrap; }
   .btn-primary   { background: var(--signal-blue); color: #fff; border-color: var(--signal-blue); }
   .btn-primary:hover   { background: #3a8ee0; border-color: #3a8ee0; }
@@ -74,7 +148,7 @@
   .output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 900px) { .output-grid { grid-template-columns: 1fr; } }
   .panel-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
-  .panel-box-header { padding: 8px 12px; background: var(--ice-blue); font-size: 11px; font-weight: 700; color: var(--signal-blue); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+  .panel-box-header { padding: 8px 12px; background: #f3f9ff; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
 
   #previewArea { flex: 1; min-height: 280px; max-height: 480px; overflow-y: auto; padding: 14px 16px; font-size: 12px; line-height: 1.6; font-family: Arial, sans-serif; }
   #previewArea:empty::before { content: 'Preview will appear here after conversion.'; color: var(--cool-gray); font-style: italic; font-size: 12px; }
@@ -83,6 +157,10 @@
   #previewArea h4 { font-size: 14px; font-weight: bold; margin: 6px 0 3px; font-family: Arial, sans-serif; }
   #previewArea p  { font-size: 12px; margin: 3px 0; font-family: Arial, sans-serif; }
   #previewArea ul, #previewArea ol { padding-left: 22px; margin: 3px 0; }
+  #previewArea ol ol { list-style-type: lower-alpha; }
+  #previewArea ol ol ol { list-style-type: lower-roman; }
+  #previewArea ul ul { list-style-type: circle; }
+  #previewArea ul ul ul { list-style-type: square; }
   #previewArea li { font-size: 12px; margin: 1px 0; font-family: Arial, sans-serif; }
   #previewArea table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; font-family: Arial, sans-serif; }
   #previewArea th { border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; text-align: left; font-size: 12px; }
@@ -101,6 +179,10 @@
   .warnings-panel.hidden { transform: translateX(100%); }
   .warnings-panel-header { padding: 12px 14px; background: var(--ice-blue); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .warnings-panel-header span { font-size: 12px; font-weight: 700; color: var(--blue-black); text-transform: uppercase; letter-spacing: 0.05em; }
+  .panel-status { padding: 10px 14px; font-size: 12px; color: var(--blue-black); background: #fff; border-bottom: 1px solid var(--border); line-height: 1.4; flex-shrink: 0; }
+  .panel-status.ok   { color: #2a7d2a; }
+  .panel-status.warn { color: #b07800; }
+  .panel-status.err  { color: var(--accent-red); }
   .warnings-scroll { flex: 1; overflow-y: auto; padding: 12px; }
   .warnings-empty { color: var(--cool-gray); font-size: 12px; font-style: italic; text-align: center; margin-top: 40px; padding: 0 16px; }
   .warning-item { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 12px; line-height: 1.4; }
@@ -116,7 +198,8 @@
   .wf-chip.amber { color: #b07800; }
   .wf-chip.blue  { color: var(--signal-blue); }
 
-  .panel-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 95; background: #fff; border: 1.5px solid var(--border); border-right: none; border-radius: 8px 0 0 8px; padding: 10px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.25s; box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
+  .panel-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 95; background: #fff; border: 1.5px solid var(--border); border-right: none; border-radius: 8px 0 0 8px; padding: 10px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: right 0.25s ease, box-shadow 0.25s ease; box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
+  .panel-toggle.panel-open { right: var(--panel-width); }
   /* TOAST NOTIFICATION */
   #kmToast {
     position: fixed; bottom: 28px; right: 28px; z-index: 9999;
@@ -139,7 +222,7 @@
 
 <header>
   <div class="header-left">
-    <div class="header-icon">&#128203;</div>
+    <div class="header-icon"><svg class="hdr-ico" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560h-80v120H280v-120h-80v560Zm280-560q17 0 28.5-11.5T520-800q0-17-11.5-28.5T480-840q-17 0-28.5 11.5T440-800q0 17 11.5 28.5T480-760Z"/></svg></div>
     <div class="header-text">
       <h1>KM HTML Converter</h1>
       <p>Paste content from Word and convert it into clean Salesforce Knowledge HTML.</p>
@@ -149,43 +232,99 @@
 
 <div class="app-body">
   <div class="main-content" id="mainContent">
+   <div class="main-inner">
 
     <div class="paste-section">
-      <div class="section-label">1. Paste copied Word content here</div>
-      <div class="paste-box">
-        <div class="paste-box-toolbar">
-          <span id="pasteStatus">Click below and paste (Ctrl+V)</span>
-          <button class="paste-clear-btn" id="btnPasteClear">Clear</button>
+      <div class="section-label"><span class="step-tag">Paste copied Word content here</span></div>
+      <div class="rte-toolbar" id="rteToolbar">
+        <div class="rte-group">
+          <button class="rte-btn" data-cmd="redo" title="Redo last undone change"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M396-200q-97 0-166.5-63T160-420q0-94 69.5-157T396-640h252L544-744l56-56 200 200-200 200-56-56 104-104H396q-63 0-109.5 40T240-420q0 60 46.5 100T396-280h284v80H396Z"/></svg></button>
+          <button class="rte-btn" data-cmd="undo" title="Undo last change"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"/></svg></button>
         </div>
+        <div class="rte-sep"></div>
+        <select class="rte-select" id="rteFormat" title="Paragraph format">
+          <option value="p">Normal</option>
+          <option value="h2">Heading 2</option>
+          <option value="h3">Heading 3</option>
+          <option value="h4">Heading 4</option>
+          <option value="pre">Code</option>
+          <option value="blockquote">Blockquote</option>
+        </select>
+        <div class="rte-sep"></div>
+        <div class="rte-group">
+          <button class="rte-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+          <button class="rte-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+          <button class="rte-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+        </div>
+        <div class="rte-sep"></div>
+        <div class="rte-split">
+          <button class="rte-btn" data-cmd="bullet" title="Bulleted list"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M360-200v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360ZM200-160q-33 0-56.5-23.5T120-240q0-33 23.5-56.5T200-320q33 0 56.5 23.5T280-240q0 33-23.5 56.5T200-160Zm0-240q-33 0-56.5-23.5T120-480q0-33 23.5-56.5T200-560q33 0 56.5 23.5T280-480q0 33-23.5 56.5T200-400Zm0-240q-33 0-56.5-23.5T120-720q0-33 23.5-56.5T200-800q33 0 56.5 23.5T280-720q0 33-23.5 56.5T200-640Z"/></svg></button>
+          <button class="rte-btn rte-caret" data-menu="bulletMenu" title="Bullet style">&#9662;</button>
+          <div class="rte-menu" id="bulletMenu">
+            <div class="rte-menu-item" data-list="ul" data-style="disc"><span class="mk">&#9679;</span> Disc</div>
+            <div class="rte-menu-item" data-list="ul" data-style="circle"><span class="mk">&#9675;</span> Circle</div>
+            <div class="rte-menu-item" data-list="ul" data-style="square"><span class="mk">&#9632;</span> Square</div>
+          </div>
+        </div>
+        <div class="rte-split">
+          <button class="rte-btn" data-cmd="number" title="Numbered list"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg></button>
+          <button class="rte-btn rte-caret" data-menu="numberMenu" title="Number style">&#9662;</button>
+          <div class="rte-menu" id="numberMenu">
+            <div class="rte-menu-item" data-list="ol" data-style="decimal"><span class="mk">1.</span> Decimal</div>
+            <div class="rte-menu-item" data-list="ol" data-style="lower-alpha"><span class="mk">a.</span> Lower alpha</div>
+            <div class="rte-menu-item" data-list="ol" data-style="lower-roman"><span class="mk">i.</span> Lower roman</div>
+          </div>
+        </div>
+        <div class="rte-sep"></div>
+        <select class="rte-select" id="rteFont" title="Font">
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="'Courier New', Consolas, monospace">Monospace</option>
+        </select>
+        <select class="rte-select" id="rteSize" title="Font size">
+          <option value="10px">10</option>
+          <option value="11px">11</option>
+          <option value="12px" selected>12</option>
+          <option value="14px">14</option>
+          <option value="16px">16</option>
+          <option value="18px">18</option>
+          <option value="24px">24</option>
+        </select>
+        <div class="rte-sep"></div>
+        <button class="rte-btn" id="rteLink" data-cmd="link" title="Insert/remove link"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg></button>
+        <button class="rte-btn" id="rteCode" data-cmd="codesnippet" title="Code snippet">{;}</button>
+        <button class="expand-btn rte-spacer" id="expandPaste" title="Open in larger window" aria-label="Expand paste field"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button>
+      </div>
+      <div class="paste-box has-toolbar">
         <div id="pasteRender" class="empty" tabindex="0" contenteditable="true" spellcheck="true"></div>
       </div>
-      <div class="paste-hint">The paste area shows a preview of your Word content. The original formatting is preserved for conversion.</div>
+      <span id="pasteStatus" style="display:none;"></span>
+      <div class="paste-hint">Paste directly (Ctrl+V). The app will capture rich content from Microsoft Word.</div>
     </div>
 
     <div class="actions">
       <button class="btn-primary"   id="btnConvert">&#8635; Convert to HTML</button>
-      <button class="btn-secondary" id="btnCopy">&#128203; Copy HTML</button>
-      <button class="btn-danger"    id="btnClearAll">&#128465; Clear all</button>
-      <button class="btn-code"      id="btnMarkCode">&lt;/&gt; Mark selection as code</button>
+      <button class="btn-secondary" id="btnCopy"><svg class="btn-ico" viewBox="0 -960 960 960" aria-hidden="true"><path d="M760-200H320q-33 0-56.5-23.5T240-280v-560q0-33 23.5-56.5T320-920h280l240 240v400q0 33-23.5 56.5T760-200ZM560-640v-200H320v560h440v-360H560ZM160-40q-33 0-56.5-23.5T80-120v-560h80v560h440v80H160Zm160-800v200-200 560-560Z"/></svg> Copy HTML</button>
+      <button class="btn-danger"    id="btnClearAll">&#128465; Clear</button>
     </div>
 
     <div class="output-grid">
       <div class="panel-box">
-        <div class="panel-box-header">2. Preview (rendered output)</div>
-        <div id="previewArea"></div>
+        <div class="panel-box-header"><span class="step-tag">HTML output (editable)</span><button class="expand-btn" id="expandHtml" title="Open in larger window" aria-label="Expand HTML output"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
+        <textarea id="htmlOutput" spellcheck="false" placeholder="Converted HTML will appear here. You can edit before copying."></textarea>
       </div>
       <div class="panel-box">
-        <div class="panel-box-header">3. HTML output (editable)</div>
-        <textarea id="htmlOutput" spellcheck="false" placeholder="Converted HTML will appear here. You can edit before copying."></textarea>
-        <div class="output-hint">Edit the HTML above before copying into Salesforce.</div>
+        <div class="panel-box-header"><span class="step-tag">Preview (rendered output)</span><button class="expand-btn" id="expandPreview" title="Open in larger window" aria-label="Expand preview"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
+        <div id="previewArea"></div>
       </div>
     </div>
+   </div>
   </div>
 
   <div class="warnings-panel hidden" id="warningsPanel">
     <div class="warnings-panel-header">
-      <span>Warnings &amp; Info</span>
+      <span>Status &amp; Warnings</span>
     </div>
+    <div class="panel-status" id="panelStatus">Paste Word content and convert to begin.</div>
     <div class="warnings-scroll" id="warningsList">
       <div class="warnings-empty" id="warningsEmpty">No warnings yet. Paste content and convert to see results.</div>
     </div>
@@ -201,6 +340,28 @@
     <span class="toggle-label">Info</span>
   </button>
   <div id="kmToast" role="status" aria-live="polite"></div>
+</div>
+
+<div class="modal-overlay hidden" id="fieldModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span id="modalTitle">Field</span>
+      <button class="modal-close" id="modalClose" title="Close" aria-label="Close">&times;</button>
+    </div>
+    <div id="modalToolbarSlot"></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="link-dialog-overlay hidden" id="linkDialog">
+  <div class="link-dialog">
+    <div class="link-field"><label>Text</label><input id="linkText" type="text" placeholder="Link text"></div>
+    <div class="link-dialog-row">
+      <div class="link-field"><label>Link</label><input id="linkUrl" type="text" placeholder="Paste a link, or search"></div>
+      <button class="link-apply" id="linkApply">Apply</button>
+    </div>
+    <button class="link-remove hidden" id="linkRemove">Remove link</button>
+  </div>
 </div>
 
 <script>
@@ -219,6 +380,26 @@ let storedClipboardHTML = '';
 let pasteAreaDirty = false;
 let renderingPastePreview = false;
 
+/* Unsaved-changes guard: warns on refresh/close/navigate only when there is
+   real, unsaved content. Cleared after copy/clear/reset. */
+let contentDirty = false;
+function setDirty(v) { contentDirty = !!v; }
+window.addEventListener('beforeunload', (e) => {
+  if (!contentDirty) return;
+  // Native browser dialog only; text is controlled by the browser.
+  e.preventDefault();
+  e.returnValue = '';
+  return '';
+});
+
+/* Status line at the top of the collapsible Status & Warnings panel. */
+function updatePanelStatus(msg, kind) {
+  const el = document.getElementById('panelStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'panel-status' + (kind ? ' ' + kind : '');
+}
+
 /* ============================================================================
    PANEL TOGGLE
    ============================================================================ */
@@ -232,7 +413,7 @@ function setPanelOpen(open) {
   panelOpen = open;
   warningsPanel.classList.toggle('hidden', !open);
   mainContent.classList.toggle('panel-open', open);
-  panelToggle.classList.toggle('panel-open-toggle', open);
+  panelToggle.classList.toggle('panel-open', open);
   toggleIcon.textContent = open ? '\u25B6' : '\u25C4';
 }
 panelToggle.addEventListener('click', () => setPanelOpen(!panelOpen));
@@ -243,14 +424,240 @@ panelToggle.addEventListener('click', () => setPanelOpen(!panelOpen));
 const pasteRender = document.getElementById('pasteRender');
 const pasteStatus = document.getElementById('pasteStatus');
 
+/* ----------------------------------------------------------------------------
+   UNDO (Ctrl+Z / Ctrl+Y) for the paste field and the HTML output field.
+   Snapshot-based so it also covers programmatic edits (Tab indent/outdent,
+   mark-as-code) that the browser's native undo can't track.
+   ---------------------------------------------------------------------------- */
+function createUndo(getState, setState, onChange) {
+  let stack = [getState()], idx = 0, timer = null;
+  function notify() { if (onChange) onChange(); }
+  function commit() {
+    const s = getState();
+    if (s === stack[idx]) return;
+    stack = stack.slice(0, idx + 1);   // a new edit clears the redo history
+    stack.push(s);
+    idx = stack.length - 1;
+    if (stack.length > 200) { stack.shift(); idx--; }
+    notify();
+  }
+  return {
+    record() { clearTimeout(timer); commit(); },
+    recordDebounced() { clearTimeout(timer); timer = setTimeout(commit, 300); },
+    undo() { clearTimeout(timer); commit(); if (idx > 0) { idx--; setState(stack[idx]); notify(); return true; } return false; },
+    redo() { if (idx < stack.length - 1) { idx++; setState(stack[idx]); notify(); return true; } return false; },
+    reset() { clearTimeout(timer); stack = [getState()]; idx = 0; notify(); },
+    canUndo() { return idx > 0; },
+    canRedo() { return idx < stack.length - 1; }
+  };
+}
+function refreshUndoButtons() {
+  const u = document.querySelector('#rteToolbar [data-cmd="undo"]');
+  const r = document.querySelector('#rteToolbar [data-cmd="redo"]');
+  if (u) u.disabled = !pasteUndo.canUndo();
+  if (r) r.disabled = !pasteUndo.canRedo();
+}
+function caretToEnd(el) {
+  try {
+    const r = document.createRange();
+    r.selectNodeContents(el); r.collapse(false);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  } catch (_) {}
+}
+const pasteUndo = createUndo(
+  () => pasteRender.innerHTML,
+  (html) => {
+    renderingPastePreview = true;
+    pasteRender.innerHTML = html;
+    renderingPastePreview = false;
+    const empty = !pasteRender.textContent.trim() && !pasteRender.querySelector('img,table,ul,ol');
+    pasteRender.classList.toggle('empty', empty);
+    storedClipboardHTML = pasteRender.innerHTML;
+    pasteAreaDirty = true;
+    setDirty(true);
+    if (document.activeElement === pasteRender) caretToEnd(pasteRender);
+    if (window._modalSyncFromSource) window._modalSyncFromSource('paste', true);
+  },
+  refreshUndoButtons
+);
+const htmlUndo = createUndo(
+  () => document.getElementById('htmlOutput').value,
+  (val) => {
+    const out = document.getElementById('htmlOutput');
+    out.value = val;
+    try { document.getElementById('previewArea').innerHTML = val; } catch (_) {}
+    if (val.trim()) setDirty(true);
+    if (window._modalSyncFromSource) window._modalSyncFromSource('html');
+  }
+);
+// After undoing/redoing paste-field edits, keep preview + HTML output in sync
+// if the user has already converted at least once.
+function reconvertIfGenerated() {
+  if (typeof runConvert === 'function' && document.getElementById('htmlOutput').value.trim()) runConvert(true);
+}
+pasteRender.addEventListener('keydown', (e) => {
+  if (!(e.ctrlKey || e.metaKey)) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z' && !e.shiftKey) { e.preventDefault(); pasteUndo.undo(); reconvertIfGenerated(); }
+  else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); pasteUndo.redo(); reconvertIfGenerated(); }
+});
+
 // Accept paste anywhere on the page, not just when pasteRender is focused.
 document.addEventListener('paste', handlePaste);
+
+/* ----------------------------------------------------------------------------
+   LIST INDENT / OUTDENT (Tab / Shift+Tab) inside the editable paste area.
+   Word-like behavior: Tab nests the current item one level deeper, Shift+Tab
+   moves it back one level; at the top level Shift+Tab removes list formatting.
+   Bullet/number style and aria-level follow nesting depth. Only the current
+   line is affected unless multiple list items are selected.
+   ---------------------------------------------------------------------------- */
+function closestLi(node, root) {
+  let n = (node && node.nodeType === 1) ? node : (node ? node.parentElement : null);
+  while (n && n !== root) { if (n.tagName === 'LI') return n; n = n.parentElement; }
+  return null;
+}
+function topListOf(li, root) {
+  let top = null, n = li;
+  while (n && n !== root) { if (n.tagName === 'UL' || n.tagName === 'OL') top = n; n = n.parentElement; }
+  return top;
+}
+function markerStyleFor(tag, depth) {
+  const ol = ['decimal', 'lower-alpha', 'lower-roman'];
+  const ul = ['disc', 'circle', 'square'];
+  const arr = (tag === 'OL') ? ol : ul;
+  return arr[depth % arr.length];
+}
+// Re-apply marker style + aria-level across a whole list tree from its root.
+// Marker style depends on how many ancestor-or-self lists share this list's
+// type (ordered and unordered are counted independently), cycling every three
+// levels: ol -> 1, a, i; ul -> disc, circle, square. aria-level reflects the
+// absolute visible nesting level.
+function refreshListTree(rootList) {
+  const olTypeAttr = { 'decimal': '1', 'lower-alpha': 'a', 'lower-roman': 'i' };
+  (function walk(list, olCount, ulCount) {
+    let style;
+    if (list.tagName === 'OL') { olCount++; style = markerStyleFor('OL', olCount - 1); }
+    else { ulCount++; style = markerStyleFor('UL', ulCount - 1); }
+    const level = olCount + ulCount;
+    list.style.listStyleType = style;
+    list.setAttribute('role', 'list');
+    if (list.tagName === 'OL') list.setAttribute('type', olTypeAttr[style] || '1');
+    else list.removeAttribute('type');
+    Array.from(list.children).forEach(li => {
+      if (li.tagName !== 'LI') return;
+      li.setAttribute('aria-level', String(level));
+      li.setAttribute('role', 'listitem');
+      Array.from(li.children).forEach(ch => {
+        if (ch.tagName === 'UL' || ch.tagName === 'OL') walk(ch, olCount, ulCount);
+      });
+    });
+  })(rootList, 0, 0);
+}
+function indentListItem(li) {
+  const prev = li.previousElementSibling;
+  if (!prev || prev.tagName !== 'LI') return false; // first item: nothing to nest under
+  const parentList = li.parentElement;
+  let sub = prev.lastElementChild;
+  if (!sub || (sub.tagName !== 'UL' && sub.tagName !== 'OL')) {
+    sub = document.createElement(parentList.tagName); // keep ol/ul type; style set on refresh
+    prev.appendChild(sub);
+  }
+  sub.appendChild(li); // moves the node, so any selection inside it stays valid
+  return true;
+}
+function outdentListItem(li) {
+  const list = li.parentElement;       // current list
+  const host = list.parentElement;     // an LI when nested, otherwise top-level container
+  if (host && host.tagName === 'LI') {
+    const grandList = host.parentElement;
+    // Trailing siblings stay under this item as its own sublist (Word behavior).
+    const trailing = [];
+    let n = li.nextElementSibling;
+    while (n) { const t = n; n = n.nextElementSibling; trailing.push(t); }
+    grandList.insertBefore(li, host.nextSibling);
+    if (trailing.length) {
+      let sub = li.lastElementChild;
+      if (!sub || (sub.tagName !== 'UL' && sub.tagName !== 'OL')) {
+        sub = document.createElement(list.tagName);
+        li.appendChild(sub);
+      }
+      trailing.forEach(t => sub.appendChild(t));
+    }
+    if (!list.children.length) list.remove();
+    return true;
+  }
+  // Top level: remove list formatting. Split list, convert item to <p>.
+  const after = [];
+  let m = li.nextElementSibling;
+  while (m) { const t = m; m = m.nextElementSibling; after.push(t); }
+  const p = document.createElement('p');
+  const movedLists = [];
+  Array.from(li.childNodes).forEach(ch => {
+    if (ch.nodeType === 1 && (ch.tagName === 'UL' || ch.tagName === 'OL')) movedLists.push(ch);
+    else p.appendChild(ch); // move (not clone) to preserve caret
+  });
+  if (!p.innerHTML.trim()) p.innerHTML = '<br>';
+  const parent = list.parentNode;
+  const ref = list.nextSibling;
+  parent.insertBefore(p, ref);
+  movedLists.forEach(ml => parent.insertBefore(ml, ref));
+  if (after.length) {
+    const newList = document.createElement(list.tagName);
+    after.forEach(t => newList.appendChild(t));
+    parent.insertBefore(newList, ref);
+  }
+  li.remove();
+  if (!list.children.length) list.remove();
+  return true;
+}
+function getSelectedListItems(sel, root) {
+  const range = sel.getRangeAt(0);
+  if (!root.contains(range.commonAncestorContainer)) return [];
+  const startLi = closestLi(range.startContainer, root);
+  const endLi = closestLi(range.endContainer, root);
+  if (sel.isCollapsed || !endLi || startLi === endLi) return startLi ? [startLi] : [];
+  const all = Array.from(root.querySelectorAll('li'));
+  let si = all.indexOf(startLi), ei = all.indexOf(endLi);
+  if (si === -1 || ei === -1) return startLi ? [startLi] : [];
+  if (si > ei) { const t = si; si = ei; ei = t; }
+  let slice = all.slice(si, ei + 1);
+  // Drop items nested inside another selected item to avoid double-moves.
+  slice = slice.filter(li => !slice.some(o => o !== li && o.contains(li)));
+  return slice;
+}
+// Reusable Tab/Shift+Tab list handler for any contenteditable editor root.
+// onChange() runs after a successful indent/outdent so callers can sync/record.
+function attachListTab(root, onChange) {
+  root.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const items = getSelectedListItems(sel, root);
+    if (!items.length) return; // not in a list: let default happen
+    e.preventDefault(); // never insert a tab char or move focus out
+    items.forEach(li => { if (e.shiftKey) outdentListItem(li); else indentListItem(li); });
+    root.querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree);
+    if (onChange) onChange();
+  });
+}
+attachListTab(pasteRender, () => {
+  storedClipboardHTML = pasteRender.innerHTML;
+  pasteAreaDirty = true;
+  setDirty(true);
+  pasteUndo.record();
+});
+
 pasteRender.addEventListener('input', () => {
   if (renderingPastePreview) return;
   pasteAreaDirty = true;
+  setDirty(true);
   storedClipboardHTML = pasteRender.innerHTML;
   pasteStatus.textContent = 'Paste preview edited. Ready to convert edited content.';
+  pasteUndo.recordDebounced();
 });
+
+let activePasteEditor = pasteRender;
 
 function handlePaste(e) {
   const clipData = e.clipboardData || window.clipboardData;
@@ -266,29 +673,73 @@ function handlePaste(e) {
 
   e.preventDefault();
 
-  if (html) {
-    storedClipboardHTML = html;
-    pasteAreaDirty = false;
-    renderPastePreview(html);
-  } else {
-    storedClipboardHTML = '';
+  const editor = activePasteEditor;
+  const hasContent = editor.textContent.trim().length > 0 || editor.querySelector('img,table,ul,ol');
+
+  if (hasContent) {
+    // Insert at the caret, preserving existing content around it.
+    renderingPastePreview = true;
+    if (html) insertAtCaret(editor, cleanPastedHtml(html), true);
+    else insertAtCaret(editor, text, false);
+    renderingPastePreview = false;
     pasteAreaDirty = true;
-    pasteRender.textContent = text;
+  } else if (html) {
+    renderingPastePreview = true;
+    editor.innerHTML = cleanPastedHtml(html);
+    renderingPastePreview = false;
+    if (editor === pasteRender) { storedClipboardHTML = html; pasteAreaDirty = false; }
+    else pasteAreaDirty = true;
+  } else {
+    editor.textContent = text;
+    storedClipboardHTML = ''; pasteAreaDirty = true;
   }
+
+  // Keep pasteRender (the source of truth for conversion) in sync.
+  if (editor !== pasteRender) { pasteRender.innerHTML = editor.innerHTML; pasteAreaDirty = true; }
+  if (pasteAreaDirty) storedClipboardHTML = pasteRender.innerHTML;
 
   pasteRender.classList.remove('empty');
   pasteStatus.textContent = 'Word content pasted. Ready to convert.';
+  setDirty(true);
+  pasteUndo.record();   // record (not reset) so the paste can be undone
+  if (window._modalSyncFromSource) window._modalSyncFromSource('paste');
+}
+
+// Insert html/text at the current caret inside `editor` (or append if the
+// caret isn't inside it). Leaves the caret after the inserted content.
+function insertAtCaret(editor, payload, isHtml) {
+  const sel = window.getSelection();
+  let range = (sel.rangeCount && editor.contains(sel.anchorNode)) ? sel.getRangeAt(0) : null;
+  if (!range) { editor.focus(); range = document.createRange(); range.selectNodeContents(editor); range.collapse(false); }
+  range.deleteContents();
+  let lastNode;
+  if (isHtml) {
+    const frag = document.createRange().createContextualFragment(payload);
+    lastNode = frag.lastChild;
+    range.insertNode(frag);
+  } else {
+    lastNode = document.createTextNode(payload);
+    range.insertNode(lastNode);
+  }
+  if (lastNode) {
+    const r = document.createRange();
+    r.setStartAfter(lastNode); r.collapse(true);
+    sel.removeAllRanges(); sel.addRange(r);
+  }
 }
 
 function renderPastePreview(html) {
   renderingPastePreview = true;
-  // Strip MSO junk but PRESERVE Word list markers.
-  // Word puts the visible marker (1. a. bullet i. o square) inside
-  //   <![if !supportLists]><span style='mso-list:Ignore'>...</span><![endif]>
-  // which is a downlevel-REVEALED conditional comment. We must unwrap it
-  // (remove only the <![if]> / <![endif]> tags) and keep the span inside.
-  // The downlevel-HIDDEN form <!--[if ...]> ... <![endif]--> holds VML/xml junk
-  // and is removed whole.
+  pasteRender.innerHTML = cleanPastedHtml(html);
+  renderingPastePreview = false;
+}
+
+// Strip MSO junk but PRESERVE Word list markers, returning cleaned HTML.
+function cleanPastedHtml(html) {
+  // Word puts the visible marker inside a downlevel-REVEALED conditional comment
+  // <![if !supportLists]><span style='mso-list:Ignore'>...</span><![endif]> which
+  // we unwrap (keep the span). The downlevel-HIDDEN form holds VML/xml junk and is
+  // removed whole.
   let clean = html
     .replace(/<!--\[if[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '')   // hidden junk: remove whole
     .replace(/<!\[if[^\]]*\]>/gi, '')                            // revealed: unwrap, keep marker
@@ -300,19 +751,15 @@ function renderPastePreview(html) {
   const temp = document.createElement('div');
   temp.innerHTML = clean;
 
-  // Word Online / Office 365 web: rebuild nested list from data-aria-level.
-  buildPreviewWordOnlineLists(temp);
-  // Desktop Word mso-list format: rebuild from MsoListParagraph.
-  buildPreviewLists(temp);
+  buildPreviewWordOnlineLists(temp);   // Word Online / Office 365 web
+  buildPreviewLists(temp);             // Desktop Word mso-list format
   removePreviewWordArtifacts(temp);
   stripWordControlText(temp);
 
-  // Drop now-empty paragraphs/divs left behind by Word, then tidy whitespace.
   temp.querySelectorAll('p, div').forEach(el => {
     if (!el.querySelector('img, table, ul, ol, br') && !el.textContent.trim()) el.remove();
   });
-  pasteRender.innerHTML = temp.innerHTML.replace(/(?:\s*\n\s*){2,}/g, '\n').trim();
-  renderingPastePreview = false;
+  return temp.innerHTML.replace(/(?:\s*\n\s*){2,}/g, '\n').trim();
 }
 
 // Preview version of Word Online list rebuilding — same DOM-order logic.
@@ -668,43 +1115,261 @@ function trimPreviewHTML(html) {
 /* ============================================================================
    MARK SELECTION AS CODE
    ============================================================================ */
-document.getElementById('btnMarkCode').addEventListener('click', () => {
+const CODE_BLOCK_STYLE = 'background:#f8fafc;border:1px solid #d8e0ea;border-radius:10px;padding:14px;margin:6px 0;width:100%;box-sizing:border-box;overflow-x:auto;font-family:\'Courier New\',Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre;color:#2d3748;';
+
+function markSelectionAsCode() {
+  const editor = activePasteEditor;
   const sel = window.getSelection();
-  if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
-    addWarning('info', 'No selection', 'Select text in the paste preview first, then click Mark as code.');
-    setPanelOpen(true); return;
-  }
+  if (!sel || sel.rangeCount === 0) return;
   const range = sel.getRangeAt(0);
-  if (!pasteRender.contains(range.commonAncestorContainer)) {
-    addWarning('info', 'Selection outside paste area', 'Select text inside the paste preview area.');
+  if (!editor.contains(range.commonAncestorContainer)) {
+    addWarning('info', 'Selection outside paste area', 'Select text inside the paste field.');
     setPanelOpen(true); return;
   }
-  const frag = range.cloneContents();
-  const text = cleanCodeText(getPlainText(frag));
-  if (!text.trim()) return;
 
-  const marker = document.createElement('div');
-  marker.setAttribute('data-code-block', 'true');
-  marker.style.cssText = 'background:#f4f6f8;border-left:3px solid #4DA3FF;padding:6px 10px;font-family:Courier New,monospace;font-size:12px;white-space:pre-wrap;margin:4px 0;border-radius:0 4px 4px 0;';
-  marker.textContent = text;
+  // Toggle: if the caret/selection is already inside a code block, remove it.
+  let node = range.commonAncestorContainer;
+  node = node.nodeType === 1 ? node : node.parentElement;
+  let existing = null;
+  while (node && node !== editor) { if (node.getAttribute && node.getAttribute('data-code-block') === 'true') { existing = node; break; } node = node.parentElement; }
+  if (existing) {
+    const p = document.createElement('p');
+    p.textContent = existing.textContent;
+    existing.replaceWith(p);
+    sel.removeAllRanges();
+    pasteStatus.textContent = 'Code formatting removed.';
+  } else {
+    if (sel.isCollapsed) { addWarning('info', 'No selection', 'Select text first, then use the code snippet button.'); setPanelOpen(true); return; }
+    const text = cleanCodeText(getPlainText(range.cloneContents()));
+    if (!text.trim()) return;
+    const marker = document.createElement('div');
+    marker.setAttribute('data-code-block', 'true');
+    marker.style.cssText = CODE_BLOCK_STYLE;
+    marker.textContent = text;
+    range.deleteContents();
+    range.insertNode(marker);
+    sel.removeAllRanges();
+    pasteStatus.textContent = 'Code block marked.';
+  }
 
-  range.deleteContents();
-  range.insertNode(marker);
-  sel.removeAllRanges();
-
-  // Rebuild storedClipboardHTML from current paste render so conversion picks up the code block.
+  if (editor !== pasteRender) pasteRender.innerHTML = editor.innerHTML;
   storedClipboardHTML = pasteRender.innerHTML;
-  pasteStatus.textContent = 'Code block marked.';
-});
+  setDirty(true);
+  pasteUndo.record();
+}
+
+/* ============================================================================
+   PASTE-FIELD RICH-TEXT TOOLBAR
+   ============================================================================ */
+(function () {
+  const bar = document.getElementById('rteToolbar');
+  const homeParent = bar.parentNode, homeNext = bar.nextSibling;
+  let savedRange = null;
+  const ed = () => activePasteEditor;
+
+  // Allow the expand modal to borrow the toolbar and point it at the modal editor.
+  window._rteMountInModal = (container) => container.insertBefore(bar, container.firstChild);
+  window._rteRestoreHome = () => homeParent.insertBefore(bar, homeNext);
+
+  document.addEventListener('selectionchange', () => {
+    const s = window.getSelection();
+    if (s && s.rangeCount && ed().contains(s.anchorNode)) {
+      savedRange = s.getRangeAt(0).cloneRange();
+      updateState();
+    }
+  });
+  function restore() {
+    ed().focus();
+    if (savedRange) {
+      const s = window.getSelection();
+      s.removeAllRanges();
+      try { s.addRange(savedRange); } catch (_) {}
+    }
+  }
+  function syncToSource() {
+    if (ed() !== pasteRender) pasteRender.innerHTML = ed().innerHTML;
+    const empty = !pasteRender.textContent.trim() && !pasteRender.querySelector('img,table,ul,ol');
+    pasteRender.classList.toggle('empty', empty);
+    storedClipboardHTML = pasteRender.innerHTML;
+  }
+  function afterEdit() {
+    syncToSource();
+    pasteAreaDirty = true;
+    setDirty(true);
+    savedRange = (window.getSelection().rangeCount && ed().contains(window.getSelection().anchorNode))
+      ? window.getSelection().getRangeAt(0).cloneRange() : savedRange;
+    pasteUndo.record();
+  }
+  function ancestor(tag) {
+    const s = window.getSelection(); if (!s.rangeCount) return null;
+    let n = s.anchorNode; n = (n && n.nodeType === 1) ? n : (n ? n.parentElement : null);
+    tag = tag.toUpperCase();
+    while (n && n !== ed()) { if (n.tagName === tag) return n; n = n.parentElement; }
+    return null;
+  }
+  function blockAncestor() {
+    const s = window.getSelection(); if (!s.rangeCount) return null;
+    let n = s.anchorNode; n = (n && n.nodeType === 1) ? n : (n ? n.parentElement : null);
+    const blocks = ['P','H2','H3','H4','PRE','BLOCKQUOTE','DIV'];
+    while (n && n !== ed()) {
+      if (n.getAttribute && n.getAttribute('data-code-block') === 'true') return 'pre';
+      if (blocks.includes(n.tagName)) return n.tagName === 'DIV' ? 'p' : n.tagName.toLowerCase();
+      n = n.parentElement;
+    }
+    return null;
+  }
+  function wrapStyle(styleObj) {
+    const s = window.getSelection();
+    if (!s.rangeCount) return;
+    const range = s.getRangeAt(0);
+    if (range.collapsed) return;
+    const span = document.createElement('span');
+    for (const k in styleObj) span.style[k] = styleObj[k];
+    try {
+      span.appendChild(range.extractContents());
+      range.insertNode(span);
+      s.removeAllRanges();
+      const r = document.createRange(); r.selectNodeContents(span); s.addRange(r);
+    } catch (_) {}
+  }
+  function applyListStyle(listTag, style) {
+    restore();
+    let list = ancestor(listTag);
+    if (!list) {
+      document.execCommand(listTag === 'ul' ? 'insertUnorderedList' : 'insertOrderedList');
+      list = ancestor(listTag);
+    }
+    if (list) {
+      list.style.listStyleType = style;
+      if (listTag === 'ol') { const m = { 'decimal':'1','lower-alpha':'a','lower-roman':'i' }; list.setAttribute('type', m[style] || '1'); }
+      else list.removeAttribute('type');
+    }
+    afterEdit();
+  }
+  function updateState() {
+    try {
+      bar.querySelector('[data-cmd="bold"]').classList.toggle('active', document.queryCommandState('bold'));
+      bar.querySelector('[data-cmd="italic"]').classList.toggle('active', document.queryCommandState('italic'));
+      bar.querySelector('[data-cmd="underline"]').classList.toggle('active', document.queryCommandState('underline'));
+      bar.querySelector('[data-cmd="bullet"]').classList.toggle('active', !!ancestor('ul'));
+      bar.querySelector('[data-cmd="number"]').classList.toggle('active', !!ancestor('ol'));
+      bar.querySelector('[data-cmd="codesnippet"]').classList.toggle('active', blockAncestor() === 'pre');
+    } catch (_) {}
+    document.getElementById('rteLink').classList.toggle('is-link', !!ancestor('a'));
+    // Reflect the caret's block format in the dropdown so the label matches.
+    const blk = blockAncestor();
+    const fmt = document.getElementById('rteFormat');
+    if (blk && fmt) { const opt = Array.from(fmt.options).find(o => o.value === blk); if (opt) fmt.value = blk; }
+    else if (fmt) fmt.value = 'p';
+  }
+
+  bar.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.rte-btn') || e.target.closest('.rte-menu-item')) e.preventDefault();
+  });
+  function closeMenus(except) { bar.querySelectorAll('.rte-menu.open').forEach(m => { if (m !== except) m.classList.remove('open'); }); }
+  document.addEventListener('click', (e) => { if (!e.target.closest('.rte-split')) closeMenus(null); });
+
+  bar.addEventListener('click', (e) => {
+    const caret = e.target.closest('.rte-caret');
+    if (caret) {
+      const menu = document.getElementById(caret.getAttribute('data-menu'));
+      const willOpen = !menu.classList.contains('open');
+      closeMenus(menu);
+      menu.classList.toggle('open', willOpen);
+      return;
+    }
+    const item = e.target.closest('.rte-menu-item');
+    if (item) { applyListStyle(item.getAttribute('data-list'), item.getAttribute('data-style')); closeMenus(null); return; }
+    const btn = e.target.closest('.rte-btn');
+    if (!btn || !btn.hasAttribute('data-cmd')) return;
+    const cmd = btn.getAttribute('data-cmd');
+    if (cmd === 'undo') { pasteUndo.undo(); reconvertIfGenerated(); return; }
+    if (cmd === 'redo') { pasteUndo.redo(); reconvertIfGenerated(); return; }
+    restore();
+    if (cmd === 'bold' || cmd === 'italic' || cmd === 'underline') { document.execCommand(cmd); }
+    else if (cmd === 'bullet') { document.execCommand('insertUnorderedList'); ed().querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree); }
+    else if (cmd === 'number') { document.execCommand('insertOrderedList'); ed().querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree); }
+    else if (cmd === 'link') { window.openLinkDialog(ed(), savedRange, afterEdit); return; }
+    else if (cmd === 'codesnippet') { markSelectionAsCode(); return; }
+    afterEdit();
+    updateState();
+  });
+
+  document.getElementById('rteFormat').addEventListener('change', (e) => {
+    restore();
+    document.execCommand('formatBlock', false, e.target.value);
+    afterEdit();
+  });
+  document.getElementById('rteFont').addEventListener('change', (e) => { restore(); wrapStyle({ fontFamily: e.target.value }); afterEdit(); });
+  document.getElementById('rteSize').addEventListener('change', (e) => { restore(); wrapStyle({ fontSize: e.target.value }); afterEdit(); });
+
+  refreshUndoButtons();
+})();
+
+/* ============================================================================
+   LINK DIALOG (Text + URL + Apply), resembling the editor's link popup.
+   ============================================================================ */
+window.openLinkDialog = function (editor, range, done) {
+  const dlg = document.getElementById('linkDialog');
+  const textI = document.getElementById('linkText');
+  const urlI = document.getElementById('linkUrl');
+  const applyBtn = document.getElementById('linkApply');
+  const removeBtn = document.getElementById('linkRemove');
+
+  let linkEl = null;
+  if (range) {
+    let n = range.commonAncestorContainer; n = n.nodeType === 1 ? n : n.parentElement;
+    while (n && n !== editor) { if (n.tagName === 'A') { linkEl = n; break; } n = n.parentElement; }
+  }
+  const selText = range ? range.toString() : '';
+  textI.value = linkEl ? linkEl.textContent : selText;
+  urlI.value = linkEl ? (linkEl.getAttribute('href') || '') : '';
+  removeBtn.classList.toggle('hidden', !linkEl);
+  dlg.classList.remove('hidden');
+  setTimeout(() => urlI.focus(), 0);
+
+  function cleanup() {
+    dlg.classList.add('hidden');
+    applyBtn.removeEventListener('click', onApply);
+    removeBtn.removeEventListener('click', onRemove);
+    dlg.removeEventListener('mousedown', onBackdrop);
+    document.removeEventListener('keydown', onKey, true);
+  }
+  function finish(changed) { cleanup(); if (changed && done) done(); }
+  function onApply() {
+    const url = urlI.value.trim(); const text = textI.value;
+    editor.focus();
+    if (linkEl) {
+      if (!url) linkEl.replaceWith(document.createTextNode(text || linkEl.textContent));
+      else { linkEl.setAttribute('href', url); if (text && text !== linkEl.textContent) linkEl.textContent = text; }
+    } else if (url) {
+      const a = document.createElement('a'); a.href = url; a.textContent = text || url;
+      if (range && !range.collapsed) { range.deleteContents(); range.insertNode(a); }
+      else if (range) { range.insertNode(a); }
+      else editor.appendChild(a);
+    } else { finish(false); return; }
+    finish(true);
+  }
+  function onRemove() { if (linkEl) linkEl.replaceWith(document.createTextNode(linkEl.textContent)); finish(true); }
+  function onBackdrop(e) { if (e.target === dlg) finish(false); }
+  function onKey(e) {
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    else if (e.key === 'Enter' && (e.target === urlI || e.target === textI)) { e.preventDefault(); onApply(); }
+  }
+  applyBtn.addEventListener('click', onApply);
+  removeBtn.addEventListener('click', onRemove);
+  dlg.addEventListener('mousedown', onBackdrop);
+  document.addEventListener('keydown', onKey, true);
+};
 
 /* ============================================================================
    CONVERT
    ============================================================================ */
-document.getElementById('btnConvert').addEventListener('click', () => {
+function runConvert(silent) {
   const hasContent = pasteRender.textContent.trim() || storedClipboardHTML;
   if (!hasContent) {
-    addWarning('info', 'Nothing to convert', 'Paste Word content first.');
-    setPanelOpen(true); return;
+    if (!silent) { addWarning('info', 'Nothing to convert', 'Paste Word content first.'); setPanelOpen(true); }
+    return;
   }
 
   const warnings = [];
@@ -714,19 +1379,53 @@ document.getElementById('btnConvert').addEventListener('click', () => {
     const useFallback = !source.includes('<');
     converted = convertHTML(source, useFallback, warnings);
   } catch (err) {
-    addWarning('error', 'Conversion error', 'An unexpected error occurred. Check the paste area content.');
-    setPanelOpen(true); return;
+    if (!silent) { addWarning('error', 'Conversion error', 'An unexpected error occurred. Check the paste area content.'); updatePanelStatus('Conversion failed. Check the pasted content and try again.', 'err'); setPanelOpen(true); }
+    return;
   }
 
   document.getElementById('htmlOutput').value = converted;
   document.getElementById('previewArea').innerHTML = converted;
+  setDirty(true);
+  htmlUndo.reset();
+  if (window._modalSyncFromSource) { window._modalSyncFromSource('html'); window._modalSyncFromSource('preview'); }
+
+  if (silent) return;   // refreshing after undo/redo: leave warnings panel untouched
 
   clearWarnings();
   dedupeWarnings(warnings).forEach(w => addWarning(w.level, w.title, w.msg));
   addWarning('info', 'Conversion complete', 'Review the preview and HTML output before copying into Salesforce.');
   updateWarningsFooter();
+  const issues = warnings.filter(w => w.level === 'error' || w.level === 'warning').length;
+  if (issues) updatePanelStatus('Converted with ' + issues + ' warning' + (issues !== 1 ? 's' : '') + '. Review before copying.', 'warn');
+  else updatePanelStatus('Converted successfully. No warnings. Review, then copy the HTML.', 'ok');
   if (warnings.some(w => w.level === 'error' || w.level === 'warning') || warnings.length > 1) setPanelOpen(true);
-});
+}
+document.getElementById('btnConvert').addEventListener('click', () => runConvert(false));
+
+/* ============================================================================
+   LIVE PREVIEW SYNC
+   Edits in the HTML source field update the preview immediately. No convert
+   or refresh click needed. Incomplete markup while typing parses leniently
+   and never throws.
+   ============================================================================ */
+(function () {
+  const htmlOut = document.getElementById('htmlOutput');
+  const preview = document.getElementById('previewArea');
+  htmlOut.addEventListener('input', () => {
+    const val = htmlOut.value;
+    try { preview.innerHTML = val; }
+    catch (_) { /* keep last good render on malformed input */ }
+    if (val.trim()) setDirty(true);
+    htmlUndo.recordDebounced();
+    if (window._modalSyncFromSource) window._modalSyncFromSource('html');
+  });
+  htmlOut.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); htmlUndo.undo(); }
+    else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); htmlUndo.redo(); }
+  });
+})();
 
 /* ============================================================================
    MAIN CONVERTER
@@ -755,11 +1454,38 @@ function convertHTML(source, useFallback, warnings) {
   groupManualLists(body, warnings);
   groupJsonBlocks(body, warnings);
   groupCodeParagraphs(body, warnings);
+  normalizeListMarkers(body);   // unify ol(1/a/i) & ul(disc/circle/square) by per-type nesting
 
   return finalizeHr(processChildren(body, warnings))
     .replace(/^[ \t]+$/gm, '')   // lines that are only spaces/tabs
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+/* Assign each list its marker style from how many ancestor-or-self lists share
+   its type (ordered vs unordered counted independently), cycling every three
+   levels. This is the same rule the editable paste field uses, so the converted
+   HTML matches what the user sees after Tab-indenting. */
+function normalizeListMarkers(root) {
+  const olStyle = ['decimal', 'lower-alpha', 'lower-roman'];
+  const ulStyle = ['disc', 'circle', 'square'];
+  const olType  = { 'decimal': '1', 'lower-alpha': 'a', 'lower-roman': 'i' };
+  function walk(list, o, u) {
+    let style;
+    if (list.tagName === 'OL') { o++; style = olStyle[(o - 1) % 3]; list.setAttribute('type', olType[style]); list.style.listStyleType = style; }
+    else { u++; style = ulStyle[(u - 1) % 3]; list.style.listStyleType = style; list.removeAttribute('type'); }
+    Array.from(list.children).forEach(li => {
+      if (li.tagName !== 'LI') return;
+      li.setAttribute('aria-level', String(o + u));
+      Array.from(li.children).forEach(ch => {
+        if (ch.tagName === 'UL' || ch.tagName === 'OL') walk(ch, o, u);
+      });
+    });
+  }
+  Array.from(root.querySelectorAll('ul, ol')).filter(l => {
+    const p = l.parentElement;
+    return !p || (p.tagName !== 'LI' && p.tagName !== 'UL' && p.tagName !== 'OL');
+  }).forEach(l => walk(l, 0, 0));
 }
 
 /* ============================================================================
@@ -1494,7 +2220,10 @@ function processChildren(node, warnings) {
 function processSourceList(node, tag, warnings, depth) {
   // Preserve type attribute from source if present.
   const typeAttr  = node.getAttribute('type') || sourceListType(node, tag, depth);
-  const styleAttr = sourceListStyle(node);
+  // normalizeListMarkers sets the per-type style inline; prefer it so the
+  // emitted inline style overrides any depth-based stylesheet rule (which would
+  // otherwise mis-render e.g. a decimal list nested 3 deep as lower-roman).
+  const styleAttr = (node.style && node.style.listStyleType) ? node.style.listStyleType : sourceListStyle(node);
   const startAttr = tag === 'ol' && parseInt(node.getAttribute('start') || '', 10) > 1 ? String(parseInt(node.getAttribute('start'), 10)) : null;
   let openTag = `<${tag}`;
   if (typeAttr)  openTag += ` type="${typeAttr}"`;
@@ -1840,7 +2569,8 @@ function convertPlainText(text, warnings) {
    HELPERS
    ============================================================================ */
 function codeBlock(text) {
-  return `<pre><code style="${CODE_FONT}">${escCode(text)}</code></pre>\n`;
+  const preStyle = "background:#f8fafc;border:1px solid #d8e0ea;border-radius:10px;padding:14px;width:100%;box-sizing:border-box;overflow-x:auto;white-space:pre;margin:6px 0;";
+  return `<pre style="${preStyle}"><code style="font-family: 'Courier New', Consolas, monospace; font-size: 12px; line-height: 1.5; color: #2d3748;">${escCode(text)}</code></pre>\n`;
 }
 function isJsonLike(t) { t=t.trim(); return (t.startsWith('{')||t.startsWith('['))&&(t.endsWith('}')||t.endsWith(']'))&&t.includes(':'); }
 function isHttpLike(t) { return /^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\s+https?:\/\//im.test(t); }
@@ -1904,14 +2634,21 @@ function updateWarningsFooter() {
    ============================================================================ */
 document.getElementById('btnCopy').addEventListener('click', () => {
   const out = document.getElementById('htmlOutput');
-  if (!out.value.trim()) { addWarning('info','Nothing to copy','Convert content first.'); setPanelOpen(true); return; }
+  if (!out.value.trim()) {
+    addWarning('info','Nothing to copy','Convert content first.');
+    updatePanelStatus('Convert content before copying HTML.', 'warn');
+    setPanelOpen(true); return;
+  }
+  const onCopied = () => { showToast('HTML copied.'); updatePanelStatus('HTML copied. Paste it into Salesforce source view.', 'ok'); setDirty(false); };
+  const tryLegacy = () => {
+    try { out.select(); return document.execCommand('copy'); } catch (e) { return false; }
+  };
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(out.value)
-      .then(() => showToast('HTML copied to clipboard'))
-      .catch(() => { out.select(); document.execCommand('copy'); showToast('HTML copied to clipboard'); });
+      .then(onCopied)
+      .catch(() => { if (tryLegacy()) onCopied(); else showToast('Copy failed. Please try again.', true); });
   } else {
-    try { out.select(); document.execCommand('copy'); showToast('HTML copied to clipboard'); }
-    catch(e) { showToast('Copy failed. Please try again.', true); }
+    if (tryLegacy()) onCopied(); else showToast('Copy failed. Please try again.', true);
   }
 });
 
@@ -1932,14 +2669,120 @@ function doClearAll() {
   pasteStatus.textContent = 'Click below and paste (Ctrl+V)';
   storedClipboardHTML = '';
   pasteAreaDirty = false;
+  setDirty(false);
   document.getElementById('previewArea').innerHTML = '';
   document.getElementById('htmlOutput').value = '';
+  pasteUndo.record();   // record cleared state so Undo can restore the content
+  htmlUndo.record();
   clearWarnings();
   const e = document.getElementById('warningsEmpty'); if(e) e.style.display='block';
   updateWarningsFooter();
+  updatePanelStatus('Paste Word content and convert to begin.');
+  if (window._modalSyncFromSource) { window._modalSyncFromSource('paste', true); window._modalSyncFromSource('html', true); window._modalSyncFromSource('preview', true); }
 }
+/* ============================================================================
+   FIELD EXPAND MODAL
+   Opens any field in a large popup. Edits sync live back to the source field,
+   so existing behavior (live preview, undo, convert) keeps working.
+   ============================================================================ */
+(function () {
+  const overlay   = document.getElementById('fieldModal');
+  const titleEl   = document.getElementById('modalTitle');
+  const bodyEl    = document.getElementById('modalBody');
+  const closeBtn  = document.getElementById('modalClose');
+  const htmlOut   = document.getElementById('htmlOutput');
+  const preview   = document.getElementById('previewArea');
+  let kind = null, editEl = null, syncing = false;
+
+  const TITLES = { paste: 'Paste copied Word content here', html: 'HTML output (editable)', preview: 'Preview (rendered output)' };
+
+  function open(k) {
+    kind = k;
+    titleEl.textContent = TITLES[k];
+    bodyEl.innerHTML = '';
+    if (k === 'html') {
+      editEl = document.createElement('textarea');
+      editEl.className = 'modal-edit';
+      editEl.spellcheck = false;
+      editEl.value = htmlOut.value;
+      editEl.addEventListener('input', () => {
+        if (syncing) return;
+        htmlOut.value = editEl.value;
+        try { preview.innerHTML = editEl.value; } catch (_) {}
+        if (editEl.value.trim()) setDirty(true);
+        htmlUndo.recordDebounced();
+      });
+      editEl.addEventListener('keydown', (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        const c = e.key.toLowerCase();
+        if (c === 'z' && !e.shiftKey) { e.preventDefault(); htmlUndo.undo(); }
+        else if ((c === 'z' && e.shiftKey) || c === 'y') { e.preventDefault(); htmlUndo.redo(); }
+      });
+      bodyEl.appendChild(editEl);
+    } else if (k === 'paste') {
+      editEl = document.createElement('div');
+      editEl.className = 'modal-edit';
+      editEl.contentEditable = 'true';
+      editEl.spellcheck = true;
+      editEl.innerHTML = pasteRender.innerHTML;
+      const writeBack = () => {
+        if (syncing) return;
+        renderingPastePreview = true;
+        pasteRender.innerHTML = editEl.innerHTML;
+        renderingPastePreview = false;
+        const empty = !pasteRender.textContent.trim() && !pasteRender.querySelector('img,table,ul,ol');
+        pasteRender.classList.toggle('empty', empty);
+        storedClipboardHTML = pasteRender.innerHTML;
+        pasteAreaDirty = true;
+        setDirty(true);
+      };
+      editEl.addEventListener('input', () => { writeBack(); pasteUndo.recordDebounced(); });
+      editEl.addEventListener('keydown', (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        const c = e.key.toLowerCase();
+        if (c === 'z' && !e.shiftKey) { e.preventDefault(); pasteUndo.undo(); reconvertIfGenerated(); }
+        else if ((c === 'z' && e.shiftKey) || c === 'y') { e.preventDefault(); pasteUndo.redo(); reconvertIfGenerated(); }
+      });
+      attachListTab(editEl, () => { writeBack(); pasteUndo.record(); });
+      bodyEl.appendChild(editEl);
+      activePasteEditor = editEl;
+      window._rteMountInModal(document.getElementById('modalToolbarSlot'));
+    } else {
+      editEl = document.createElement('div');
+      editEl.className = 'modal-view';
+      editEl.innerHTML = preview.innerHTML;
+      bodyEl.appendChild(editEl);
+    }
+    overlay.classList.remove('hidden');
+    if (editEl.focus) editEl.focus();
+  }
+  function close() {
+    if (kind === 'paste') { window._rteRestoreHome(); activePasteEditor = pasteRender; }
+    overlay.classList.add('hidden'); bodyEl.innerHTML = ''; kind = null; editEl = null;
+  }
+
+  // Let source-side changes (undo, convert, clear) reflect into an open modal.
+  // Skipped for edits that originate inside the modal editor (force re-sync only
+  // on external changes) so the caret isn't reset while typing/formatting.
+  window._modalSyncFromSource = function (k, force) {
+    if (!kind || kind !== k || !editEl) return;
+    if (!force && k === 'paste' && activePasteEditor === editEl) return;
+    syncing = true;
+    if (k === 'html') editEl.value = htmlOut.value;
+    else if (k === 'paste') editEl.innerHTML = pasteRender.innerHTML;
+    else editEl.innerHTML = preview.innerHTML;
+    syncing = false;
+  };
+
+  document.getElementById('expandPaste').addEventListener('click', () => open('paste'));
+  document.getElementById('expandHtml').addEventListener('click', () => open('html'));
+  document.getElementById('expandPreview').addEventListener('click', () => open('preview'));
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.classList.contains('hidden')) close(); });
+})();
+
 document.getElementById('btnClearAll').addEventListener('click', doClearAll);
-document.getElementById('btnPasteClear').addEventListener('click', doClearAll);
 </script>
 </body>
 </html>

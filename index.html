@@ -650,6 +650,8 @@ attachListTab(pasteRender, () => {
 
 pasteRender.addEventListener('input', () => {
   if (renderingPastePreview) return;
+  const empty = !pasteRender.textContent.trim() && !pasteRender.querySelector('img,table,ul,ol');
+  pasteRender.classList.toggle('empty', empty);
   pasteAreaDirty = true;
   setDirty(true);
   storedClipboardHTML = pasteRender.innerHTML;

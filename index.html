@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KM HTML Converter</title>
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -650,8 +651,6 @@ attachListTab(pasteRender, () => {
 
 pasteRender.addEventListener('input', () => {
   if (renderingPastePreview) return;
-  const empty = !pasteRender.textContent.trim() && !pasteRender.querySelector('img,table,ul,ol');
-  pasteRender.classList.toggle('empty', empty);
   pasteAreaDirty = true;
   setDirty(true);
   storedClipboardHTML = pasteRender.innerHTML;
@@ -1458,7 +1457,7 @@ function convertHTML(source, useFallback, warnings) {
   groupCodeParagraphs(body, warnings);
   normalizeListMarkers(body);   // unify ol(1/a/i) & ul(disc/circle/square) by per-type nesting
 
-  return finalizeHr(processChildren(body, warnings))
+  return finalizeHr(processTopLevel(body, warnings))
     .replace(/^[ \t]+$/gm, '')   // lines that are only spaces/tabs
     .replace(/\n{3,}/g, '\n\n')
     .trim();
@@ -2216,6 +2215,35 @@ function processNode(node, warnings) {
 function processChildren(node, warnings) {
   let out = '';
   node.childNodes.forEach(ch => { out += processNode(ch, warnings); });
+  return out;
+}
+
+// Top-level (body) processor. Groups bare text + inline runs into a styled
+// paragraph so untagged content gets Arial 12, while real block elements pass
+// straight through to processNode unchanged (never double-wrapped).
+function processTopLevel(node, warnings) {
+  const BLOCK = { p:1, div:1, h1:1, h2:1, h3:1, h4:1, h5:1, h6:1,
+                  ul:1, ol:1, table:1, pre:1, blockquote:1, hr:1, img:1 };
+  let out = '', buf = '';
+  const flush = () => {
+    const t = buf.trim();
+    buf = '';
+    if (!t) return;                              // whitespace only
+    if (/^(<br\s*\/?>\s*)+$/i.test(t)) return;    // only line breaks
+    if (hasBlock(t)) {                            // already block: don't double-wrap
+      out += t + (t.endsWith('\n') ? '' : '\n');
+      return;
+    }
+    out += `<p style="${SF_FONT}">${normalizeNbsp(t)}</p>\n`;
+  };
+  Array.from(node.childNodes).forEach(ch => {
+    if (ch.nodeType === Node.TEXT_NODE) { buf += processNode(ch, warnings); return; }
+    if (ch.nodeType !== Node.ELEMENT_NODE) return;
+    const tag = ch.tagName.toLowerCase();
+    if (BLOCK[tag] || isSentinel(ch)) { flush(); out += processNode(ch, warnings); }
+    else { buf += processNode(ch, warnings); }
+  });
+  flush();
   return out;
 }
 

@@ -35,12 +35,10 @@
   .step-tag { color: var(--signal-blue); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
   .btn-ico { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
   .hdr-ico { width: 20px; height: 20px; fill: currentColor; }
-  /* Expand-to-modal buttons */
   .expand-btn { background: #fff; border: 1.5px solid var(--border); border-radius: 6px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--signal-blue); flex-shrink: 0; padding: 0; }
   .expand-btn:hover { background: var(--ice-blue); border-color: var(--signal-blue); }
   .expand-btn svg { width: 16px; height: 16px; fill: currentColor; }
   .paste-box { position: relative; }
-  /* Rich-text toolbar above the paste field */
   .rte-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 5px 6px; background: #fafcff; border: 1.5px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; }
   .rte-group { display: flex; align-items: center; gap: 2px; }
   .rte-sep { width: 1px; align-self: stretch; background: var(--border); margin: 2px 4px; }
@@ -62,7 +60,6 @@
   .rte-spacer { margin-left: auto; }
   .rte-btn:disabled { opacity: 0.35; cursor: default; }
   .rte-btn:disabled:hover { background: #fff; }
-  /* Link dialog (image 2 style) */
   .link-dialog-overlay { position: fixed; inset: 0; background: rgba(20,33,51,0.25); z-index: 250; display: flex; align-items: flex-start; justify-content: center; padding-top: 16vh; }
   .link-dialog-overlay.hidden { display: none; }
   .link-dialog { background: #fff; border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,0.25); width: min(540px, 92vw); padding: 16px; }
@@ -77,7 +74,6 @@
   .link-remove { background: none; border: none; color: var(--accent-red); font-size: 12px; cursor: pointer; margin-top: 10px; padding: 0; }
   .link-remove.hidden { display: none; }
   .paste-box.has-toolbar { border-top-left-radius: 0; border-top-right-radius: 0; }
-  /* Field modal */
   .modal-overlay { position: fixed; inset: 0; background: rgba(20,33,51,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; }
   .modal-overlay.hidden { display: none; }
   .modal-box { background: #fff; border-radius: 10px; width: min(1100px, 96vw); height: min(86vh, 900px); display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.25); overflow: hidden; }
@@ -100,7 +96,6 @@
   .modal-view ul ul { list-style-type: circle; }
   .modal-view ul ul ul { list-style-type: square; }
 
-  /* PASTE AREA - editable rendered preview */
   .paste-section { margin-bottom: 16px; }
   .paste-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; }
   .paste-box-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #fafcff; border-bottom: 1px solid var(--border); gap: 8px; }
@@ -110,11 +105,9 @@
   #pasteRender { min-height: 160px; max-height: 280px; overflow-y: auto; padding: 14px 16px;
     font-family: Arial, sans-serif; font-size: 12px; line-height: 1.6; color: var(--blue-black); }
   #pasteRender.empty::before { content: 'Click this field and paste (Ctrl+V)'; color: var(--cool-gray); font-style: italic; }
-  /* Render Word list styles faithfully inside the paste preview */
   #pasteRender ol { padding-left: 24px; margin: 2px 0; list-style-type: decimal; }
   #pasteRender ul { padding-left: 24px; margin: 2px 0; list-style-type: disc; }
   #pasteRender li { margin: 1px 0; }
-  /* Fallback nested markers by depth (JS sets inline styles which win) */
   #pasteRender ol ol { list-style-type: lower-alpha; }
   #pasteRender ol ol ol { list-style-type: lower-roman; }
   #pasteRender ul ul { list-style-type: circle; }
@@ -128,11 +121,9 @@
   #pasteRender td, #pasteRender th { border: 0.5px solid #aaa; padding: 3px 6px; vertical-align: top; }
   #pasteRender a { color: var(--signal-blue); }
   #pasteRender pre { background: #f4f6f8; padding: 8px; font-size: 11px; border-radius: 4px; overflow-x: auto; }
-  /* Make the paste area focusable so it can catch paste events */
   #pasteRender:focus { outline: 2px solid var(--signal-blue); outline-offset: -2px; border-radius: 8px; }
   .paste-hint { font-size: 11px; color: var(--cool-gray); margin-top: 5px; }
 
-  /* BUTTONS */
   .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; align-items: center; }
   button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; white-space: nowrap; }
   .btn-primary   { background: var(--signal-blue); color: #fff; border-color: var(--signal-blue); }
@@ -145,7 +136,6 @@
   .btn-code:hover      { background: #1e2d42; }
   #copyStatus { font-size: 11px; color: #2a9d2a; font-weight: 600; align-self: center; display: none; }
 
-  /* OUTPUT GRID */
   .output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 900px) { .output-grid { grid-template-columns: 1fr; } }
   .panel-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
@@ -164,7 +154,7 @@
   #previewArea ul ul ul { list-style-type: square; }
   #previewArea li { font-size: 12px; margin: 1px 0; font-family: Arial, sans-serif; }
   #previewArea table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; font-family: Arial, sans-serif; }
-  #previewArea th { border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; text-align: left; font-size: 12px; }
+  #previewArea th { border: 0.5px solid #808080; background-color: #0A0E33; color: #FFFFFF; font-weight: bold; padding: 4px; vertical-align: top; text-align: left; font-size: 12px; }
   #previewArea td { border: 0.5px solid #808080; padding: 4px; vertical-align: top; }
   #previewArea a  { color: var(--signal-blue); }
   #previewArea pre { background: #f4f6f8; border-radius: 4px; padding: 10px 12px; font-size: 12px; overflow-x: auto; margin: 6px 0; }
@@ -175,7 +165,6 @@
   #htmlOutput { flex: 1; min-height: 280px; max-height: 480px; resize: vertical; padding: 12px 14px; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; color: var(--blue-black); border: none; outline: none; background: #fff; width: 100%; }
   .output-hint { font-size: 11px; color: var(--cool-gray); padding: 6px 12px; border-top: 1px solid var(--border); background: #fafcff; }
 
-  /* WARNINGS PANEL */
   .warnings-panel { position: fixed; top: 65px; right: 0; bottom: 0; width: var(--panel-width); background: #fff; border-left: 1.5px solid var(--border); display: flex; flex-direction: column; z-index: 90; transition: transform 0.25s ease; overflow: hidden; }
   .warnings-panel.hidden { transform: translateX(100%); }
   .warnings-panel-header { padding: 12px 14px; background: var(--ice-blue); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
@@ -201,7 +190,6 @@
 
   .panel-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 95; background: #fff; border: 1.5px solid var(--border); border-right: none; border-radius: 8px 0 0 8px; padding: 10px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: right 0.25s ease, box-shadow 0.25s ease; box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
   .panel-toggle.panel-open { right: var(--panel-width); }
-  /* TOAST NOTIFICATION */
   #kmToast {
     position: fixed; bottom: 28px; right: 28px; z-index: 9999;
     background: var(--blue-black); color: #fff;
@@ -373,6 +361,8 @@ const BOLD_TAG   = 'strong';
 const ITALIC_TAG = 'em';
 const SF_FONT    = 'font-family: Arial, sans-serif; font-size: 12px;';
 const CODE_FONT  = "font-family: 'Courier New', Consolas, monospace; font-size: 12px;";
+/* Table header cell style (bug 6): navy background, white text, Arial 12 bold. */
+const TH_STYLE   = 'border:0.5px solid #808080;background-color:#0A0E33;color:#FFFFFF;font-weight:bold;padding:4px;vertical-align:top;text-align:left;' + SF_FONT;
 
 /* ============================================================================
    STATE
@@ -381,19 +371,15 @@ let storedClipboardHTML = '';
 let pasteAreaDirty = false;
 let renderingPastePreview = false;
 
-/* Unsaved-changes guard: warns on refresh/close/navigate only when there is
-   real, unsaved content. Cleared after copy/clear/reset. */
 let contentDirty = false;
 function setDirty(v) { contentDirty = !!v; }
 window.addEventListener('beforeunload', (e) => {
   if (!contentDirty) return;
-  // Native browser dialog only; text is controlled by the browser.
   e.preventDefault();
   e.returnValue = '';
   return '';
 });
 
-/* Status line at the top of the collapsible Status & Warnings panel. */
 function updatePanelStatus(msg, kind) {
   const el = document.getElementById('panelStatus');
   if (!el) return;
@@ -420,23 +406,18 @@ function setPanelOpen(open) {
 panelToggle.addEventListener('click', () => setPanelOpen(!panelOpen));
 
 /* ============================================================================
-   PASTE AREA  (read-only rendered preview)
+   PASTE AREA
    ============================================================================ */
 const pasteRender = document.getElementById('pasteRender');
 const pasteStatus = document.getElementById('pasteStatus');
 
-/* ----------------------------------------------------------------------------
-   UNDO (Ctrl+Z / Ctrl+Y) for the paste field and the HTML output field.
-   Snapshot-based so it also covers programmatic edits (Tab indent/outdent,
-   mark-as-code) that the browser's native undo can't track.
-   ---------------------------------------------------------------------------- */
 function createUndo(getState, setState, onChange) {
   let stack = [getState()], idx = 0, timer = null;
   function notify() { if (onChange) onChange(); }
   function commit() {
     const s = getState();
     if (s === stack[idx]) return;
-    stack = stack.slice(0, idx + 1);   // a new edit clears the redo history
+    stack = stack.slice(0, idx + 1);
     stack.push(s);
     idx = stack.length - 1;
     if (stack.length > 200) { stack.shift(); idx--; }
@@ -491,8 +472,6 @@ const htmlUndo = createUndo(
     if (window._modalSyncFromSource) window._modalSyncFromSource('html');
   }
 );
-// After undoing/redoing paste-field edits, keep preview + HTML output in sync
-// if the user has already converted at least once.
 function reconvertIfGenerated() {
   if (typeof runConvert === 'function' && document.getElementById('htmlOutput').value.trim()) runConvert(true);
 }
@@ -503,16 +482,8 @@ pasteRender.addEventListener('keydown', (e) => {
   else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); pasteUndo.redo(); reconvertIfGenerated(); }
 });
 
-// Accept paste anywhere on the page, not just when pasteRender is focused.
 document.addEventListener('paste', handlePaste);
 
-/* ----------------------------------------------------------------------------
-   LIST INDENT / OUTDENT (Tab / Shift+Tab) inside the editable paste area.
-   Word-like behavior: Tab nests the current item one level deeper, Shift+Tab
-   moves it back one level; at the top level Shift+Tab removes list formatting.
-   Bullet/number style and aria-level follow nesting depth. Only the current
-   line is affected unless multiple list items are selected.
-   ---------------------------------------------------------------------------- */
 function closestLi(node, root) {
   let n = (node && node.nodeType === 1) ? node : (node ? node.parentElement : null);
   while (n && n !== root) { if (n.tagName === 'LI') return n; n = n.parentElement; }
@@ -529,11 +500,6 @@ function markerStyleFor(tag, depth) {
   const arr = (tag === 'OL') ? ol : ul;
   return arr[depth % arr.length];
 }
-// Re-apply marker style + aria-level across a whole list tree from its root.
-// Marker style depends on how many ancestor-or-self lists share this list's
-// type (ordered and unordered are counted independently), cycling every three
-// levels: ol -> 1, a, i; ul -> disc, circle, square. aria-level reflects the
-// absolute visible nesting level.
 function refreshListTree(rootList) {
   const olTypeAttr = { 'decimal': '1', 'lower-alpha': 'a', 'lower-roman': 'i' };
   (function walk(list, olCount, ulCount) {
@@ -557,22 +523,21 @@ function refreshListTree(rootList) {
 }
 function indentListItem(li) {
   const prev = li.previousElementSibling;
-  if (!prev || prev.tagName !== 'LI') return false; // first item: nothing to nest under
+  if (!prev || prev.tagName !== 'LI') return false;
   const parentList = li.parentElement;
   let sub = prev.lastElementChild;
   if (!sub || (sub.tagName !== 'UL' && sub.tagName !== 'OL')) {
-    sub = document.createElement(parentList.tagName); // keep ol/ul type; style set on refresh
+    sub = document.createElement(parentList.tagName);
     prev.appendChild(sub);
   }
-  sub.appendChild(li); // moves the node, so any selection inside it stays valid
+  sub.appendChild(li);
   return true;
 }
 function outdentListItem(li) {
-  const list = li.parentElement;       // current list
-  const host = list.parentElement;     // an LI when nested, otherwise top-level container
+  const list = li.parentElement;
+  const host = list.parentElement;
   if (host && host.tagName === 'LI') {
     const grandList = host.parentElement;
-    // Trailing siblings stay under this item as its own sublist (Word behavior).
     const trailing = [];
     let n = li.nextElementSibling;
     while (n) { const t = n; n = n.nextElementSibling; trailing.push(t); }
@@ -588,7 +553,6 @@ function outdentListItem(li) {
     if (!list.children.length) list.remove();
     return true;
   }
-  // Top level: remove list formatting. Split list, convert item to <p>.
   const after = [];
   let m = li.nextElementSibling;
   while (m) { const t = m; m = m.nextElementSibling; after.push(t); }
@@ -596,7 +560,7 @@ function outdentListItem(li) {
   const movedLists = [];
   Array.from(li.childNodes).forEach(ch => {
     if (ch.nodeType === 1 && (ch.tagName === 'UL' || ch.tagName === 'OL')) movedLists.push(ch);
-    else p.appendChild(ch); // move (not clone) to preserve caret
+    else p.appendChild(ch);
   });
   if (!p.innerHTML.trim()) p.innerHTML = '<br>';
   const parent = list.parentNode;
@@ -623,20 +587,17 @@ function getSelectedListItems(sel, root) {
   if (si === -1 || ei === -1) return startLi ? [startLi] : [];
   if (si > ei) { const t = si; si = ei; ei = t; }
   let slice = all.slice(si, ei + 1);
-  // Drop items nested inside another selected item to avoid double-moves.
   slice = slice.filter(li => !slice.some(o => o !== li && o.contains(li)));
   return slice;
 }
-// Reusable Tab/Shift+Tab list handler for any contenteditable editor root.
-// onChange() runs after a successful indent/outdent so callers can sync/record.
 function attachListTab(root, onChange) {
   root.addEventListener('keydown', (e) => {
     if (e.key !== 'Tab') return;
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return;
     const items = getSelectedListItems(sel, root);
-    if (!items.length) return; // not in a list: let default happen
-    e.preventDefault(); // never insert a tab char or move focus out
+    if (!items.length) return;
+    e.preventDefault();
     items.forEach(li => { if (e.shiftKey) outdentListItem(li); else indentListItem(li); });
     root.querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree);
     if (onChange) onChange();
@@ -669,7 +630,6 @@ function handlePaste(e) {
 
   if (!html && !text) return;
 
-  // Don't intercept pastes into the HTML output textarea.
   if (e.target === document.getElementById('htmlOutput')) return;
 
   e.preventDefault();
@@ -678,7 +638,6 @@ function handlePaste(e) {
   const hasContent = editor.textContent.trim().length > 0 || editor.querySelector('img,table,ul,ol');
 
   if (hasContent) {
-    // Insert at the caret, preserving existing content around it.
     renderingPastePreview = true;
     if (html) insertAtCaret(editor, cleanPastedHtml(html), true);
     else insertAtCaret(editor, text, false);
@@ -695,19 +654,16 @@ function handlePaste(e) {
     storedClipboardHTML = ''; pasteAreaDirty = true;
   }
 
-  // Keep pasteRender (the source of truth for conversion) in sync.
   if (editor !== pasteRender) { pasteRender.innerHTML = editor.innerHTML; pasteAreaDirty = true; }
   if (pasteAreaDirty) storedClipboardHTML = pasteRender.innerHTML;
 
   pasteRender.classList.remove('empty');
   pasteStatus.textContent = 'Word content pasted. Ready to convert.';
   setDirty(true);
-  pasteUndo.record();   // record (not reset) so the paste can be undone
+  pasteUndo.record();
   if (window._modalSyncFromSource) window._modalSyncFromSource('paste');
 }
 
-// Insert html/text at the current caret inside `editor` (or append if the
-// caret isn't inside it). Leaves the caret after the inserted content.
 function insertAtCaret(editor, payload, isHtml) {
   const sel = window.getSelection();
   let range = (sel.rangeCount && editor.contains(sel.anchorNode)) ? sel.getRangeAt(0) : null;
@@ -735,15 +691,10 @@ function renderPastePreview(html) {
   renderingPastePreview = false;
 }
 
-// Strip MSO junk but PRESERVE Word list markers, returning cleaned HTML.
 function cleanPastedHtml(html) {
-  // Word puts the visible marker inside a downlevel-REVEALED conditional comment
-  // <![if !supportLists]><span style='mso-list:Ignore'>...</span><![endif]> which
-  // we unwrap (keep the span). The downlevel-HIDDEN form holds VML/xml junk and is
-  // removed whole.
   let clean = html
-    .replace(/<!--\[if[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '')   // hidden junk: remove whole
-    .replace(/<!\[if[^\]]*\]>/gi, '')                            // revealed: unwrap, keep marker
+    .replace(/<!--\[if[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '')
+    .replace(/<!\[if[^\]]*\]>/gi, '')
     .replace(/<!\[endif\]>/gi, '')
     .replace(/<\?xml[^>]*>/gi, '')
     .replace(/<(script|style|link|meta|xml|o:p)[^>]*>[\s\S]*?<\/\1>/gi, '')
@@ -752,8 +703,8 @@ function cleanPastedHtml(html) {
   const temp = document.createElement('div');
   temp.innerHTML = clean;
 
-  buildPreviewWordOnlineLists(temp);   // Word Online / Office 365 web
-  buildPreviewLists(temp);             // Desktop Word mso-list format
+  buildPreviewWordOnlineLists(temp);
+  buildPreviewLists(temp);
   removePreviewWordArtifacts(temp);
   stripWordControlText(temp);
 
@@ -763,9 +714,7 @@ function cleanPastedHtml(html) {
   return temp.innerHTML.replace(/(?:\s*\n\s*){2,}/g, '\n').trim();
 }
 
-// Preview version of Word Online list rebuilding — same DOM-order logic.
 function buildPreviewWordOnlineLists(root) {
-  // STEP 1: Flatten outer SCXW grouping divs into root's child list.
   Array.from(root.children).forEach(child => {
     if (!isWordOnlineOuterDiv(child)) return;
     const parent = child.parentNode;
@@ -776,7 +725,6 @@ function buildPreviewWordOnlineLists(root) {
     parent.removeChild(child);
   });
 
-  // STEP 2: Walk children, collect consecutive ListContainerWrapper runs.
   const children = Array.from(root.childNodes);
   let i = 0;
 
@@ -840,12 +788,10 @@ function buildPreviewLists(root) {
     const items = run.map((p, idx) => {
       const cls = classes[idx];
       const contentNode = p.cloneNode(true);
-      // Strip the mso:Ignore span (full Word format).
       const ignSpan = Array.from(contentNode.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
       if (ignSpan) {
         ignSpan.remove();
       } else {
-        // Chrome format: strip the leading marker text node + adjacent spacer span.
         let firstChild = contentNode.firstChild;
         while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
           firstChild = firstChild.nextSibling;
@@ -877,21 +823,13 @@ function getWordLevel(node) {
   return wordListLevel(node);
 }
 function getWordMarkerChar(node) {
-  // Path 1: full Word clipboard — marker is in a span with mso-list:Ignore.
   const ignoreSpan = Array.from(node.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
   if (ignoreSpan) return normalizeWordMarker(ignoreSpan.textContent);
-
-  // Path 2: Chrome-stripped Word clipboard — marker is the raw leading text/glyph
-  // at the very start of the paragraph (first text node or first element's text),
-  // optionally followed by a spacer span with a tiny font-size.
   return extractLeadingMarker(node);
 }
 
-// Pull the marker token out of the paragraph's leading content without altering
-// the node. Returns the normalized marker string, or '' if not detected.
 function extractLeadingMarker(node) {
   let firstChild = node.firstChild;
-  // Skip zero-width / whitespace-only text nodes at the front.
   while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
     firstChild = firstChild.nextSibling;
   }
@@ -905,41 +843,31 @@ function extractLeadingMarker(node) {
   }
   rawMarker = normalizeWordMarker(rawMarker);
 
-  // Confirm it looks like a list marker token (not real content).
   if (isMarkerToken(rawMarker)) return rawMarker;
   return '';
 }
 
-// Returns true if the string is a plausible list marker: a bullet glyph, a
-// number, a lower/upper letter, or a roman numeral — with or without separator.
 function isMarkerToken(s) {
   if (!s) return false;
-  // Single bullet glyph.
   if (/^[\u2022\u25cf\u00b7\u2219\u2023\u25aa\u25a0\u25ab\u25a1\u25cb\u25e6\u25ef\u00a7]$/.test(s)) return true;
-  // Word's circle bullet: lone 'o' with no letters around it.
   if (/^o$/.test(s)) return true;
   const core = s.replace(/[.)\]]+$/, '').trim();
-  if (/^\d{1,3}$/.test(core)) return true;                       // 1 2 3 ... 99
-  if (/^[a-zA-Z]$/.test(core)) return true;                      // a b ... z A B
-  if (/^[ivxlcdmIVXLCDM]{2,6}$/.test(core)) return true;        // ii iii iv ...
+  if (/^\d{1,3}$/.test(core)) return true;
+  if (/^[a-zA-Z]$/.test(core)) return true;
+  if (/^[ivxlcdmIVXLCDM]{2,6}$/.test(core)) return true;
   return false;
 }
 
 /* ============================================================================
    SHARED WORD MARKER NORMALISATION + RUN-AWARE CLASSIFICATION
-   Used by BOTH the paste preview and the final HTML output so they always
-   agree on list type, nesting, and start numbers.
    ============================================================================ */
-
-// Map Word's Symbol/Wingdings private-use bullet glyphs to real unicode bullets,
-// strip other control glyphs, and collapse whitespace. Separators (. ) ]) kept.
 function normalizeWordMarker(text) {
   return (text || '')
     .replace(/[\u0009\u000b\u000c\u00a0\u200b-\u200f\ufeff]/g, ' ')
-    .replace(/[\uf0a7\uf0fc]/g, '\u25aa')        // square bullet
-    .replace(/[\uf06f]/g, '\u25e6')              // circle bullet
-    .replace(/[\uf0b7\uf0d8\uf0a8\uf09f]/g, '\u2022') // disc bullet
-    .replace(/[\uf000-\uf0ff]/g, '')             // any other private-use glyph
+    .replace(/[\uf0a7\uf0fc]/g, '\u25aa')
+    .replace(/[\uf06f]/g, '\u25e6')
+    .replace(/[\uf0b7\uf0d8\uf0a8\uf09f]/g, '\u2022')
+    .replace(/[\uf000-\uf0ff]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -951,14 +879,10 @@ function isRomanLetters(s) {
   return s.length >= 1 && /^[ivxlcdm]+$/i.test(s);
 }
 
-// Classify a single normalized marker. levelIsRoman lets an ambiguous single
-// letter (i, v, x...) be read as roman when a sibling at the same level proves
-// the level is roman (e.g. it also contains "ii"/"iii").
 function classifyWordMarker(marker, levelIsRoman) {
   const m = (marker || '').trim();
   if (!m) return { tag:'ol', typeAttr:'1', styleAttr:null, startAttr:null };
 
-  // Bullet glyphs (already normalized to unicode).
   if (/^[\u25aa\u25a0\u25ab\u25a1\u00a7]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'square', startAttr:null };
   if (/^[\u25cb\u25e6\u25ef]$/.test(m))             return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
   if (/^[\u2022\u25cf\u00b7\u2219\u2023]$/.test(m) || /^[-*]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
@@ -966,7 +890,6 @@ function classifyWordMarker(marker, levelIsRoman) {
   const hasSep = /[.)\]]$/.test(m);
   const core = m.replace(/[.)\]]+$/, '').trim();
 
-  // A lone "o" with no separator is Word's circle bullet, not the letter o.
   if (!hasSep && /^o$/i.test(core)) return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
 
   if (/^\d+$/.test(core)) {
@@ -981,12 +904,9 @@ function classifyWordMarker(marker, levelIsRoman) {
   if (/^[a-z]$/.test(core)) { const n = alphaToInt(core); return { tag:'ol', typeAttr:'a', styleAttr:null, startAttr: n > 1 ? String(n) : null }; }
   if (/^[A-Z]$/.test(core)) { const n = alphaToInt(core); return { tag:'ol', typeAttr:'A', styleAttr:null, startAttr: n > 1 ? String(n) : null }; }
 
-  // Unknown marker: treat as a disc bullet rather than inventing a number.
   return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
 }
 
-// Classify a whole run together so per-level roman detection is consistent.
-// rawItems: [{ level, marker }] with markers already normalized.
 function classifyWordRun(rawItems) {
   const romanLevels = new Set();
   rawItems.forEach(it => {
@@ -998,10 +918,6 @@ function classifyWordRun(rawItems) {
 
 /* ----------------------------------------------------------------------------
    RUN COLLECTION (shared by preview + output)
-   A Word multilevel list is a sequence of list paragraphs that share the same
-   Word list id (mso-list:lN). Word often drops empty "spacer" paragraphs or
-   <o:p> nodes between items; those must NOT split the list. Real non-empty,
-   non-list content DOES split it.
    ---------------------------------------------------------------------------- */
 function wordListId(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
@@ -1009,7 +925,6 @@ function wordListId(node) {
   return m ? m[1].toLowerCase() : null;
 }
 function sameWordList(a, b) {
-  // If either side lacks an id (margin-only fallback list), allow grouping.
   if (a == null || b == null) return true;
   return a === b;
 }
@@ -1024,8 +939,6 @@ function isIgnorableGapNode(node) {
   }
   return false;
 }
-// Collect one list run starting at items[startIdx]. isPara(node) decides list
-// membership. Returns { run, gaps, next }.
 function collectListRun(items, startIdx, isPara) {
   const first = items[startIdx];
   const listId = wordListId(first);
@@ -1097,7 +1010,7 @@ function cleanWordControlText(text) {
     .replace(/[\u0009\u000b\u000c\u200b-\u200f\ufeff]/g, ' ')
     .replace(/[\uf020-\uf0ff]/g, '')
     .replace(/\u00a0+/g, ' ')
-    .replace(/[ \t]{2,}/g, ' ');  // collapse runs, but keep a single trailing space before inline links
+    .replace(/[ \t]{2,}/g, ' ');
 }
 
 function cleanWordMarkerText(text) {
@@ -1127,7 +1040,6 @@ function markSelectionAsCode() {
     setPanelOpen(true); return;
   }
 
-  // Toggle: if the caret/selection is already inside a code block, remove it.
   let node = range.commonAncestorContainer;
   node = node.nodeType === 1 ? node : node.parentElement;
   let existing = null;
@@ -1167,7 +1079,6 @@ function markSelectionAsCode() {
   let savedRange = null;
   const ed = () => activePasteEditor;
 
-  // Allow the expand modal to borrow the toolbar and point it at the modal editor.
   window._rteMountInModal = (container) => container.insertBefore(bar, container.firstChild);
   window._rteRestoreHome = () => homeParent.insertBefore(bar, homeNext);
 
@@ -1256,7 +1167,6 @@ function markSelectionAsCode() {
       bar.querySelector('[data-cmd="codesnippet"]').classList.toggle('active', blockAncestor() === 'pre');
     } catch (_) {}
     document.getElementById('rteLink').classList.toggle('is-link', !!ancestor('a'));
-    // Reflect the caret's block format in the dropdown so the label matches.
     const blk = blockAncestor();
     const fmt = document.getElementById('rteFormat');
     if (blk && fmt) { const opt = Array.from(fmt.options).find(o => o.value === blk); if (opt) fmt.value = blk; }
@@ -1307,7 +1217,7 @@ function markSelectionAsCode() {
 })();
 
 /* ============================================================================
-   LINK DIALOG (Text + URL + Apply), resembling the editor's link popup.
+   LINK DIALOG
    ============================================================================ */
 window.openLinkDialog = function (editor, range, done) {
   const dlg = document.getElementById('linkDialog');
@@ -1389,7 +1299,7 @@ function runConvert(silent) {
   htmlUndo.reset();
   if (window._modalSyncFromSource) { window._modalSyncFromSource('html'); window._modalSyncFromSource('preview'); }
 
-  if (silent) return;   // refreshing after undo/redo: leave warnings panel untouched
+  if (silent) return;
 
   clearWarnings();
   dedupeWarnings(warnings).forEach(w => addWarning(w.level, w.title, w.msg));
@@ -1404,9 +1314,6 @@ document.getElementById('btnConvert').addEventListener('click', () => runConvert
 
 /* ============================================================================
    LIVE PREVIEW SYNC
-   Edits in the HTML source field update the preview immediately. No convert
-   or refresh click needed. Incomplete markup while typing parses leniently
-   and never throws.
    ============================================================================ */
 (function () {
   const htmlOut = document.getElementById('htmlOutput');
@@ -1414,7 +1321,7 @@ document.getElementById('btnConvert').addEventListener('click', () => runConvert
   htmlOut.addEventListener('input', () => {
     const val = htmlOut.value;
     try { preview.innerHTML = val; }
-    catch (_) { /* keep last good render on malformed input */ }
+    catch (_) { }
     if (val.trim()) setDirty(true);
     htmlUndo.recordDebounced();
     if (window._modalSyncFromSource) window._modalSyncFromSource('html');
@@ -1449,23 +1356,20 @@ function convertHTML(source, useFallback, warnings) {
 
   removePageBreaks(body);
   collapseEmptyParagraphs(body, warnings);
-  groupWordOnlineLists(body, warnings);   // ← Word Online / Office 365 web
-  groupNativeWordLists(body, warnings);   // ← desktop Word mso-list format
+  groupWordOnlineLists(body, warnings);
+  groupNativeWordLists(body, warnings);
   groupManualLists(body, warnings);
   groupJsonBlocks(body, warnings);
   groupCodeParagraphs(body, warnings);
-  normalizeListMarkers(body);   // unify ol(1/a/i) & ul(disc/circle/square) by per-type nesting
+  normalizeListMarkers(body);
 
-  return finalizeHr(processTopLevel(body, warnings))
-    .replace(/^[ \t]+$/gm, '')   // lines that are only spaces/tabs
+  const outHtml = finalizeHr(processTopLevel(body, warnings))
+    .replace(/^[ \t]+$/gm, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+  return dedupeNestedWrappers(outHtml);
 }
 
-/* Assign each list its marker style from how many ancestor-or-self lists share
-   its type (ordered vs unordered counted independently), cycling every three
-   levels. This is the same rule the editable paste field uses, so the converted
-   HTML matches what the user sees after Tab-indenting. */
 function normalizeListMarkers(root) {
   const olStyle = ['decimal', 'lower-alpha', 'lower-roman'];
   const ulStyle = ['disc', 'circle', 'square'];
@@ -1499,19 +1403,11 @@ function removePageBreaks(body) {
   });
 }
 
+/* Bug 3: preserve each blank paragraph as its own spacer. Blank paragraphs are
+   now turned into a visible <p>&nbsp;</p> in processNode/processTopLevel, except
+   where suppressed adjacent to a list/table (bug 4). */
 function collapseEmptyParagraphs(body, warnings) {
-  let emptyRun = 0, warned = false;
-  Array.from(body.childNodes).forEach(node => {
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      const tag = node.tagName.toLowerCase();
-      if ((tag === 'p' || tag === 'div') && !isSentinel(node) && !node.textContent.trim()) {
-        if (++emptyRun > 1) {
-          node.parentNode.removeChild(node);
-          if (!warned) { warnings.push({ level: 'info', title: 'Empty paragraphs collapsed', msg: 'Consecutive empty paragraphs reduced to one.' }); warned = true; }
-        }
-      } else emptyRun = 0;
-    }
-  });
+  /* no-op: blank paragraphs are now preserved as spacers */
 }
 
 function isSentinel(node) {
@@ -1521,22 +1417,60 @@ function isSentinel(node) {
      node.getAttribute('data-code-block') === 'true');
 }
 
+/* Bug 3/4 helpers --------------------------------------------------------- */
+function isEmptyPara(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) return false;
+  const tag = node.tagName.toLowerCase();
+  if (tag !== 'p' && tag !== 'div') return false;
+  if (node.querySelector('img, table, ul, ol, br')) return false;
+  return !node.textContent.trim();
+}
+function isListOrTable(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  if (node.getAttribute && node.getAttribute('data-list') === 'true') return true;
+  const tag = node.tagName.toLowerCase();
+  return tag === 'ul' || tag === 'ol' || tag === 'table';
+}
+function meaningfulSibling(node, dir) {
+  let n = dir === 'prev' ? node.previousSibling : node.nextSibling;
+  while (n) {
+    if (n.nodeType === Node.ELEMENT_NODE) return n;
+    if (n.nodeType === Node.TEXT_NODE && n.textContent.trim()) return n;
+    n = dir === 'prev' ? n.previousSibling : n.nextSibling;
+  }
+  return null;
+}
+function spacerSuppressed(node) {
+  const prev = meaningfulSibling(node, 'prev');
+  const next = meaningfulSibling(node, 'next');
+  return isListOrTable(prev) || isListOrTable(next);
+}
+/* Bug 5: trailing-space trim on a paragraph's inner HTML. Removes trailing
+   whitespace but preserves all trailing <br> tags. Leading whitespace untouched. */
+function trimInnerTrailing(html) {
+  let s = html || '';
+  let brs = '';
+  const brRe = /(?:\s|&nbsp;)*(<br\s*\/?>)(?:\s|&nbsp;)*$/i;
+  let m;
+  while ((m = s.match(brRe))) {
+    brs = '<br>' + brs;
+    s = s.slice(0, m.index);
+  }
+  s = s.replace(/(?:\s|&nbsp;)+$/g, '');
+  return s + brs;
+}
+
 /* ============================================================================
    MARKER CLASSIFICATION
-   Returns { tag, typeAttr, styleAttr }
-   - typeAttr  used on <ol type="a">  (HTML4, broad Salesforce support)
-   - styleAttr used on <ul style="list-style-type: circle;">
    ============================================================================ */
 function classifyMarker(marker) {
   const m = (marker || '').trim();
   const core = m.replace(/[.)\]]+$/, '').trim();
 
-  // Bullets
   if (/^[\u25AA\u25A0\u25AB\u25A1\u00A7]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'square', startAttr:null };
   if (/^[\u25CB\u25E6\u25EF o]$/.test(m))            return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
   if (/^[\u2022\u25CF\u00B7\u2219\u2023]$/.test(m) || /^[-*]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
 
-  // Ordered
   if (/^\d+$/.test(core))   return { tag:'ol', typeAttr:'1',   styleAttr:null, startAttr: parseInt(core, 10) > 1 ? String(parseInt(core, 10)) : null };
   if (isRoman(core))        return { tag:'ol', typeAttr: core === core.toLowerCase() ? 'i' : 'I', styleAttr:null, startAttr: romanToInt(core) > 1 ? String(romanToInt(core)) : null };
   if (/^[a-z]$/.test(core)) return { tag:'ol', typeAttr:'a',   styleAttr:null, startAttr: alphaToInt(core) > 1 ? String(alphaToInt(core)) : null };
@@ -1581,20 +1515,6 @@ function serializeList(node) {
 
 /* ============================================================================
    WORD ONLINE / OFFICE 365 WEB LIST PRE-PASS
-   Word Online puts each list item in its own <ol>/<ul> wrapped in a
-   <div class="ListContainerWrapper">. The nesting metadata lives on the <li>:
-     data-aria-level  = depth (1-based)
-     data-listid      = a list family id (NOT reliable for grouping — multiple
-                        listids can appear interleaved in one logical list)
-   The parent <ol>/<ul> already carries the correct list-style-type.
-
-   Critical insight: Word Online sometimes uses a DIFFERENT listid for a
-   sub-list that is visually and logically nested inside the main list
-   (e.g. roman numeral level-3 items under a level-2 item get listid "21"
-   while the rest of the list uses listid "14"). Grouping by listid breaks
-   these apart. Instead we process ALL Word Online li elements in DOM order
-   as one sequence, using only data-aria-level to drive nesting, and break
-   the sequence only when a non-list element appears between items.
    ============================================================================ */
 function isWordOnlineLi(node) {
   return node && node.nodeType === Node.ELEMENT_NODE &&
@@ -1603,32 +1523,23 @@ function isWordOnlineLi(node) {
     node.hasAttribute('data-listid');
 }
 
-// Is this a top-level Word Online wrapper node (ListContainerWrapper div, or
-// an outer SCXW div containing only ListContainerWrapper children)?
-// A ListContainerWrapper div — the direct container of a Word Online <li>.
 function isListContainerWrapper(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
   return /ListContainerWrapper/i.test(node.getAttribute('class') || '');
 }
 
-// A Word Online outer SCXW grouping div. These contain a mix of
-// ListContainerWrapper children and OutlineElement (heading/paragraph) children.
-// We must NOT treat the whole div as a list — we need to flatten its children
-// into the body so headings and notes between list items are preserved.
 function isWordOnlineOuterDiv(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
   const cls = node.getAttribute('class') || '';
   return /SCXW\d+/i.test(cls) && !isListContainerWrapper(node);
 }
 
-// An OutlineElement that is NOT a list item (heading, paragraph, note).
 function isWordOnlineNonListOutline(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
   const cls = node.getAttribute('class') || '';
   return /OutlineElement/i.test(cls) && !node.querySelector('li[data-aria-level]');
 }
 
-// Pull list-type info from the <li>'s parent <ol>/<ul>.
 function wordOnlineListType(li) {
   const parent = li.parentElement;
   if (!parent) return { tag:'ol', typeAttr:'1', styleAttr:null };
@@ -1645,7 +1556,6 @@ function wordOnlineListType(li) {
   return { tag:'ol', typeAttr: typeMap[lsType] || '1', styleAttr:null };
 }
 
-// Extract clean text/HTML from a Word Online <li>, preserving inline links.
 function wordOnlineLiContent(li, warnings) {
   const clone = li.cloneNode(true);
   clone.querySelectorAll('.EOP, [data-ccp-props]').forEach(el => el.remove());
@@ -1656,27 +1566,20 @@ function wordOnlineLiContent(li, warnings) {
   return processInlineChildren(clone, warnings).trim();
 }
 
-// Convert a Word Online OutlineElement non-list node (heading or paragraph)
-// into a body-level sentinel so it can be processed by the normal pipeline.
 function promoteWordOnlineOutline(outlineEl, body) {
-  // The actual content paragraph is inside the OutlineElement div.
   const pEl = outlineEl.querySelector('p.Paragraph, p[paraid]') || outlineEl.querySelector('p') || outlineEl;
   const clone = pEl.cloneNode(true);
   clone.querySelectorAll('.EOP, [data-ccp-props]').forEach(el => el.remove());
-  // Check for heading role on the <p>.
   const headingRole = pEl.getAttribute('role') === 'heading';
   const ariaLevel = parseInt(pEl.getAttribute('aria-level') || '0', 10);
   if (headingRole || ariaLevel > 0) {
-    // Create a real heading element so the heading detector picks it up.
     const tag = ariaLevel === 1 ? 'h1' : ariaLevel === 2 ? 'h2' : 'h' + ariaLevel;
     const h = body.ownerDocument.createElement(tag);
-    // Copy font-size style for heading level detection.
     const fontSize = (pEl.getAttribute('style') || '').match(/font-size\s*:\s*[\d.]+pt/i);
     if (fontSize) h.setAttribute('style', fontSize[0]);
     h.innerHTML = clone.innerHTML;
     return h;
   }
-  // Plain paragraph — return the cleaned <p>.
   clone.removeAttribute('class');
   clone.removeAttribute('paraid');
   clone.removeAttribute('paraeid');
@@ -1684,11 +1587,6 @@ function promoteWordOnlineOutline(outlineEl, body) {
 }
 
 function groupWordOnlineLists(body, warnings) {
-  // STEP 1: Flatten outer SCXW grouping divs.
-  // These divs mix ListContainerWrapper children with OutlineElement (heading/para)
-  // children. We replace each outer div with its children in-place so that
-  // headings, Note/Warning paragraphs, and list wrappers all become direct
-  // body children and can be handled in correct document order.
   Array.from(body.children).forEach(child => {
     if (!isWordOnlineOuterDiv(child)) return;
     const parent = child.parentNode;
@@ -1696,7 +1594,6 @@ function groupWordOnlineLists(body, warnings) {
     const kids = Array.from(child.childNodes);
     kids.forEach(k => {
       if (isWordOnlineNonListOutline(k)) {
-        // Promote heading/para outline elements to real elements.
         parent.insertBefore(promoteWordOnlineOutline(k, body), child);
       } else {
         parent.insertBefore(k.cloneNode(true), child);
@@ -1705,8 +1602,6 @@ function groupWordOnlineLists(body, warnings) {
     parent.removeChild(child);
   });
 
-  // STEP 2: Walk body children in DOM order. Collect consecutive
-  // ListContainerWrapper nodes as one list run; emit non-list content as-is.
   const children = Array.from(body.childNodes);
   let i = 0, warned = false;
 
@@ -1714,7 +1609,6 @@ function groupWordOnlineLists(body, warnings) {
     const node = children[i];
     if (!isListContainerWrapper(node)) { i++; continue; }
 
-    // Collect consecutive ListContainerWrapper nodes (the list run).
     const wrappers = [node];
     let j = i + 1;
     while (j < children.length) {
@@ -1792,17 +1686,12 @@ function isWordListPara(node) {
   if (tag !== 'p' && tag !== 'div') return false;
   const cls   = node.getAttribute('class') || '';
   const style = node.getAttribute('style') || '';
-  // Accept: explicit mso-list style, MsoListParagraph class (with or without mso-list),
-  // or any paragraph that has a margin-left >= 0.4in suggesting Word list indentation.
   if (/MsoListParagraph/i.test(cls) || /mso-list\s*:/i.test(style)) return true;
   return wordIndentInches(node) >= 0.35 && /text-indent\s*:\s*-\s*[\d.]+/i.test(style);
 }
 function wordListLevel(node) {
-  // Primary: explicit mso-list level attribute.
   const m = (node.getAttribute('style') || '').match(/mso-list\s*:[^;]*\blevel(\d+)/i);
   if (m) return parseInt(m[1], 10);
-  // Fallback: derive level from margin-left for flat indented lists (no mso-list metadata).
-  // Word uses ~0.5in per level. Clipboard HTML expresses this as margin-left in inches or pt/px.
   const style = node.getAttribute('style') || '';
   const mi = style.match(/margin-left\s*:\s*([\d.]+)\s*(in|pt|px|cm)/i);
   if (mi) {
@@ -1814,7 +1703,6 @@ function wordListLevel(node) {
     else if (unit === 'px') inches = val / 96;
     else if (unit === 'cm') inches = val / 2.54;
     else inches = 0;
-    // Round to nearest 0.5in step; level 1 starts at 0.5in.
     return Math.max(1, Math.round(inches / 0.5));
   }
   return 1;
@@ -1823,16 +1711,13 @@ function extractWordMarker(node, warnings) {
   const clone = node.cloneNode(true);
   let markerText = '';
 
-  // Path 1: full Word clipboard — marker in mso-list:Ignore span.
   const ignSpan = Array.from(clone.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
   if (ignSpan) {
     markerText = normalizeWordMarker(ignSpan.textContent || '');
     ignSpan.remove();
-    // Also remove the adjacent spacer span (tiny-font spacer Word adds after the marker).
     const next = clone.firstChild;
     if (next && next.nodeType === Node.ELEMENT_NODE && isSpacerSpan(next)) next.remove();
   } else {
-    // Path 2: Chrome-stripped — marker is the first text node / first child.
     let firstChild = clone.firstChild;
     while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
       firstChild = firstChild.nextSibling;
@@ -1844,7 +1729,6 @@ function extractWordMarker(node, warnings) {
       if (isMarkerToken(rawMarker)) {
         markerText = rawMarker;
         firstChild.remove();
-        // Remove the adjacent spacer span (small-font nbsp padding).
         const spacer = clone.firstChild;
         if (spacer && isSpacerSpan(spacer)) spacer.remove();
       }
@@ -1853,7 +1737,6 @@ function extractWordMarker(node, warnings) {
 
   let contentHTML = processInlineChildren(clone, warnings).trim();
 
-  // Last-resort: if marker still not found, try to strip it from rendered HTML.
   if (!markerText) {
     const mx = contentHTML.match(/^\s*([0-9]+[.)]|[A-Za-z][.)]|[\u2022\u25CF\u00B7\u2219\u2023\u25AA\u25A0\u25CB\u25E6o\u25AA\u25a0\-*])\s*(?:&nbsp;|\s)*/);
     if (mx) { markerText = normalizeWordMarker(mx[1]); contentHTML = contentHTML.slice(mx[0].length); }
@@ -1862,16 +1745,12 @@ function extractWordMarker(node, warnings) {
   return { markerText: markerText.trim(), contentHTML: contentHTML.replace(/^(?:&nbsp;|\s)+/, '') };
 }
 
-// A spacer span is the tiny-font padding span Word inserts between the marker
-// and the list item text: <span style="font:7.0pt 'Times New Roman'"> </span>
-// or Chrome's equivalent <span style="font-size:7pt">&nbsp;</span>.
 function isSpacerSpan(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
   const tag = node.tagName.toLowerCase();
   if (tag !== 'span') return false;
   const style = (node.getAttribute('style') || '').toLowerCase();
   if (/font-size\s*:\s*[1-9]\s*pt|font\s*:\s*[1-9]/i.test(style)) return true;
-  // Also discard tabs / mso-tab-count spans.
   if (/mso-tab-count/i.test(style)) return true;
   return false;
 }
@@ -1885,8 +1764,6 @@ function buildLeveledTree(items) {
       stack.length = lvl;
       const top = stack[lvl - 1];
       if (top.listNode.typeAttr !== it.typeAttr || top.listNode.styleAttr !== it.styleAttr || top.listNode.tag !== it.tag) {
-        // Type changed at this level: replace the old list node so we don't
-        // create an unwanted sibling list under the same parent item.
         const listNode = { tag: it.tag, typeAttr: it.typeAttr, styleAttr: it.styleAttr, startAttr: it.startAttr, items: [li] };
         if (lvl >= 2) {
           const parentItem = stack[lvl - 2].currentItem;
@@ -2084,26 +1961,42 @@ function groupCodeParagraphs(body, warnings) {
     i++;
   }
 }
+/* Bug 2: a paragraph is "code-like" only when it is PREDOMINANTLY monospace,
+   not merely when it contains a few inline monospace tokens (e.g. <UnitPrice>).
+   A whole-block monospace font still counts; otherwise we require the monospace
+   text to be at least 90% of the paragraph's text. */
 function isCodeLike(node) {
   if (node.tagName.toLowerCase() === 'pre') return true;
   const style = (node.getAttribute('style') || '').toLowerCase();
-  if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test(style)) return true;
-  for (const span of node.querySelectorAll('span')) {
-    if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test((span.getAttribute('style') || '').toLowerCase())) return true;
-  }
-  return false;
+  const MONO = /font-family:[^;]*(courier|consolas|lucida console|monospace)/i;
+  if (MONO.test(style)) return true;
+
+  const total = (node.textContent || '').replace(/\s/g, '').length;
+  if (!total) return false;
+  let mono = 0;
+  node.querySelectorAll('span, font, code').forEach(el => {
+    if (MONO.test((el.getAttribute('style') || '').toLowerCase()) || el.tagName.toLowerCase() === 'code') {
+      mono += (el.textContent || '').replace(/\s/g, '').length;
+    }
+  });
+  return (mono / total) >= 0.9;
 }
 function getTextWithTabs(node) {
   let t = '';
   node.childNodes.forEach(ch => {
     if (ch.nodeType === Node.TEXT_NODE) t += ch.textContent;
     else if (ch.nodeType === Node.ELEMENT_NODE) {
-      // Skip Word Online EOP / data-ccp-props trailing spans — they add a spurious space.
       if (/\bEOP\b/.test(ch.getAttribute('class') || '') || ch.hasAttribute('data-ccp-props')) return;
       t += ch.tagName.toLowerCase() === 'br' ? '\n' : getTextWithTabs(ch);
     }
   });
   return t;
+}
+/* Bug 2: does this span/font carry a monospace font-family? Used to wrap inline
+   monospace runs in <code> so prose tokens like <UnitPrice> keep their styling. */
+function isMonospaceInline(node) {
+  const ss = (node.getAttribute('style') || '').toLowerCase();
+  return /font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test(ss);
 }
 
 /* ============================================================================
@@ -2117,7 +2010,6 @@ function processNode(node, warnings) {
   if (['script','style','link','meta','head','xml','o:p','w:sdt','w:sdtcontent'].includes(tag)) return '';
   if (tag === 'html' || tag === 'body') return processChildren(node, warnings);
 
-  // Sentinels
   if (node.getAttribute('data-list') === 'true')      return node.innerHTML + '\n';
   if (node.getAttribute('data-pre-code') === 'true')  return codeBlock(node.textContent);
   if (node.getAttribute('data-code-block') === 'true') return codeBlock(node.textContent);
@@ -2139,7 +2031,6 @@ function processNode(node, warnings) {
   if (tag === 'sub') return `<sub>${processChildren(node, warnings)}</sub>`;
   if (tag === 's' || tag === 'strike' || tag === 'del') return `<s>${processChildren(node, warnings)}</s>`;
 
-  // Native headings
   if (/^h[1-6]$/.test(tag)) {
     const lvl = detectHeadingLevel(node, tag);
     return headingHtml(lvl || 2, cleanText(node.textContent));
@@ -2148,10 +2039,17 @@ function processNode(node, warnings) {
   if (tag === 'p' || tag === 'div') {
     const raw = cleanText(node.textContent);
 
-    // Note/Warning/Important detection: try DOM-aware version first so inline
-    // markup in the remainder is preserved (Word Online uses bold spans).
+    // Bug 3/4: empty paragraph -> spacer, unless adjacent to a list/table.
+    if (!raw && !node.querySelector('img, table, ul, ol, br')) {
+      if (spacerSuppressed(node)) return '';
+      return `<p style="${SF_FONT}">&nbsp;</p>\n`;
+    }
+
     const note = buildNoteFromNode(node, raw, warnings);
     if (note) return note;
+
+    const splitHeads = splitMixedHeadingParagraph(node, warnings);
+    if (splitHeads) return splitHeads;
 
     const lvl = detectHeadingLevel(node, tag);
     if (lvl && raw) return headingHtml(lvl, raw);
@@ -2161,7 +2059,7 @@ function processNode(node, warnings) {
       return codeBlock(node.textContent.trim());
     }
 
-    const inner = processChildren(node, warnings).trim();
+    const inner = trimInnerTrailing(processChildren(node, warnings).trim());
     if (!inner) return '';
     if (hasBlock(inner)) return inner + (inner.endsWith('\n') ? '' : '\n');
     return `<p style="${SF_FONT}">${normalizeNbsp(inner)}</p>\n`;
@@ -2169,7 +2067,7 @@ function processNode(node, warnings) {
 
   if (tag === 'ul' || tag === 'ol') return processSourceList(node, tag, warnings, 0);
   if (tag === 'li') {
-    const inner = processChildren(node, warnings).trim();
+    const inner = trimInnerTrailing(processChildren(node, warnings).trim());
     return inner ? `<li style="${SF_FONT}">${inner}</li>\n` : '';
   }
 
@@ -2183,6 +2081,8 @@ function processNode(node, warnings) {
     if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
     if (/mso-spacerun/.test(ss)) return ' ';
     const inner = processChildren(node, warnings);
+    // Bug 2: inline monospace run -> wrap in <code> so tokens keep their styling.
+    if (isMonospaceInline(node)) return `<code style="${CODE_FONT}">${inner}</code>`;
     if (ss.includes('line-through')) return `<s>${inner}</s>`;
     if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
     if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
@@ -2219,19 +2119,16 @@ function processChildren(node, warnings) {
   return out;
 }
 
-// Top-level (body) processor. Groups bare text + inline runs into a styled
-// paragraph so untagged content gets Arial 12, while real block elements pass
-// straight through to processNode unchanged (never double-wrapped).
 function processTopLevel(node, warnings) {
   const BLOCK = { p:1, div:1, h1:1, h2:1, h3:1, h4:1, h5:1, h6:1,
                   ul:1, ol:1, table:1, pre:1, blockquote:1, hr:1, img:1 };
   let out = '', buf = '';
   const flush = () => {
-    const t = buf.trim();
+    const t = trimInnerTrailing(buf.trim());
     buf = '';
-    if (!t) return;                              // whitespace only
-    if (/^(<br\s*\/?>\s*)+$/i.test(t)) return;    // only line breaks
-    if (hasBlock(t)) {                            // already block: don't double-wrap
+    if (!t) return;
+    if (/^(<br\s*\/?>\s*)+$/i.test(t)) return;
+    if (hasBlock(t)) {
       out += t + (t.endsWith('\n') ? '' : '\n');
       return;
     }
@@ -2249,11 +2146,7 @@ function processTopLevel(node, warnings) {
 }
 
 function processSourceList(node, tag, warnings, depth) {
-  // Preserve type attribute from source if present.
   const typeAttr  = node.getAttribute('type') || sourceListType(node, tag, depth);
-  // normalizeListMarkers sets the per-type style inline; prefer it so the
-  // emitted inline style overrides any depth-based stylesheet rule (which would
-  // otherwise mis-render e.g. a decimal list nested 3 deep as lower-roman).
   const styleAttr = (node.style && node.style.listStyleType) ? node.style.listStyleType : sourceListStyle(node);
   const startAttr = tag === 'ol' && parseInt(node.getAttribute('start') || '', 10) > 1 ? String(parseInt(node.getAttribute('start'), 10)) : null;
   let openTag = `<${tag}`;
@@ -2266,9 +2159,6 @@ function processSourceList(node, tag, warnings, depth) {
   Array.from(node.children).forEach(ch => {
     if (!ch.tagName || ch.tagName.toLowerCase() !== 'li') return;
 
-    // Count block-content children (excluding nested lists). A list item whose
-    // only block wrapper is a single <p>/<div> (common after editing the
-    // contenteditable preview) should render as plain text, not <li><p>...</p>.
     const blockKids = Array.from(ch.children).filter(c => {
       const t = c.tagName.toLowerCase();
       return t === 'p' || t === 'div';
@@ -2280,12 +2170,12 @@ function processSourceList(node, tag, warnings, depth) {
       if (gc.nodeType === Node.ELEMENT_NODE && /^(ul|ol)$/i.test(gc.tagName)) {
         nested += processSourceList(gc, gc.tagName.toLowerCase(), warnings, depth + 1);
       } else if (loneWrapper && gc === blockKids[0]) {
-        liInner += processChildren(gc, warnings); // unwrap the lone <p>/<div>
+        liInner += processChildren(gc, warnings);
       } else {
         liInner += processNode(gc, warnings);
       }
     });
-    items += `<li style="${SF_FONT}">${liInner.trim()}${nested ? '\n' + nested : ''}</li>\n`;
+    items += `<li style="${SF_FONT}">${trimInnerTrailing(liInner.trim())}${nested ? '\n' + nested : ''}</li>\n`;
   });
   if (!items) return '';
   return `${openTag}\n${items}</${tag}>\n`;
@@ -2336,6 +2226,8 @@ function processInlineNode(node, warnings) {
     if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
     if (/mso-spacerun/.test(ss)) return ' ';
     const inner = processInlineChildren(node, warnings);
+    // Bug 2: inline monospace run -> wrap in <code>.
+    if (isMonospaceInline(node)) return `<code style="${CODE_FONT}">${inner}</code>`;
     if (ss.includes('line-through')) return `<s>${inner}</s>`;
     if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
     if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
@@ -2394,6 +2286,70 @@ function maxFontSize(node) {
   return max;
 }
 
+/* Lift every <br> in `p` so it becomes a direct child, splitting any inline
+   wrapper (span/font/em/...) around it. Word Online nests <br> inside
+   LineBreakBlob spans; this normalizes that so the paragraph can be segmented. */
+function flattenBreaks(p) {
+  let guard = 0;
+  let br = p.querySelector('br');
+  while (br && guard++ < 500) {
+    while (br.parentNode && br.parentNode !== p) {
+      const parent = br.parentNode;
+      const after = parent.cloneNode(false);
+      let n = br.nextSibling;
+      while (n) { const t = n; n = n.nextSibling; after.appendChild(t); }
+      parent.parentNode.insertBefore(br, parent.nextSibling);
+      if (after.childNodes.length) parent.parentNode.insertBefore(after, br.nextSibling);
+    }
+    br.setAttribute('data-flat', '1');
+    br = p.querySelector('br:not([data-flat])');
+  }
+  p.querySelectorAll('br[data-flat]').forEach(b => b.removeAttribute('data-flat'));
+}
+
+/* Word Online sometimes glues a heading-sized run onto another line of a body
+   paragraph, separated only by <br>. Split such a paragraph at its <br>
+   boundaries and promote any clearly heading-sized line (>= 13.5pt and short) to
+   a real heading. Returns combined HTML, or null when no split is warranted. */
+function splitMixedHeadingParagraph(node, warnings) {
+  if (!node.querySelector('br')) return null;
+  const work = node.cloneNode(true);
+  flattenBreaks(work);
+
+  const segments = [[]];
+  Array.from(work.childNodes).forEach(ch => {
+    if (ch.nodeType === Node.ELEMENT_NODE && ch.tagName.toLowerCase() === 'br') segments.push([]);
+    else segments[segments.length - 1].push(ch);
+  });
+  if (segments.length < 2) return null;
+
+  const doc = node.ownerDocument;
+  const descs = segments.map(nodes => {
+    const holder = doc.createElement('p');
+    nodes.forEach(n => holder.appendChild(n.cloneNode(true)));
+    return { holder, text: cleanText(holder.textContent), size: maxFontSize(holder) };
+  });
+  const isHeadingSeg = d => d.text.length > 0 && d.size != null && d.size >= 13.5 && d.text.length <= 140;
+  const nonEmpty = descs.filter(d => d.text.length > 0);
+  // Split when there are multiple lines and at least one is heading-sized. Body
+  // text is 12pt and the threshold is 13.5pt, so all-body paragraphs (no heading
+  // line) are left untouched as a normal <p> with <br>.
+  if (nonEmpty.length < 2 || !nonEmpty.some(isHeadingSeg)) return null;
+
+  let out = '';
+  descs.forEach(d => {
+    if (!d.text.length) return;
+    if (isHeadingSeg(d)) {
+      const lvl = d.size >= 17 ? 2 : d.size >= 15 ? 3 : 4;
+      out += headingHtml(lvl, d.text);
+    } else {
+      const inner = trimInnerTrailing(processChildren(d.holder, warnings).trim());
+      if (inner) out += hasBlock(inner) ? inner + (inner.endsWith('\n') ? '' : '\n') : `<p style="${SF_FONT}">${normalizeNbsp(inner)}</p>\n`;
+    }
+  });
+  return out || null;
+}
+
 /* ============================================================================
    NOTE / IMPORTANT / WARNING
    ============================================================================ */
@@ -2413,8 +2369,6 @@ function buildNote(raw) {
   return null;
 }
 
-// DOM-aware version: detects Note/Warning/Important from raw text but renders
-// the content after the label using processChildren so inline markup is kept.
 function buildNoteFromNode(node, raw, warnings) {
   const t = (raw || '').trimStart();
   const defs = [
@@ -2461,10 +2415,16 @@ function processTable(tableNode, warnings) {
     inner += '<tr>';
     getCells(row).forEach(cell => {
       const attrs = cellAttrs(cell);
-      const cellInner = processTableCell(cell, warnings) || '&nbsp;';
+      let cellInner = processTableCell(cell, warnings) || '&nbsp;';
       const isHdr = ri === 0 || cell.tagName.toLowerCase() === 'th' || isBoldCell(cell);
-      if (isHdr) inner += `<th style="border:0.5px solid #808080;font-weight:bold;padding:4px;vertical-align:top;text-align:left;${SF_FONT}"${attrs}>${cellInner}</th>`;
-      else        inner += `<td style="border:0.5px solid #808080;padding:4px;vertical-align:top;${SF_FONT}"${attrs}>${cellInner}</td>`;
+      if (isHdr) {
+        // Bug 1: strip redundant inner <strong>/<b> so header text is bold once
+        // (the <th> style already provides bold + white).
+        const hdrInner = cellInner.replace(/<\/?(?:strong|b)>/gi, '');
+        inner += `<th style="${TH_STYLE}"${attrs}>${hdrInner}</th>`;
+      } else {
+        inner += `<td style="border:0.5px solid #808080;padding:4px;vertical-align:top;${SF_FONT}"${attrs}>${cellInner}</td>`;
+      }
     });
     inner += '</tr>\n';
   });
@@ -2502,6 +2462,8 @@ function processTableCellNode(node, warnings) {
     if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
     if (/mso-spacerun/.test(ss)) return ' ';
     const inner = processTCChildren(node,warnings);
+    // Bug 2: inline monospace run -> wrap in <code> inside table cells too.
+    if (isMonospaceInline(node)) return `<code style="${CODE_FONT}">${inner}</code>`;
     if (ss.includes('line-through')) return `<s>${inner}</s>`;
     if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
     if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
@@ -2563,7 +2525,7 @@ function isBoldCell(cell) {
 }
 
 /* ============================================================================
-   HR  (one before each h2 except the first)
+   HR
    ============================================================================ */
 function finalizeHr(html) {
   let first = true, depth = 0;
@@ -2636,6 +2598,39 @@ function safeHref(href, warnings) {
   if (href.length) warnings.push({ level:'info', title:'Link protocol stripped', msg:'Unsupported link protocol removed. Text preserved.' });
   return '';
 }
+/* Final safety pass: remove any form of double wrapping in the output. Unwraps
+   an inline formatter (bold/italic/underline/strike/code/sup/sub) when an
+   ancestor already provides the same format, including bold supplied by a
+   heading or <th>. Whitespace and structure are preserved. */
+function dedupeNestedWrappers(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  const SAME = { strong:'b', b:'b', em:'i', i:'i', u:'u', s:'s', strike:'s', del:'s', code:'code', sup:'sup', sub:'sub' };
+  const providesBold = el => {
+    const t = (el.tagName || '').toLowerCase();
+    if (/^h[1-6]$/.test(t) || t === 'th') return true;
+    const st = ((el.getAttribute && el.getAttribute('style')) || '').toLowerCase();
+    return /font-weight\s*:\s*(bold|[6-9]00)/.test(st);
+  };
+  const redundant = [];
+  div.querySelectorAll('strong,b,em,i,u,s,strike,del,code,sup,sub').forEach(el => {
+    const key = SAME[el.tagName.toLowerCase()];
+    let anc = el.parentElement;
+    while (anc && anc !== div) {
+      const ak = SAME[(anc.tagName || '').toLowerCase()];
+      if (ak === key || (key === 'b' && providesBold(anc))) { redundant.push(el); break; }
+      anc = anc.parentElement;
+    }
+  });
+  redundant.forEach(el => {
+    const p = el.parentNode;
+    if (!p) return;
+    while (el.firstChild) p.insertBefore(el.firstChild, el);
+    p.removeChild(el);
+  });
+  return div.innerHTML;
+}
+
 function dedupeWarnings(warnings) {
   const seen = new Set();
   return warnings.filter(w => { const k=w.level+'|'+w.title; if(seen.has(k))return false; seen.add(k);return true; });
@@ -2712,7 +2707,7 @@ function doClearAll() {
   setDirty(false);
   document.getElementById('previewArea').innerHTML = '';
   document.getElementById('htmlOutput').value = '';
-  pasteUndo.record();   // record cleared state so Undo can restore the content
+  pasteUndo.record();
   htmlUndo.record();
   clearWarnings();
   const e = document.getElementById('warningsEmpty'); if(e) e.style.display='block';
@@ -2722,8 +2717,6 @@ function doClearAll() {
 }
 /* ============================================================================
    FIELD EXPAND MODAL
-   Opens any field in a large popup. Edits sync live back to the source field,
-   so existing behavior (live preview, undo, convert) keeps working.
    ============================================================================ */
 (function () {
   const overlay   = document.getElementById('fieldModal');
@@ -2801,9 +2794,6 @@ function doClearAll() {
     overlay.classList.add('hidden'); bodyEl.innerHTML = ''; kind = null; editEl = null;
   }
 
-  // Let source-side changes (undo, convert, clear) reflect into an open modal.
-  // Skipped for edits that originate inside the modal editor (force re-sync only
-  // on external changes) so the caret isn't reset while typing/formatting.
   window._modalSyncFromSource = function (k, force) {
     if (!kind || kind !== k || !editEl) return;
     if (!force && k === 'paste' && activePasteEditor === editEl) return;

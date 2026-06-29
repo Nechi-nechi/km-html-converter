@@ -2178,12 +2178,15 @@ function processNode(node, warnings) {
   if (tag === 'u')  return `<u>${processChildren(node, warnings)}</u>`;
   if (tag === 'br') return '<br>';
 
-  if (tag === 'span') {
+  if (tag === 'span' || tag === 'font') {
     const ss = (node.getAttribute('style') || '').toLowerCase();
     if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
     if (/mso-spacerun/.test(ss)) return ' ';
     const inner = processChildren(node, warnings);
     if (ss.includes('line-through')) return `<s>${inner}</s>`;
+    if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
+    if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
+    if (/text-decoration[^;]*underline/.test(ss)) return `<u>${inner}</u>`;
     return inner;
   }
 
@@ -2198,14 +2201,13 @@ function processNode(node, warnings) {
   }
 
   if (tag === 'table') return processTable(node, warnings);
-  if (tag === 'font')  return processChildren(node, warnings);
   if (tag === 'hr')    return '<hr>\n';
 
   if (tag === 'blockquote') {
     const inner = processChildren(node, warnings).trim();
     if (!inner) return '';
     if (/<blockquote\b/i.test(inner)) return inner + '\n';
-    return `<blockquote>${inner}</blockquote>\n`;
+    return `<blockquote style="${SF_FONT}">${inner}</blockquote>\n`;
   }
 
   return processChildren(node, warnings);
@@ -2405,7 +2407,7 @@ function buildNote(raw) {
   for (const d of defs) {
     if (d.re.test(t)) {
       const rest = t.slice(d.label.length).trim();
-      return `<blockquote>${d.rep}${rest ? ' ' + esc(rest) : ''}</blockquote>\n`;
+      return `<blockquote style="${SF_FONT}">${d.rep}${rest ? ' ' + esc(rest) : ''}</blockquote>\n`;
     }
   }
   return null;
@@ -2428,7 +2430,7 @@ function buildNoteFromNode(node, raw, warnings) {
       .replace(new RegExp(`^\\s*<(?:strong|b)[^>]*>\\s*${labelEsc.replace(':','\\:')}\\s*</(?:strong|b)>\\s*`, 'i'), '')
       .replace(new RegExp(`^\\s*${labelEsc.replace(':','\\:')}\\s*`, 'i'), '')
       .trim();
-    return `<blockquote>${d.rep}${rest ? ' ' + normalizeNbsp(rest) : ''}</blockquote>\n`;
+    return `<blockquote style="${SF_FONT}">${d.rep}${rest ? ' ' + normalizeNbsp(rest) : ''}</blockquote>\n`;
   }
   return null;
 }

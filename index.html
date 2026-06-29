@@ -866,7 +866,6 @@ function buildPreviewLists(root) {
     const listDOM = buildPreviewListDOM(items, document);
     run[0].parentNode.insertBefore(listDOM, run[0]);
     run.forEach(el => el.parentNode && el.parentNode.removeChild(el));
-    gaps.forEach(g => g.parentNode && g.parentNode.removeChild(g));
     i = next;
   }
 }
@@ -2318,6 +2317,10 @@ function processInlineNode(node, warnings) {
   if (node.nodeType !== Node.ELEMENT_NODE) return '';
   const tag = node.tagName.toLowerCase();
   if (['script','style','link','meta','head','xml','o:p'].includes(tag)) return '';
+  if (tag === 'img') {
+    warnings.push({ level:'warning', title:'Image skipped', msg:'Replace [Insert image here] with the actual image in Salesforce.' });
+    return '<em>[Insert image here]</em>';
+  }
   if (tag === 'br') return '<br>';
   if (tag === 'strong' || tag === 'b') return `<${BOLD_TAG}>${processInlineChildren(node, warnings)}</${BOLD_TAG}>`;
   if (tag === 'em' || tag === 'i')     return `<${ITALIC_TAG}>${processInlineChildren(node, warnings)}</${ITALIC_TAG}>`;
@@ -2478,7 +2481,12 @@ function processTableCellNode(node, warnings) {
   if (node.nodeType !== Node.ELEMENT_NODE) return '';
   const tag = node.tagName.toLowerCase();
   if (['script','style','link','meta','xml','o:p'].includes(tag)) return '';
+  if (node.getAttribute && node.getAttribute('data-img-flag') === 'true') return '<em>[Insert image here]</em>';
   if (tag === 'br') return '<br>';
+  if (tag === 'img') {
+    warnings.push({ level:'warning', title:'Image skipped', msg:'Replace [Insert image here] with the actual image in Salesforce.' });
+    return '<em>[Insert image here]</em>';
+  }
   if (/^h[1-6]$/.test(tag) || tag === 'p' || tag === 'div') return processTCChildren(node, warnings).trim();
   if (tag === 'hr') return '';
   if (tag === 'strong'||tag==='b') return `<${BOLD_TAG}>${processTCChildren(node,warnings)}</${BOLD_TAG}>`;

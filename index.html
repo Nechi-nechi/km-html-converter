@@ -3246,46 +3246,76 @@ function renderValidation() {
   setHeaderStatus(sev);
 }
 
-/* Lightweight validation of the edited Clean HTML. Returns [{level,title,msg}].
-   Detects: missing opening/closing tags (stack match, void tags skipped),
-   improper nesting, unclosed attribute quotes, broken/hrefless anchors. */
-function validateEditedHtml(html) {
-  const issues = [];
-  if (!html || !html.trim()) return issues;
-  const VOID = new Set(['br','hr','img','input','meta','link','area','base','col','embed','param','source','track','wbr','!doctype']);
-  const stack = [];
-  const s = html;
-  const n = s.length;
+/* Void elements shared by the tokenizer and the validator (includes !doctype
+   for historical reasons \u2014 kept for bug-for-bug compatibility). */
+const VOID_TAGS = new Set(['br','hr','img','input','meta','link','area','base','col','embed','param','source','track','wbr','!doctype']);
+
+/* THE single tag tokenizer for validation and (future) tag highlighting.
+   Offsets refer to #htmlOutput.value verbatim: for every emitted tag,
+   text.slice(start, end) is the full '<...>' source including both brackets.
+   Returns { tags, malformed, unclosedQuote } where each tag is
+   { start, end, name, kind, raw, oddQuotes } and kind is
+   'open' | 'close' | 'void' | 'selfclose' | 'other' ('other' = comments,
+   doctype, processing instructions, and bracket pairs with no valid name).
+   Bug-for-bug port of the scanner that lived inside validateEditedHtml:
+   quote-aware (attributes may contain < and > inside quotes, tags may span
+   lines), STOPS at the first malformed tag or unclosed quote (later tags are
+   not emitted), treats an unquoted '<' inside a tag as malformed, and detects
+   self-closing naively via raw.endsWith('/'). Do not "fix" these quirks here
+   without updating every consumer in the same change. */
+function scanTags(text) {
+  const tags = [];
+  const s = text, n = s.length;
   let i = 0, malformed = false, unclosedQuote = false;
   while (i < n) {
     const lt = s.indexOf('<', i);
     if (lt < 0) break;
-    let j = lt + 1, inq = null, closed = false, aborted = false;
+    let j = lt + 1, inq = null, closed = false;
     for (; j < n; j++) {
       const c = s[j];
       if (inq) { if (c === inq) inq = null; }
       else if (c === '"' || c === "'") inq = c;
       else if (c === '>') { closed = true; break; }
-      else if (c === '<') { aborted = true; break; }
+      else if (c === '<') break;   // unquoted '<' inside a tag: malformed
     }
     if (!closed) { if (inq) unclosedQuote = true; else malformed = true; break; }
-    if (aborted) { malformed = true; break; }
     const raw = s.slice(lt + 1, j).trim();
     i = j + 1;
-    if (!raw || raw[0] === '!' || raw[0] === '?') continue;
+    const oddQuotes = ((raw.match(/"/g) || []).length % 2) !== 0 || ((raw.match(/'/g) || []).length % 2) !== 0;
+    if (!raw || raw[0] === '!' || raw[0] === '?') { tags.push({ start: lt, end: j + 1, name: null, kind: 'other', raw, oddQuotes }); continue; }
     const isEnd = raw[0] === '/';
     const selfClose = raw.endsWith('/');
     const nameMatch = (isEnd ? raw.slice(1) : raw).match(/^([a-zA-Z][a-zA-Z0-9]*)/);
-    if (!nameMatch) continue;
+    if (!nameMatch) { tags.push({ start: lt, end: j + 1, name: null, kind: 'other', raw, oddQuotes }); continue; }
     const name = nameMatch[1].toLowerCase();
-    if (((raw.match(/"/g) || []).length % 2) !== 0 || ((raw.match(/'/g) || []).length % 2) !== 0) {
+    const kind = VOID_TAGS.has(name) ? 'void' : (selfClose ? 'selfclose' : (isEnd ? 'close' : 'open'));
+    tags.push({ start: lt, end: j + 1, name, kind, raw, oddQuotes });
+  }
+  return { tags, malformed, unclosedQuote };
+}
+
+/* Lightweight validation of the edited Clean HTML. Returns [{level,title,msg}].
+   Detects: missing opening/closing tags (stack match, void tags skipped),
+   improper nesting, unclosed attribute quotes, broken/hrefless anchors.
+   Consumes scanTags() so the validator and the (future) tag highlighter can
+   never disagree on scanning rules. */
+function validateEditedHtml(html) {
+  const issues = [];
+  if (!html || !html.trim()) return issues;
+  const { tags, malformed, unclosedQuote } = scanTags(html);
+  const stack = [];
+  for (const t of tags) {
+    if (t.kind === 'other') continue;   // comments/doctype/PI: no checks, as before
+    const name = t.name;
+    if (t.oddQuotes) {
       issues.push({ level: 'error', title: 'Unclosed attribute quote', msg: 'A quoted attribute inside <' + name + '> is missing its closing quote.' });
     }
-    if (name === 'a' && !isEnd && !selfClose && !/\shref\s*=/.test(' ' + raw)) {
+    // Anchor-specific check stays here: kind 'open' === the old !isEnd && !selfClose.
+    if (name === 'a' && t.kind === 'open' && !/\shref\s*=/.test(' ' + t.raw)) {
       issues.push({ level: 'warning', title: 'Broken anchor', msg: 'An <a> tag has no href attribute. Add a link target or remove the tag.' });
     }
-    if (VOID.has(name) || selfClose) continue;
-    if (!isEnd) { stack.push(name); continue; }
+    if (t.kind === 'void' || t.kind === 'selfclose') continue;
+    if (t.kind === 'open') { stack.push(name); continue; }
     // closing tag
     if (!stack.length) { issues.push({ level: 'error', title: 'Extra closing tag', msg: 'Found </' + name + '> with no matching opening tag.' }); continue; }
     if (stack[stack.length - 1] === name) { stack.pop(); continue; }

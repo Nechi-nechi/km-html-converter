@@ -223,18 +223,29 @@
   #previewArea hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
   #previewArea blockquote { border-left: 3px solid var(--signal-blue); margin: 6px 0; padding: 6px 12px; background: #f5f9ff; border-radius: 0 4px 4px 0; font-size: 12px; }
 
-  /* Overlay stack: textarea on top, inert mirror underneath (same box). */
-  .code-editor-stack { position: relative; flex: 1; min-width: 0; display: flex; }
+  /* Overlay stack: textarea on top, highlight mirror underneath (same box). */
+  .code-editor-stack { position: relative; flex: 1; min-width: 0; display: flex; background: #eef3fa; }
   /* PAIRED TEXT METRICS — #htmlOutput and #htmlMirror MUST stay in sync.
-     The mirror sits exactly under the textarea; future highlight spans only
-     align if font family/size, line-height, padding, tab-size and
-     white-space are IDENTICAL on both. Change them here, never separately.
+     The mirror sits exactly under the textarea; highlight spans only align if
+     font family/size, line-height, padding, tab-size and white-space are
+     IDENTICAL on both. Change them here, never separately.
      (Converter output can contain literal tabs inside code blocks, hence the
      explicit tab-size; 8 is the browser default for textarea and pre.) */
-  #htmlOutput, #htmlMirror { font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; padding: 12px 12px; white-space: pre; tab-size: 8; }
-  #htmlOutput { position: relative; z-index: 1; flex: 1; min-width: 0; min-height: 280px; max-height: 480px; resize: none; color: #1e2d42; border: none; outline: none; background: #eef3fa; overflow: auto; }
-  /* Inert mirror (step 2.1): real layout, invisible, never interactive. */
-  #htmlMirror { position: absolute; inset: 0; z-index: 0; margin: 0; border: none; overflow: hidden; background: transparent; visibility: hidden; pointer-events: none; }
+  #htmlOutput { font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; padding: 12px 12px; white-space: pre; tab-size: 8; }
+  /* Mirror metrics MUST match #htmlOutput; padding is applied on .mirror-inner
+     (which is what translates), never on #htmlMirror, to avoid double padding. */
+  /* Textarea on top, transparent background so mirror highlights show through. */
+  #htmlOutput { position: relative; z-index: 1; flex: 1; min-width: 0; min-height: 280px; max-height: 480px; resize: none; color: #1e2d42; border: none; outline: none; background: transparent; overflow: auto; }
+  /* Highlight mirror (step 2.3): real layout, text invisible, only the tag
+     highlight spans paint. The outer box is fixed; the inner layer is
+     translated to follow the textarea's scroll (mirror scrollTop would be
+     clamped to 0 by overflow:hidden, so transform is used instead). */
+  #htmlMirror { position: absolute; inset: 0; z-index: 0; margin: 0; border: none; overflow: hidden; background: transparent; color: transparent; pointer-events: none; }
+  #htmlMirror .mirror-inner { position: absolute; top: 0; left: 0; padding: 12px 12px; white-space: pre; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; tab-size: 8; will-change: transform; }
+  #htmlMirror .tag-hl { border-radius: 2px; background: rgba(77,163,255,0.22); box-shadow: inset 0 0 0 1px rgba(77,163,255,0.55); }
+  #htmlMirror .tag-hl-miss { border-radius: 2px; background: rgba(229,72,77,0.16); box-shadow: inset 0 0 0 1px rgba(229,72,77,0.65); }
+  #htmlMirror .tag-hl-link { border-radius: 2px; background: rgba(46,182,125,0.20); box-shadow: inset 0 0 0 1px rgba(46,182,125,0.6); }
+  #previewArea .pv-link { outline: 2px solid rgba(46,182,125,0.7); outline-offset: 1px; border-radius: 2px; transition: outline-color 0.4s ease; }
   .output-hint { font-size: 11px; color: var(--cool-gray); padding: 6px 12px; border-top: 1px solid var(--border); background: #fafcff; }
 
   /* VALIDATION PANEL */
@@ -299,8 +310,6 @@
   #kmToast.km-toast-error { background: var(--accent-red); }
 
   /* Text-label toolbar buttons (Convert to list / text) */
-  .rte-btn.rte-text { min-width: auto; padding: 0 8px; font-size: 11px; font-weight: 600; color: var(--dark-blue); gap: 4px; }
-  .rte-btn.rte-text svg { width: 14px; height: 14px; }
 
   /* Editor-only code block indent — margin applied inline via data-indent in JS */
   #pasteRender [data-code-block], .modal-edit [data-code-block] { transition: margin-left 0.1s ease; }
@@ -427,8 +436,6 @@
           </div>
           <button class="rte-btn" data-cmd="outdent" title="Decrease indent (Shift+Tab)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 17h10v-2H11v2zm-8-5l4 4V8l-4 4zm0 9h18v-2H3v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg></button>
           <button class="rte-btn" data-cmd="indent" title="Increase indent (Tab)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18v-2H3v2zM3 8v8l4-4-4-4zm8 9h10v-2H11v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg></button>
-          <button class="rte-btn rte-text" data-cmd="tolist" title="Convert selected lines to a list"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>To list</button>
-          <button class="rte-btn rte-text" data-cmd="totext" title="Convert list back to plain lines with visible markers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 4v3h5v12h3V7h5V4h-13zm19 5h-9v3h3v7h3v-7h3V9z"/></svg>To text</button>
         </div>
         <div class="rte-sep"></div>
         <!-- insert + code + clear -->
@@ -839,6 +846,40 @@ function outdentCodeBlock(el) {
   return true;
 }
 
+/* Plain-paragraph indent. Same stepped data-indent mechanism as code blocks,
+   but the step matches Salesforce's own indent so the converted output
+   (margin-left: 40px per level) round-trips cleanly. Scope: <p>/<div> only.
+   Headings, blockquotes, list items and code blocks are handled elsewhere. */
+const PARA_INDENT_STEP = 40; // px per level (matches Salesforce Knowledge)
+function paragraphIndentTarget(root) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || !root.contains(sel.anchorNode)) return null;
+  let n = sel.anchorNode;
+  n = (n && n.nodeType === 1) ? n : (n ? n.parentElement : null);
+  let p = null;
+  while (n && n !== root) {
+    const t = n.tagName && n.tagName.toLowerCase();
+    if (t === 'li' || t === 'ul' || t === 'ol' || (n.getAttribute && n.getAttribute('data-code-block') === 'true')) return null;
+    if (t === 'p' || t === 'div') p = n;
+    n = n.parentElement;
+  }
+  return p;
+}
+function indentParagraph(el) {
+  let lvl = parseInt(el.getAttribute('data-indent') || '0', 10) || 0;
+  lvl++;
+  el.setAttribute('data-indent', String(lvl));
+  el.style.marginLeft = (lvl * PARA_INDENT_STEP) + 'px';
+}
+function outdentParagraph(el) {
+  let lvl = parseInt(el.getAttribute('data-indent') || '0', 10) || 0;
+  if (lvl <= 0) return false;
+  lvl--;
+  if (lvl > 0) { el.setAttribute('data-indent', String(lvl)); el.style.marginLeft = (lvl * PARA_INDENT_STEP) + 'px'; }
+  else { el.removeAttribute('data-indent'); el.style.marginLeft = ''; }
+  return true;
+}
+
 // Reusable Tab/Shift+Tab handler for any contenteditable editor root.
 // Branch order per spec: code block first, else list, else nothing (but Tab
 // is always swallowed so focus never leaves the editor).
@@ -858,7 +899,13 @@ function attachListTab(root, onChange) {
     if (!sel || sel.rangeCount === 0) { e.preventDefault(); return; }
     // 2) List: per-item nesting.
     const items = getSelectedListItems(sel, root);
-    if (!items.length) { e.preventDefault(); return; } // 3) plain paragraph: swallow Tab, do nothing structural
+    if (!items.length) {
+      // 3) plain paragraph: stepped left-margin (buttons and Tab match).
+      e.preventDefault();
+      const p = paragraphIndentTarget(root);
+      if (p) { const changed = e.shiftKey ? outdentParagraph(p) : (indentParagraph(p), true); if (changed && onChange) onChange(); }
+      return;
+    }
     e.preventDefault(); // never insert a tab char or move focus out
     items.forEach(li => { if (e.shiftKey) outdentListItem(li); else indentListItem(li); });
     root.querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree);
@@ -879,12 +926,6 @@ attachListTab(pasteRender, () => {
    merge with adjacent lists and alter unselected siblings, which breaks the
    selection-only guarantee the engine relies on.
    ---------------------------------------------------------------------------- */
-function intToRoman(num) {
-  const map = [[1000,'m'],[900,'cm'],[500,'d'],[400,'cd'],[100,'c'],[90,'xc'],[50,'l'],[40,'xl'],[10,'x'],[9,'ix'],[5,'v'],[4,'iv'],[1,'i']];
-  let n = num, out = '';
-  map.forEach(([v, s]) => { while (n >= v) { out += s; n -= v; } });
-  return out || 'i';
-}
 // Group a flat list of selected <li> into maximal runs of DOM-adjacent siblings
 // sharing the same parent list.
 function groupAdjacentRuns(items) {
@@ -940,59 +981,6 @@ function removeSelectedListItems(root) {
   });
   return true;
 }
-// Visible marker text ("1. ", "a. ", "• ") for an <li> from its list type.
-function visibleMarkerFor(li) {
-  const list = li.parentElement;
-  const siblings = Array.from(list.children).filter(c => c.tagName === 'LI');
-  const idx = siblings.indexOf(li);
-  const start = parseInt(list.getAttribute('start') || '1', 10) || 1;
-  const n = start + idx;
-  if (list.tagName === 'OL') {
-    const type = list.getAttribute('type');
-    const style = list.style.listStyleType;
-    if (type === 'a' || style === 'lower-alpha') return String.fromCharCode(96 + (((n - 1) % 26) + 1)) + '. ';
-    if (type === 'A' || style === 'upper-alpha') return String.fromCharCode(64 + (((n - 1) % 26) + 1)) + '. ';
-    if (type === 'i' || style === 'lower-roman') return intToRoman(n) + '. ';
-    if (type === 'I' || style === 'upper-roman') return intToRoman(n).toUpperCase() + '. ';
-    return n + '. ';
-  }
-  const style = list.style.listStyleType;
-  if (style === 'circle') return '◦ ';
-  if (style === 'square') return '▪ ';
-  return '• ';
-}
-// Convert the whole list the selection sits in back to plain paragraphs with
-// visible markers restored — lossless round trip with convertLinesToList.
-function convertListToText(root) {
-  const sel = window.getSelection();
-  if (!sel || !sel.rangeCount || !root.contains(sel.anchorNode)) return false;
-  let n = sel.anchorNode; n = (n && n.nodeType === 1) ? n : (n ? n.parentElement : null);
-  let top = null;
-  while (n && n !== root) { if (n.tagName === 'UL' || n.tagName === 'OL') top = n; n = n.parentElement; }
-  if (!top) return false;
-  const doc = root.ownerDocument;
-  const frag = doc.createDocumentFragment();
-  (function walk(list, depth) {
-    Array.from(list.children).forEach(li => {
-      if (li.tagName !== 'LI') return;
-      const p = doc.createElement('p');
-      const holder = doc.createElement('span');
-      let sub = null;
-      Array.from(li.childNodes).forEach(ch => {
-        if (ch.nodeType === 1 && (ch.tagName === 'UL' || ch.tagName === 'OL')) { if (!sub) sub = ch; }
-        else holder.appendChild(ch.cloneNode(true));
-      });
-      const indent = depth > 0 ? '    '.repeat(depth) : '';
-      p.appendChild(doc.createTextNode(indent + visibleMarkerFor(li)));
-      while (holder.firstChild) p.appendChild(holder.firstChild);
-      if (!p.textContent.trim()) p.appendChild(doc.createElement('br'));
-      frag.appendChild(p);
-      if (sub) walk(sub, depth + 1);
-    });
-  })(top, 0);
-  top.replaceWith(frag);
-  return true;
-}
 const LINE_MARKER_RE = /^[\s ]*([0-9]+[.)]|[A-Za-z][.)]|[•●·◦▪■○]|[-*])[\s ]+/;
 function stripLeadingMarkerFromLi(li) {
   let node = li;
@@ -1000,7 +988,7 @@ function stripLeadingMarkerFromLi(li) {
   if (node && node.nodeType === 3) node.nodeValue = node.nodeValue.replace(LINE_MARKER_RE, '');
 }
 // Convert the selected plain lines into a real list, stripping any visible
-// markers the lines already carry. Inverse of convertListToText.
+// markers the lines already carry (used by the bullet/number buttons).
 function convertLinesToList(root) {
   const sel = window.getSelection();
   if (getSelectedListItems(sel, root).length) return false; // already a list
@@ -1758,22 +1746,25 @@ function markSelectionAsCode() {
     else if (cmd === 'indent')  { doIndentOutdent(false); afterEdit(); updateState(); return; }
     else if (cmd === 'outdent') { doIndentOutdent(true);  afterEdit(); updateState(); return; }
     else if (cmd === 'clearformat') { document.execCommand('removeFormat'); document.execCommand('unlink'); }
-    else if (cmd === 'tolist') { convertLinesToList(ed()); afterEdit(); updateState(); return; }
-    else if (cmd === 'totext') { convertListToText(ed()); afterEdit(); updateState(); return; }
     else if (cmd === 'link') { window.openLinkDialog(ed(), savedRange, afterEdit); return; }
     else if (cmd === 'codesnippet') { markSelectionAsCode(); return; }
     afterEdit();
     updateState();
   });
 
-  // Bullet/number button: create a list from plain paragraphs, retype selected
-  // items to the requested type (selection-only), or toggle the list off when
-  // the selection is already entirely of that type.
+  // Bullet/number button: create a list from plain paragraphs (marker-aware:
+  // lines already carrying visible "1." / "a)" / "-" markers are converted
+  // with the markers stripped and the type detected from them), retype
+  // selected items to the requested type (selection-only), or toggle the list
+  // off when the selection is already entirely of that type.
   function toggleListType(tag) {
     const sel = window.getSelection();
     const items = getSelectedListItems(sel, ed());
     if (!items.length) {
-      document.execCommand(tag === 'ul' ? 'insertUnorderedList' : 'insertOrderedList');
+      // Marker-aware path: same detection convertLinesToList uses internally.
+      const txt = (sel && sel.rangeCount) ? (sel.toString() || (sel.anchorNode && sel.anchorNode.textContent) || '') : '';
+      if (LINE_MARKER_RE.test(txt)) { convertLinesToList(ed()); }
+      else document.execCommand(tag === 'ul' ? 'insertUnorderedList' : 'insertOrderedList');
     } else {
       const allSame = items.every(li => li.parentElement && li.parentElement.tagName.toLowerCase() === tag);
       if (allSame) removeSelectedListItems(ed());
@@ -1789,9 +1780,14 @@ function markSelectionAsCode() {
     if (cb) { if (shift) outdentCodeBlock(cb); else indentCodeBlock(cb); return; }
     const sel = window.getSelection();
     const items = getSelectedListItems(sel, root);
-    if (!items.length) return;
-    items.forEach(li => { if (shift) outdentListItem(li); else indentListItem(li); });
-    root.querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree);
+    if (items.length) {
+      items.forEach(li => { if (shift) outdentListItem(li); else indentListItem(li); });
+      root.querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree);
+      return;
+    }
+    // Plain paragraph: stepped left-margin, same mechanism as code blocks.
+    const p = paragraphIndentTarget(root);
+    if (p) { if (shift) outdentParagraph(p); else indentParagraph(p); }
   }
 
   document.getElementById('rteFormat').addEventListener('change', (e) => {
@@ -1898,17 +1894,294 @@ function onHtmlChanged(val, opts) {
   if (opts.recordUndo === 'debounced') htmlUndo.recordDebounced();
   else if (opts.recordUndo === 'reset') htmlUndo.reset();
   refreshHtmlMirror(val);
+  if (opts.fromConvert) buildPreviewMap();   // _mirrorText now current
   if (!opts.skipModalSync && window._modalSyncFromSource) {
     window._modalSyncFromSource('html');
     if (opts.fromConvert) window._modalSyncFromSource('preview');
   }
 }
-// Inert mirror under the Clean HTML textarea (step 2.1). textContent ONLY —
-// the mirror must never interpret or re-serialize the HTML, and it never
-// touches #htmlOutput.value.
+// Highlight mirror under the Clean HTML textarea (step 2.3). Renders the HTML
+// text with transparent glyphs; only matched-tag highlight spans paint. It
+// never interprets the HTML and never touches #htmlOutput.value, so the copy
+// buffer stays byte-identical.
+let _mirrorText = '';
 function refreshHtmlMirror(val) {
+  _mirrorText = val;
+  _linkRange = null;      // a text edit invalidates any cross-panel link highlight
+  paintTagHighlight();   // re-render mirror for the current caret/selection
+}
+
+// esc for building mirror HTML from ranges (text is invisible; this only keeps
+// the layout identical so highlight boxes land on the right characters).
+function escMirror(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* Find the tag whose <...> span contains (or is adjacent to) offset `pos`.
+   Boundary rule: caret from '<' through '>' inclusive counts; ties at a
+   boundary resolve to the tag on the left. Returns the tag object or null. */
+function tagAtOffset(tags, pos) {
+  for (const t of tags) {
+    if (pos >= t.start && pos <= t.end) return t;
+  }
+  return null;
+}
+
+/* Given the scanned tags and an index into that array for the clicked tag,
+   return the array index of its structural partner using the SAME stack logic
+   the validator uses, or -1 if none. Only open<->close pairs match; void,
+   selfclose and 'other' never have partners. */
+function findPartnerIndex(tags, targetIdx) {
+  const target = tags[targetIdx];
+  if (!target || (target.kind !== 'open' && target.kind !== 'close')) return -1;
+  if (target.kind === 'open') {
+    let depth = 0;
+    for (let k = targetIdx + 1; k < tags.length; k++) {
+      const t = tags[k];
+      if (t.kind === 'open' && t.name === target.name) depth++;
+      else if (t.kind === 'close' && t.name === target.name) {
+        if (depth === 0) return k;
+        depth--;
+      }
+    }
+    return -1;
+  } else {
+    let depth = 0;
+    for (let k = targetIdx - 1; k >= 0; k--) {
+      const t = tags[k];
+      if (t.kind === 'close' && t.name === target.name) depth++;
+      else if (t.kind === 'open' && t.name === target.name) {
+        if (depth === 0) return k;
+        depth--;
+      }
+    }
+    return -1;
+  }
+}
+
+/* Offsets of every tag the validator would flag as an ERROR: unmatched opens,
+   extra/crossed closers, odd-quoted tags, and the truncated tail of a
+   malformed or quote-broken tag (scan.stop). Runs the SAME stack walk as
+   validateEditedHtml, collecting ranges instead of messages, so the red boxes
+   and the panel errors can never disagree. Warning-level findings (e.g. an
+   hrefless <a>) do not paint red. Returns merged, sorted [start,end] pairs. */
+function computeErrorRanges(scan) {
+  const ranges = [];
+  const stack = [];
+  for (const t of scan.tags) {
+    if (t.kind === 'other') continue;
+    if (t.oddQuotes) ranges.push([t.start, t.end]);
+    if (t.kind === 'void' || t.kind === 'selfclose') continue;
+    if (t.kind === 'open') { stack.push(t); continue; }
+    // closing tag
+    if (!stack.length) { ranges.push([t.start, t.end]); continue; }
+    if (stack[stack.length - 1].name === t.name) { stack.pop(); continue; }
+    let idx = -1;
+    for (let k = stack.length - 1; k >= 0; k--) { if (stack[k].name === t.name) { idx = k; break; } }
+    if (idx >= 0) {
+      // crossed nesting: flag the closer and the opens it swallows
+      ranges.push([t.start, t.end]);
+      for (let k = idx + 1; k < stack.length; k++) ranges.push([stack[k].start, stack[k].end]);
+      stack.length = idx;
+    } else {
+      ranges.push([t.start, t.end]);
+    }
+  }
+  stack.forEach(t => ranges.push([t.start, t.end]));   // opens never closed
+  if (scan.stop) ranges.push([scan.stop.start, scan.stop.end]);
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  for (const r of ranges) {
+    const last = merged[merged.length - 1];
+    if (last && r[0] <= last[1]) { if (r[1] > last[1]) last[1] = r[1]; }
+    else merged.push([r[0], r[1]]);
+  }
+  return merged;
+}
+
+/* Repaint the mirror: base text (invisible) plus highlight spans. Error tags
+   (computeErrorRanges) always paint red, focused or not. On top of that, a
+   focused collapsed caret paints its tag + partner pair; red wins where the
+   two overlap. */
+let _hlKey = '';
+function paintTagHighlight() {
   const m = document.getElementById('htmlMirror');
-  if (m) m.textContent = val;
+  if (!m) return;
+  const ta = document.getElementById('htmlOutput');
+  const text = _mirrorText;
+
+  // Decide the highlight ranges: [{start,end,cls}] or [].
+  let ranges = [];
+  const scan = text ? scanTags(text) : null;
+  // Broken tags always paint red, caret or not: unmatched opens, extra or
+  // crossed closers, odd quotes, and the truncated tail the scanner stopped
+  // at (e.g. a "</tbody" missing its ">").
+  const errRanges = scan ? computeErrorRanges(scan) : [];
+  const overlapsErr = (s, e) => errRanges.some(r => s < r[1] && e > r[0]);
+  // Tag highlight follows the caret whenever the textarea is focused with a
+  // collapsed caret. It stays ON during a preview pause so the red
+  // missing-partner highlight shows exactly when the HTML has an error.
+  const active = ta && document.activeElement === ta && ta.selectionStart === ta.selectionEnd;
+  if (active && text) {
+    const pos = ta.selectionStart;
+    const tags = scan.tags;
+    const idx = tags.findIndex(t => pos >= t.start && pos <= t.end);
+    if (idx >= 0) {
+      const t = tags[idx];
+      if (t.kind === 'open' || t.kind === 'close') {
+        const partner = findPartnerIndex(tags, idx);
+        if (partner >= 0) {
+          ranges = [
+            { start: t.start, end: t.end, cls: 'tag-hl' },
+            { start: tags[partner].start, end: tags[partner].end, cls: 'tag-hl' }
+          ];
+        } else {
+          ranges = [{ start: t.start, end: t.end, cls: 'tag-hl-miss' }];
+        }
+      }
+    }
+  }
+
+  // Avoid needless DOM churn: only rebuild when the highlight state changes.
+  if (_linkRange) ranges.push({ start: _linkRange.start, end: _linkRange.end, cls: 'tag-hl-link' });
+  // Error ranges win wherever a caret/link range overlaps one.
+  ranges = ranges.filter(r => !overlapsErr(r.start, r.end));
+  errRanges.forEach(r => ranges.push({ start: r[0], end: r[1], cls: 'tag-hl-miss' }));
+  const key = ranges.map(r => r.start + ':' + r.end + ':' + r.cls).join('|') + '#' + text.length;
+  if (key === _hlKey && m.dataset.built === '1') return;
+  _hlKey = key;
+
+  if (!ranges.length) {
+    m.innerHTML = '<div class="mirror-inner">' + escMirror(text) + '</div>';
+    syncMirrorScroll();
+    m.dataset.built = '1';
+    return;
+  }
+  ranges.sort((a, b) => a.start - b.start);
+  let html = '', cursor = 0;
+  for (const r of ranges) {
+    if (r.start < cursor) continue; // safety: no overlap
+    html += escMirror(text.slice(cursor, r.start));
+    html += '<span class="' + r.cls + '">' + escMirror(text.slice(r.start, r.end)) + '</span>';
+    cursor = r.end;
+  }
+  html += escMirror(text.slice(cursor));
+  m.innerHTML = '<div class="mirror-inner">' + html + '</div>';
+  syncMirrorScroll();
+  m.dataset.built = '1';
+}
+// Translate the mirror's inner layer to match the textarea scroll offset.
+function syncMirrorScroll() {
+  const ta = document.getElementById('htmlOutput');
+  const inner = document.querySelector('#htmlMirror .mirror-inner');
+  if (ta && inner) inner.style.transform = 'translate(' + (-ta.scrollLeft) + 'px,' + (-ta.scrollTop) + 'px)';
+}
+
+/* ============================================================================
+   2.5 BIDIRECTIONAL HIGHLIGHT: Clean HTML <-> Live Preview
+   Element-level mapping with NO instrumentation in the copy buffer. The text
+   is parsed positionally; the preview DOM is stamped with a runtime data-k
+   attribute (display-only, never read back into #htmlOutput.value, stripped
+   from any modal clone). Rebuilt only on a successful render; disabled while
+   the preview is paused on an error.
+   ============================================================================ */
+let previewElems = [];   // index -> { openStart, openEnd, fullEnd, name }
+let previewMapOk = false;
+// Tag names the HTML parser auto-inserts that the converter never emits, so
+// they appear in the preview DOM but not in the source text. Skipped during
+// alignment (their children still map correctly).
+const AUTO_WRAPPERS = new Set(['tbody', 'colgroup']);
+
+// Build the text-side element list (document order) with full spans, by
+// pairing scanTags output. Void/selfclose elements have fullEnd === openEnd.
+function buildTextElements(text) {
+  const { tags } = scanTags(text);
+  const elems = [];
+  const stack = [];
+  for (const t of tags) {
+    if (t.kind === 'open') {
+      const e = { openStart: t.start, openEnd: t.end, fullEnd: t.end, name: t.name };
+      elems.push(e); stack.push(e);
+    } else if (t.kind === 'void' || t.kind === 'selfclose') {
+      elems.push({ openStart: t.start, openEnd: t.end, fullEnd: t.end, name: t.name });
+    } else if (t.kind === 'close') {
+      for (let k = stack.length - 1; k >= 0; k--) {
+        if (stack[k].name === t.name) { stack[k].fullEnd = t.end; stack.length = k; break; }
+      }
+    }
+  }
+  return elems;
+}
+
+// Align preview DOM elements (document order) to text elements, tolerating
+// auto-inserted wrappers. Stamps data-k on paired preview elements. If the
+// streams don't reconcile, clears everything and disables mapping (safe: no
+// wrong highlight rather than a misleading one).
+function buildPreviewMap() {
+  const preview = document.getElementById('previewArea');
+  previewElems = [];
+  previewMapOk = false;
+  if (!preview || previewPaused) { clearPreviewStamps(preview); return; }
+  const text = _mirrorText;
+  const textEls = buildTextElements(text);
+  const domEls = preview.querySelectorAll('*');
+  let i = 0;
+  clearPreviewStamps(preview);
+  for (const pe of domEls) {
+    const name = pe.tagName.toLowerCase();
+    if (i < textEls.length && textEls[i].name === name) {
+      pe.setAttribute('data-k', String(i));
+      i++;
+    } else if (AUTO_WRAPPERS.has(name) && (i >= textEls.length || textEls[i].name !== name)) {
+      continue;   // parser-inserted wrapper: skip, don't consume a text element
+    } else {
+      // Divergence we can't reconcile: bail out cleanly.
+      clearPreviewStamps(preview);
+      return;
+    }
+  }
+  if (i !== textEls.length) { clearPreviewStamps(preview); return; }
+  previewElems = textEls;
+  previewMapOk = true;
+}
+function clearPreviewStamps(preview) {
+  if (!preview) return;
+  preview.querySelectorAll('[data-k]').forEach(el => el.removeAttribute('data-k'));
+}
+
+// Innermost text element whose full span contains offset `pos`.
+function textElementAtOffset(pos) {
+  let best = -1, bestStart = -1;
+  for (let k = 0; k < previewElems.length; k++) {
+    const e = previewElems[k];
+    if (pos >= e.openStart && pos <= e.fullEnd && e.openStart > bestStart) { best = k; bestStart = e.openStart; }
+  }
+  return best;
+}
+
+// Paint a distinct "linked element" highlight on the mirror for a text range,
+// independent of the caret tag-highlight, and scroll it into view.
+let _linkRange = null;
+function highlightTextRange(range, scroll) {
+  _linkRange = range;
+  _hlKey = '';            // force repaint
+  paintTagHighlight();
+  if (scroll && range) {
+    const ta = document.getElementById('htmlOutput');
+    const before = _mirrorText.slice(0, range.start);
+    const line = (before.match(/\n/g) || []).length;
+    const lineH = parseFloat(getComputedStyle(ta).lineHeight) || 19;
+    const target = line * lineH - ta.clientHeight / 2;
+    ta.scrollTop = Math.max(0, target);
+  }
+}
+function flashPreviewEl(el, scroll) {
+  const preview = document.getElementById('previewArea');
+  if (!preview) return;
+  preview.querySelectorAll('.pv-link').forEach(e => e.classList.remove('pv-link'));
+  if (!el) return;
+  el.classList.add('pv-link');
+  if (scroll) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
 /* ============================================================================
@@ -1961,14 +2234,50 @@ document.getElementById('btnConvert').addEventListener('click', () => runConvert
   });
   htmlOut.addEventListener('scroll', () => {
     const g = document.getElementById('codeGutter'); if (g) g.scrollTop = htmlOut.scrollTop;
-    // Mirror follows BOTH axes so future overlays stay aligned horizontally too.
-    const m = document.getElementById('htmlMirror'); if (m) { m.scrollTop = htmlOut.scrollTop; m.scrollLeft = htmlOut.scrollLeft; }
+    // Mirror follows BOTH axes via transform (scrollTop on the mirror is clamped).
+    syncMirrorScroll();
   });
   htmlOut.addEventListener('keydown', (e) => {
     if (!(e.ctrlKey || e.metaKey)) return;
     const k = e.key.toLowerCase();
     if (k === 'z' && !e.shiftKey) { e.preventDefault(); htmlUndo.undo(); }
     else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); htmlUndo.redo(); }
+  });
+  // Tag-highlight caret tracking (step 2.3). Repaint on any caret move that
+  // doesn't already go through onHtmlChanged (clicks, arrow keys, focus).
+  const repaint = () => paintTagHighlight();
+  htmlOut.addEventListener('click', repaint);
+  htmlOut.addEventListener('keyup', (e) => {
+    // Only caret-moving keys; text edits already repaint via onHtmlChanged.
+    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(e.key)) repaint();
+  });
+  htmlOut.addEventListener('focus', repaint);
+  htmlOut.addEventListener('blur', () => { _hlKey = ''; paintTagHighlight(); });
+  document.addEventListener('selectionchange', () => { if (document.activeElement === htmlOut) repaint(); });
+
+  // 2.5 HTML -> Preview: clicking in the code outlines and scrolls to the
+  // matching preview element. Click-driven only; plain caret moves don't scroll
+  // the preview (that would make it jump around while editing).
+  htmlOut.addEventListener('click', () => {
+    if (!previewMapOk || previewPaused) { flashPreviewEl(null); return; }
+    const idx = textElementAtOffset(htmlOut.selectionStart);
+    if (idx < 0) { flashPreviewEl(null); return; }
+    const el = document.querySelector('#previewArea [data-k="' + idx + '"]');
+    flashPreviewEl(el, true);
+  });
+
+  // 2.5 Preview -> HTML: clicking an element highlights its source range in the
+  // code and scrolls it into view. Uses the nearest mapped ancestor.
+  document.getElementById('previewArea').addEventListener('click', (e) => {
+    if (!previewMapOk || previewPaused) return;
+    let node = e.target;
+    while (node && node !== document.getElementById('previewArea') && !node.hasAttribute('data-k')) node = node.parentElement;
+    if (!node || !node.hasAttribute || !node.hasAttribute('data-k')) return;
+    const idx = parseInt(node.getAttribute('data-k'), 10);
+    const el = previewElems[idx];
+    if (!el) return;
+    highlightTextRange({ start: el.openStart, end: el.openEnd }, true);
+    flashPreviewEl(node, false);
   });
 })();
 
@@ -2527,7 +2836,7 @@ function manualRunShouldConvert(run, warnings) {
   if (/^\d+$/.test(core)) return false;                    // lone multi-digit (e.g. 2026.): stays text
   if (/^[A-Za-z]$/.test(core)) {                            // lone letter: stays text + warn
     warnings.push({ level:'warning', title:'Possible section label',
-      msg: 'A lone "' + marker + '" marker was kept as text — it may be a section label, not a list. Select the lines and use “To list” if it should be a list.' });
+      msg: 'A lone "' + marker + '" marker was kept as text — it may be a section label, not a list. If it should be a list, select the lines and press the bulleted or numbered list button.' });
     return false;
   }
   return false;
@@ -2738,7 +3047,11 @@ function processNode(node, warnings) {
     const inner = processChildren(node, warnings).trim();
     if (!inner) return '';
     if (hasBlock(inner)) return inner + (inner.endsWith('\n') ? '' : '\n');
-    return `<p style="${SF_FONT}">${normalizeNbsp(inner)}</p>\n`;
+    // Plain-paragraph indent: emit Salesforce-normalized margin. Level 0 emits
+    // nothing extra, so unindented output stays byte-identical to before.
+    const pIndent = parseInt(node.getAttribute('data-indent') || '0', 10) || 0;
+    const pStyle = pIndent > 0 ? `${SF_FONT} margin-left: ${pIndent * PARA_INDENT_STEP}px;` : SF_FONT;
+    return `<p style="${pStyle}">${normalizeNbsp(inner)}</p>\n`;
   }
 
   if (tag === 'ul' || tag === 'ol') return processSourceList(node, tag, warnings, 0);
@@ -3266,7 +3579,7 @@ const VOID_TAGS = new Set(['br','hr','img','input','meta','link','area','base','
 function scanTags(text) {
   const tags = [];
   const s = text, n = s.length;
-  let i = 0, malformed = false, unclosedQuote = false;
+  let i = 0, malformed = false, unclosedQuote = false, stop = null;
   while (i < n) {
     const lt = s.indexOf('<', i);
     if (lt < 0) break;
@@ -3278,7 +3591,9 @@ function scanTags(text) {
       else if (c === '>') { closed = true; break; }
       else if (c === '<') break;   // unquoted '<' inside a tag: malformed
     }
-    if (!closed) { if (inq) unclosedQuote = true; else malformed = true; break; }
+    // stop = the truncated tag's range, so the highlighter can paint it red;
+    // the validator ignores this field.
+    if (!closed) { if (inq) unclosedQuote = true; else malformed = true; stop = { start: lt, end: j }; break; }
     const raw = s.slice(lt + 1, j).trim();
     i = j + 1;
     const oddQuotes = ((raw.match(/"/g) || []).length % 2) !== 0 || ((raw.match(/'/g) || []).length % 2) !== 0;
@@ -3291,7 +3606,7 @@ function scanTags(text) {
     const kind = VOID_TAGS.has(name) ? 'void' : (selfClose ? 'selfclose' : (isEnd ? 'close' : 'open'));
     tags.push({ start: lt, end: j + 1, name, kind, raw, oddQuotes });
   }
-  return { tags, malformed, unclosedQuote };
+  return { tags, malformed, unclosedQuote, stop };
 }
 
 /* Lightweight validation of the edited Clean HTML. Returns [{level,title,msg}].
@@ -3303,10 +3618,13 @@ function validateEditedHtml(html) {
   const issues = [];
   if (!html || !html.trim()) return issues;
   const { tags, malformed, unclosedQuote } = scanTags(html);
-  const stack = [];
+  // 1-based line number for a character offset, for user-facing messages.
+  const lineAt = (off) => { let n = 1; for (let k = 0; k < off && k < html.length; k++) if (html[k] === '\n') n++; return n; };
+  const stack = [];   // entries: { name, line }
   for (const t of tags) {
     if (t.kind === 'other') continue;   // comments/doctype/PI: no checks, as before
     const name = t.name;
+    const line = lineAt(t.start);
     if (t.oddQuotes) {
       issues.push({ level: 'error', title: 'Unclosed attribute quote', msg: 'A quoted attribute inside <' + name + '> is missing its closing quote.' });
     }
@@ -3315,23 +3633,23 @@ function validateEditedHtml(html) {
       issues.push({ level: 'warning', title: 'Broken anchor', msg: 'An <a> tag has no href attribute. Add a link target or remove the tag.' });
     }
     if (t.kind === 'void' || t.kind === 'selfclose') continue;
-    if (t.kind === 'open') { stack.push(name); continue; }
+    if (t.kind === 'open') { stack.push({ name, line }); continue; }
     // closing tag
-    if (!stack.length) { issues.push({ level: 'error', title: 'Extra closing tag', msg: 'Found </' + name + '> with no matching opening tag.' }); continue; }
-    if (stack[stack.length - 1] === name) { stack.pop(); continue; }
+    if (!stack.length) { issues.push({ level: 'error', title: 'Matching tag missing', msg: '</' + name + '> on line ' + line + ' has no matching opening <' + name + '>.' }); continue; }
+    if (stack[stack.length - 1].name === name) { stack.pop(); continue; }
     let idx = -1;
-    for (let k = stack.length - 1; k >= 0; k--) { if (stack[k] === name) { idx = k; break; } }
+    for (let k = stack.length - 1; k >= 0; k--) { if (stack[k].name === name) { idx = k; break; } }
     if (idx >= 0) {
-      issues.push({ level: 'error', title: 'Improper nesting', msg: '</' + name + '> closes while <' + stack[stack.length - 1] + '> is still open \u2014 tags overlap or a closing tag is missing.' });
+      issues.push({ level: 'error', title: 'Improper nesting', msg: '</' + name + '> on line ' + line + ' closes while <' + stack[stack.length - 1].name + '> is still open \u2014 tags overlap or a closing tag is missing.' });
       stack.length = idx;
     } else {
-      issues.push({ level: 'error', title: 'Extra closing tag', msg: 'Found </' + name + '> with no matching opening tag.' });
+      issues.push({ level: 'error', title: 'Matching tag missing', msg: '</' + name + '> on line ' + line + ' has no matching opening <' + name + '>.' });
     }
   }
   if (unclosedQuote) issues.push({ level: 'error', title: 'Unclosed attribute quote', msg: 'A tag has a quote that is never closed.' });
   if (malformed) issues.push({ level: 'error', title: 'Malformed tag', msg: 'A \u201C<\u201D opens a tag that is never closed with \u201C>\u201D.' });
   const seen = new Set();
-  stack.forEach(name => { if (seen.has(name)) return; seen.add(name); issues.push({ level: 'error', title: 'Missing closing tag', msg: '<' + name + '> is opened but never closed.' }); });
+  stack.forEach(e => { if (seen.has(e.name)) return; seen.add(e.name); issues.push({ level: 'error', title: 'Matching tag missing', msg: '<' + e.name + '> on line ' + e.line + ' has no closing </' + e.name + '>.' }); });
   const uniq = new Set();
   return issues.filter(x => { const k = x.level + '|' + x.title + '|' + x.msg; if (uniq.has(k)) return false; uniq.add(k); return true; }).slice(0, 14);
 }
@@ -3346,9 +3664,11 @@ function applyHtmlToPreview(val) {
   if (hasErr) {
     previewPaused = true;
     updatePanelStatus('Preview paused \u2014 the edited HTML has errors. Fix the flagged tags to resume the live preview.', 'err');
+    _linkRange = null; buildPreviewMap();   // clears stamps + disables mapping while paused
   } else {
     previewPaused = false;
     try { preview.innerHTML = val; lastValidHtml = val; } catch (_) {}
+    buildPreviewMap();
     refreshDefaultStatus();
   }
   renderValidation();
@@ -3541,7 +3861,14 @@ function doClearAll() {
     syncing = true;
     if (k === 'html') editEl.value = htmlOut.value;
     else if (k === 'paste') editEl.innerHTML = pasteRender.innerHTML;
-    else editEl.innerHTML = preview.innerHTML;
+    else {
+      // Preview clone: drop runtime-only mapping/highlight artifacts.
+      const tmp = document.createElement('div');
+      tmp.innerHTML = preview.innerHTML;
+      tmp.querySelectorAll('[data-k]').forEach(el => el.removeAttribute('data-k'));
+      tmp.querySelectorAll('.pv-link').forEach(el => el.classList.remove('pv-link'));
+      editEl.innerHTML = tmp.innerHTML;
+    }
     syncing = false;
   };
 

@@ -223,7 +223,18 @@
   #previewArea hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
   #previewArea blockquote { border-left: 3px solid var(--signal-blue); margin: 6px 0; padding: 6px 12px; background: #f5f9ff; border-radius: 0 4px 4px 0; font-size: 12px; }
 
-  #htmlOutput { flex: 1; min-width: 0; min-height: 280px; max-height: 480px; resize: none; padding: 12px 12px; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; color: #1e2d42; border: none; outline: none; background: #eef3fa; white-space: pre; overflow: auto; }
+  /* Overlay stack: textarea on top, inert mirror underneath (same box). */
+  .code-editor-stack { position: relative; flex: 1; min-width: 0; display: flex; }
+  /* PAIRED TEXT METRICS — #htmlOutput and #htmlMirror MUST stay in sync.
+     The mirror sits exactly under the textarea; future highlight spans only
+     align if font family/size, line-height, padding, tab-size and
+     white-space are IDENTICAL on both. Change them here, never separately.
+     (Converter output can contain literal tabs inside code blocks, hence the
+     explicit tab-size; 8 is the browser default for textarea and pre.) */
+  #htmlOutput, #htmlMirror { font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; padding: 12px 12px; white-space: pre; tab-size: 8; }
+  #htmlOutput { position: relative; z-index: 1; flex: 1; min-width: 0; min-height: 280px; max-height: 480px; resize: none; color: #1e2d42; border: none; outline: none; background: #eef3fa; overflow: auto; }
+  /* Inert mirror (step 2.1): real layout, invisible, never interactive. */
+  #htmlMirror { position: absolute; inset: 0; z-index: 0; margin: 0; border: none; overflow: hidden; background: transparent; visibility: hidden; pointer-events: none; }
   .output-hint { font-size: 11px; color: var(--cool-gray); padding: 6px 12px; border-top: 1px solid var(--border); background: #fafcff; }
 
   /* VALIDATION PANEL */
@@ -446,7 +457,10 @@
         <div class="panel-box-header"><span class="step-tag">Clean HTML</span><span class="panel-kind">code</span><button class="expand-btn" id="expandHtml" title="Open in larger window" aria-label="Expand HTML output"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
         <div class="code-wrap">
           <div class="code-gutter" id="codeGutter">1</div>
-          <textarea id="htmlOutput" spellcheck="false" placeholder="Converted HTML will appear here. You can edit before copying."></textarea>
+          <div class="code-editor-stack">
+            <textarea id="htmlOutput" spellcheck="false" placeholder="Converted HTML will appear here. You can edit before copying."></textarea>
+            <pre id="htmlMirror" aria-hidden="true"></pre>
+          </div>
         </div>
       </div>
       <div class="panel-box">
@@ -1889,8 +1903,13 @@ function onHtmlChanged(val, opts) {
     if (opts.fromConvert) window._modalSyncFromSource('preview');
   }
 }
-// No-op hook point for the HTML mirror; implemented in step 2.1.
-function refreshHtmlMirror(val) {}
+// Inert mirror under the Clean HTML textarea (step 2.1). textContent ONLY —
+// the mirror must never interpret or re-serialize the HTML, and it never
+// touches #htmlOutput.value.
+function refreshHtmlMirror(val) {
+  const m = document.getElementById('htmlMirror');
+  if (m) m.textContent = val;
+}
 
 /* ============================================================================
    CONVERT
@@ -1940,7 +1959,11 @@ document.getElementById('btnConvert').addEventListener('click', () => runConvert
   htmlOut.addEventListener('input', () => {
     onHtmlChanged(htmlOut.value, { recordUndo: 'debounced' });
   });
-  htmlOut.addEventListener('scroll', () => { const g = document.getElementById('codeGutter'); if (g) g.scrollTop = htmlOut.scrollTop; });
+  htmlOut.addEventListener('scroll', () => {
+    const g = document.getElementById('codeGutter'); if (g) g.scrollTop = htmlOut.scrollTop;
+    // Mirror follows BOTH axes so future overlays stay aligned horizontally too.
+    const m = document.getElementById('htmlMirror'); if (m) { m.scrollTop = htmlOut.scrollTop; m.scrollLeft = htmlOut.scrollLeft; }
+  });
   htmlOut.addEventListener('keydown', (e) => {
     if (!(e.ctrlKey || e.metaKey)) return;
     const k = e.key.toLowerCase();

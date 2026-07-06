@@ -11,7 +11,9 @@
       "Bash(git commit -m 'Baseline before Phase 2 \\(2.0/2.1\\) refactor *)",
       "Bash(git add *)",
       "Bash(git commit -m 'Phase 2 step 2.0: centralize #htmlOutput change side-effects in onHtmlChanged\\(\\) *)",
-      "Bash(git commit -q -m 'Phase 2 step 2.2: extract shared tag tokenizer scanTags\\(\\) *)"
+      "Bash(git commit -q -m 'Phase 2 step 2.2: extract shared tag tokenizer scanTags\\(\\) *)",
+      "Bash(git commit -q -m 'Shared tag-highlighter factory + matching-tag highlight in the expand modal *)",
+      "Bash(git commit -q -m 'Update Claude Code local permission allowlist *)"
     ]
   }
 }

@@ -656,12 +656,7 @@ const htmlUndo = createUndo(
   (val) => {
     const out = document.getElementById('htmlOutput');
     out.value = val;
-    if (typeof applyHtmlToPreview === 'function') applyHtmlToPreview(val);
-    else { try { document.getElementById('previewArea').innerHTML = val; } catch (_) {} }
-    if (typeof updateCodeGutter === 'function') updateCodeGutter();
-    if (typeof resetCopyButton === 'function') resetCopyButton();
-    if (val.trim()) setDirty(true);
-    if (window._modalSyncFromSource) window._modalSyncFromSource('html');
+    onHtmlChanged(val);   // undo/redo restore: never re-records undo
   }
 );
 // After undoing/redoing paste-field edits, keep preview + HTML output in sync
@@ -1853,6 +1848,51 @@ window.openLinkDialog = function (editor, range, done) {
 };
 
 /* ============================================================================
+   CENTRAL HTML-CHANGE SIDE-EFFECTS
+   Every writer to #htmlOutput.value routes through here AFTER setting .value.
+   Never modifies .value itself. opts reproduce the exact per-writer
+   differences that existed before the refactor:
+     fromConvert:   fresh converter output — preview is set directly and
+                    becomes the new valid baseline (no validation pass),
+                    dirty is set unconditionally, and the modal preview
+                    pane is synced in addition to the html pane
+     skipPreview:   caller already handled the preview itself (doClearAll
+                    clears it directly and resets lastValidHtml)
+     skipDirty:     caller manages the dirty flag itself (doClearAll)
+     recordUndo:    'debounced' — typing paths (direct edit, modal edit)
+                    'reset'     — fresh convert replaces the undo baseline
+                    undefined   — no recording here: undo/redo restore must
+                                  not re-record; doClearAll records inline
+     skipModalSync: the edit originated inside the modal editor (re-syncing
+                    would reset the caret), or the caller force-syncs all
+                    modal panes itself (doClearAll)
+   ============================================================================ */
+function onHtmlChanged(val, opts) {
+  opts = opts || {};
+  if (opts.fromConvert) {
+    document.getElementById('previewArea').innerHTML = val;
+    // Fresh converter output is the new valid baseline for the live preview.
+    previewPaused = false; lastValidHtml = val; htmlIssues = [];
+  } else if (!opts.skipPreview) {
+    if (typeof applyHtmlToPreview === 'function') applyHtmlToPreview(val);   // validates; pauses preview on Error
+    else { try { document.getElementById('previewArea').innerHTML = val; } catch (_) {} }
+  }
+  updateCodeGutter();
+  resetCopyButton();               // any edit reverts the Copied state
+  if (opts.fromConvert) setDirty(true);
+  else if (!opts.skipDirty && val.trim()) setDirty(true);
+  if (opts.recordUndo === 'debounced') htmlUndo.recordDebounced();
+  else if (opts.recordUndo === 'reset') htmlUndo.reset();
+  refreshHtmlMirror(val);
+  if (!opts.skipModalSync && window._modalSyncFromSource) {
+    window._modalSyncFromSource('html');
+    if (opts.fromConvert) window._modalSyncFromSource('preview');
+  }
+}
+// No-op hook point for the HTML mirror; implemented in step 2.1.
+function refreshHtmlMirror(val) {}
+
+/* ============================================================================
    CONVERT
    ============================================================================ */
 function runConvert(silent) {
@@ -1874,14 +1914,7 @@ function runConvert(silent) {
   }
 
   document.getElementById('htmlOutput').value = converted;
-  document.getElementById('previewArea').innerHTML = converted;
-  // Fresh converter output is the new valid baseline for the live preview.
-  previewPaused = false; lastValidHtml = converted; htmlIssues = [];
-  updateCodeGutter();
-  resetCopyButton();
-  setDirty(true);
-  htmlUndo.reset();
-  if (window._modalSyncFromSource) { window._modalSyncFromSource('html'); window._modalSyncFromSource('preview'); }
+  onHtmlChanged(converted, { fromConvert: true, recordUndo: 'reset' });
 
   if (silent) return;   // refreshing after undo/redo: leave warnings panel untouched
 
@@ -1905,13 +1938,7 @@ document.getElementById('btnConvert').addEventListener('click', () => runConvert
 (function () {
   const htmlOut = document.getElementById('htmlOutput');
   htmlOut.addEventListener('input', () => {
-    const val = htmlOut.value;
-    applyHtmlToPreview(val);          // validates; pauses preview on Error
-    updateCodeGutter();
-    resetCopyButton();               // any edit reverts the Copied state
-    if (val.trim()) setDirty(true);
-    htmlUndo.recordDebounced();
-    if (window._modalSyncFromSource) window._modalSyncFromSource('html');
+    onHtmlChanged(htmlOut.value, { recordUndo: 'debounced' });
   });
   htmlOut.addEventListener('scroll', () => { const g = document.getElementById('codeGutter'); if (g) g.scrollTop = htmlOut.scrollTop; });
   htmlOut.addEventListener('keydown', (e) => {
@@ -3363,8 +3390,9 @@ function doClearAll() {
   document.getElementById('previewArea').innerHTML = '';
   document.getElementById('htmlOutput').value = '';
   lastValidHtml = '';
-  updateCodeGutter();
-  resetCopyButton();
+  // Preview/dirty handled above; undo recorded inline below (paste first);
+  // modal panes force-synced at the end of this function.
+  onHtmlChanged('', { skipPreview: true, skipDirty: true, skipModalSync: true });
   pasteUndo.record();   // record cleared state so Undo can restore the content
   htmlUndo.record();
   clearWarnings();
@@ -3399,11 +3427,8 @@ function doClearAll() {
       editEl.addEventListener('input', () => {
         if (syncing) return;
         htmlOut.value = editEl.value;
-        applyHtmlToPreview(editEl.value);
-        updateCodeGutter();
-        resetCopyButton();
-        if (editEl.value.trim()) setDirty(true);
-        htmlUndo.recordDebounced();
+        // skipModalSync: the edit originated here; re-syncing resets the caret.
+        onHtmlChanged(editEl.value, { recordUndo: 'debounced', skipModalSync: true });
       });
       editEl.addEventListener('keydown', (e) => {
         if (!(e.ctrlKey || e.metaKey)) return;

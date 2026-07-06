@@ -73,7 +73,7 @@
   .main-inner { max-width: 1180px; margin: 0 auto; }
   .section-label { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
   .panel-box-header .step-tag { flex: 1; }
-  .step-tag { color: var(--signal-blue); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .step-tag { color: #0A0E33; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
   .btn-ico { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
   .hdr-ico { width: 20px; height: 20px; fill: currentColor; }
   /* Expand-to-modal buttons */
@@ -85,12 +85,12 @@
   .rte-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 5px 6px; background: #fafcff; border: 1.5px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; }
   .rte-group { display: flex; align-items: center; gap: 2px; }
   .rte-sep { width: 1px; align-self: stretch; background: var(--border); margin: 2px 4px; }
-  .rte-btn { min-width: 28px; height: 28px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; background: #fff; border: 1px solid transparent; border-radius: 5px; cursor: pointer; color: var(--blue-black); font-size: 13px; line-height: 1; }
+  .rte-btn { min-width: 28px; height: 28px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; background: #fff; border: 1px solid transparent; border-radius: 5px; cursor: pointer; color: #333333; font-size: 13px; line-height: 1; }
   .rte-btn:hover { background: var(--ice-blue); }
   .rte-btn.active { background: var(--ice-blue); border-color: var(--signal-blue); color: var(--signal-blue); }
   .rte-btn svg { width: 17px; height: 17px; fill: currentColor; }
   .rte-btn b, .rte-btn i, .rte-btn u { font-size: 14px; }
-  .rte-select { height: 28px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--blue-black); font-size: 12px; padding: 0 4px; cursor: pointer; }
+  .rte-select { height: 28px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: #333333; font-size: 12px; padding: 0 4px; cursor: pointer; }
   /* Read-only style-guide hint next to the block dropdown */
   .rte-hint { display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 5px; background: var(--soft); border: 1px solid var(--border); color: var(--cool-gray); font-size: 11px; font-weight: 600; white-space: nowrap; user-select: none; pointer-events: none; }
   .rte-split { position: relative; display: inline-flex; }
@@ -130,7 +130,17 @@
   .modal-close:hover { background: var(--ice-blue); color: var(--blue-black); }
   .modal-body { flex: 1; overflow: auto; padding: 16px 18px; min-height: 0; }
   .modal-edit { width: 100%; height: 100%; box-sizing: border-box; border: none; outline: none; resize: none; font-size: 13px; line-height: 1.6; color: var(--blue-black); }
-  textarea.modal-edit { font-family: 'SF Mono', Menlo, Consolas, monospace; white-space: pre; }
+  /* PAIRED TEXT METRICS — textarea.modal-edit and .modal-mirror .mirror-inner
+     MUST stay in sync (font family/size, line-height, padding, tab-size,
+     white-space), or the modal highlight boxes drift off the characters.
+     (.modal-edit supplies font-size 13px / line-height 1.6; the global reset
+     zeroes the textarea padding, so the mirror inner uses padding 0 too.) */
+  textarea.modal-edit { font-family: 'SF Mono', Menlo, Consolas, monospace; white-space: pre; tab-size: 8; position: relative; z-index: 1; background: transparent; }
+  /* Modal highlight mirror: same overlay pattern as the docked #htmlMirror —
+     outer box fixed, inner layer translated to follow the textarea scroll. */
+  .modal-edit-stack { position: relative; width: 100%; height: 100%; }
+  .modal-mirror { position: absolute; inset: 0; z-index: 0; margin: 0; border: none; overflow: hidden; background: transparent; color: transparent; pointer-events: none; }
+  .modal-mirror .mirror-inner { position: absolute; top: 0; left: 0; padding: 0; white-space: pre; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6; tab-size: 8; will-change: transform; }
   .modal-edit ol { padding-left: 24px; margin: 2px 0; list-style-type: decimal; }
   .modal-edit ul { padding-left: 24px; margin: 2px 0; list-style-type: disc; }
   .modal-edit ol ol { list-style-type: lower-alpha; }
@@ -242,9 +252,9 @@
      clamped to 0 by overflow:hidden, so transform is used instead). */
   #htmlMirror { position: absolute; inset: 0; z-index: 0; margin: 0; border: none; overflow: hidden; background: transparent; color: transparent; pointer-events: none; }
   #htmlMirror .mirror-inner { position: absolute; top: 0; left: 0; padding: 12px 12px; white-space: pre; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; tab-size: 8; will-change: transform; }
-  #htmlMirror .tag-hl { border-radius: 2px; background: rgba(77,163,255,0.22); box-shadow: inset 0 0 0 1px rgba(77,163,255,0.55); }
-  #htmlMirror .tag-hl-miss { border-radius: 2px; background: rgba(229,72,77,0.16); box-shadow: inset 0 0 0 1px rgba(229,72,77,0.65); }
-  #htmlMirror .tag-hl-link { border-radius: 2px; background: rgba(46,182,125,0.20); box-shadow: inset 0 0 0 1px rgba(46,182,125,0.6); }
+  #htmlMirror .tag-hl, .modal-mirror .tag-hl { border-radius: 2px; background: rgba(77,163,255,0.22); box-shadow: inset 0 0 0 1px rgba(77,163,255,0.55); }
+  #htmlMirror .tag-hl-miss, .modal-mirror .tag-hl-miss { border-radius: 2px; background: rgba(229,72,77,0.16); box-shadow: inset 0 0 0 1px rgba(229,72,77,0.65); }
+  #htmlMirror .tag-hl-link, .modal-mirror .tag-hl-link { border-radius: 2px; background: rgba(46,182,125,0.20); box-shadow: inset 0 0 0 1px rgba(46,182,125,0.6); }
   #previewArea .pv-link { outline: 2px solid rgba(46,182,125,0.7); outline-offset: 1px; border-radius: 2px; transition: outline-color 0.4s ease; }
   .output-hint { font-size: 11px; color: var(--cool-gray); padding: 6px 12px; border-top: 1px solid var(--border); background: #fafcff; }
 
@@ -1900,16 +1910,17 @@ function onHtmlChanged(val, opts) {
     if (opts.fromConvert) window._modalSyncFromSource('preview');
   }
 }
-// Highlight mirror under the Clean HTML textarea (step 2.3). Renders the HTML
-// text with transparent glyphs; only matched-tag highlight spans paint. It
-// never interprets the HTML and never touches #htmlOutput.value, so the copy
-// buffer stays byte-identical.
-let _mirrorText = '';
+// Docked mirror wiring. refreshHtmlMirror(val) stays the single entry point
+// used by onHtmlChanged; the shared highlighter factory and the docked
+// instance live below the tag-scan helpers. Mirrors render the HTML text
+// with transparent glyphs and never touch any .value, so the copy buffer
+// stays byte-identical.
 function refreshHtmlMirror(val) {
-  _mirrorText = val;
   _linkRange = null;      // a text edit invalidates any cross-panel link highlight
-  paintTagHighlight();   // re-render mirror for the current caret/selection
+  dockedHighlighter.refresh(val);
 }
+// Legacy-named hook kept for pre-factory callers (preview-map link highlight).
+function paintTagHighlight() { dockedHighlighter.repaint(); }
 
 // esc for building mirror HTML from ranges (text is invisible; this only keeps
 // the layout identical so highlight boxes land on the right characters).
@@ -1999,83 +2010,128 @@ function computeErrorRanges(scan) {
   return merged;
 }
 
-/* Repaint the mirror: base text (invisible) plus highlight spans. Error tags
-   (computeErrorRanges) always paint red, focused or not. On top of that, a
-   focused collapsed caret paints its tag + partner pair; red wins where the
-   two overlap. */
-let _hlKey = '';
-function paintTagHighlight() {
-  const m = document.getElementById('htmlMirror');
-  if (!m) return;
-  const ta = document.getElementById('htmlOutput');
-  const text = _mirrorText;
+/* ============================================================================
+   SHARED TAG-HIGHLIGHTER FACTORY
+   One instance per textarea+mirror pair: the docked Clean HTML panel and the
+   expand-modal HTML editor. Each instance owns its text snapshot and repaint
+   key, installs its own caret/scroll listeners, and removes them in
+   destroy(). Painted layers:
+     - blue pair (.tag-hl): the caret's tag + its structural partner
+     - red (.tag-hl-miss): validator-error tags, caret or not — unmatched
+       opens, extra/crossed closers, odd quotes, truncated tails
+     - green linked range (.tag-hl-link) via opts.getLinkRange — supplied by
+       the docked panel's preview mapping only; the modal passes none
+   READ-ONLY by contract: reads textarea.value/selection, paints the mirror.
+   It never writes any .value, so the copy buffer stays byte-identical.
+   ============================================================================ */
+function createTagHighlighter(opts) {
+  const ta = opts.textarea;
+  const m = opts.mirror;
+  const getLinkRange = opts.getLinkRange || null;
+  let text = '', hlKey = '';
 
-  // Decide the highlight ranges: [{start,end,cls}] or [].
-  let ranges = [];
-  const scan = text ? scanTags(text) : null;
-  // Broken tags always paint red, caret or not: unmatched opens, extra or
-  // crossed closers, odd quotes, and the truncated tail the scanner stopped
-  // at (e.g. a "</tbody" missing its ">").
-  const errRanges = scan ? computeErrorRanges(scan) : [];
-  const overlapsErr = (s, e) => errRanges.some(r => s < r[1] && e > r[0]);
-  // Tag highlight follows the caret whenever the textarea is focused with a
-  // collapsed caret. It stays ON during a preview pause so the red
-  // missing-partner highlight shows exactly when the HTML has an error.
-  const active = ta && document.activeElement === ta && ta.selectionStart === ta.selectionEnd;
-  if (active && text) {
-    const pos = ta.selectionStart;
-    const tags = scan.tags;
-    const idx = tags.findIndex(t => pos >= t.start && pos <= t.end);
-    if (idx >= 0) {
-      const t = tags[idx];
-      if (t.kind === 'open' || t.kind === 'close') {
-        const partner = findPartnerIndex(tags, idx);
-        if (partner >= 0) {
-          ranges = [
-            { start: t.start, end: t.end, cls: 'tag-hl' },
-            { start: tags[partner].start, end: tags[partner].end, cls: 'tag-hl' }
-          ];
-        } else {
-          ranges = [{ start: t.start, end: t.end, cls: 'tag-hl-miss' }];
+  // Translate the mirror's inner layer to match the textarea scroll offset
+  // (mirror scrollTop would be clamped to 0 by overflow:hidden).
+  function syncScroll() {
+    const inner = m.querySelector('.mirror-inner');
+    if (inner) inner.style.transform = 'translate(' + (-ta.scrollLeft) + 'px,' + (-ta.scrollTop) + 'px)';
+  }
+
+  function repaint() {
+    // Decide the highlight ranges: [{start,end,cls}] or [].
+    let ranges = [];
+    const scan = text ? scanTags(text) : null;
+    const errRanges = scan ? computeErrorRanges(scan) : [];
+    const overlapsErr = (s, e) => errRanges.some(r => s < r[1] && e > r[0]);
+    // Tag highlight follows the caret whenever the textarea is focused with a
+    // collapsed caret. Independent of any preview state.
+    const active = document.activeElement === ta && ta.selectionStart === ta.selectionEnd;
+    if (active && text) {
+      const pos = ta.selectionStart;
+      const tags = scan.tags;
+      const idx = tags.findIndex(t => pos >= t.start && pos <= t.end);
+      if (idx >= 0) {
+        const t = tags[idx];
+        if (t.kind === 'open' || t.kind === 'close') {
+          const partner = findPartnerIndex(tags, idx);
+          if (partner >= 0) {
+            ranges = [
+              { start: t.start, end: t.end, cls: 'tag-hl' },
+              { start: tags[partner].start, end: tags[partner].end, cls: 'tag-hl' }
+            ];
+          } else {
+            ranges = [{ start: t.start, end: t.end, cls: 'tag-hl-miss' }];
+          }
         }
       }
     }
-  }
+    const link = getLinkRange ? getLinkRange() : null;
+    if (link) ranges.push({ start: link.start, end: link.end, cls: 'tag-hl-link' });
+    // Error ranges win wherever a caret/link range overlaps one.
+    ranges = ranges.filter(r => !overlapsErr(r.start, r.end));
+    errRanges.forEach(r => ranges.push({ start: r[0], end: r[1], cls: 'tag-hl-miss' }));
+    // Avoid needless DOM churn: only rebuild when the highlight state changes.
+    const key = ranges.map(r => r.start + ':' + r.end + ':' + r.cls).join('|') + '#' + text.length;
+    if (key === hlKey && m.dataset.built === '1') return;
+    hlKey = key;
 
-  // Avoid needless DOM churn: only rebuild when the highlight state changes.
-  if (_linkRange) ranges.push({ start: _linkRange.start, end: _linkRange.end, cls: 'tag-hl-link' });
-  // Error ranges win wherever a caret/link range overlaps one.
-  ranges = ranges.filter(r => !overlapsErr(r.start, r.end));
-  errRanges.forEach(r => ranges.push({ start: r[0], end: r[1], cls: 'tag-hl-miss' }));
-  const key = ranges.map(r => r.start + ':' + r.end + ':' + r.cls).join('|') + '#' + text.length;
-  if (key === _hlKey && m.dataset.built === '1') return;
-  _hlKey = key;
-
-  if (!ranges.length) {
-    m.innerHTML = '<div class="mirror-inner">' + escMirror(text) + '</div>';
-    syncMirrorScroll();
+    if (!ranges.length) {
+      m.innerHTML = '<div class="mirror-inner">' + escMirror(text) + '</div>';
+      syncScroll();
+      m.dataset.built = '1';
+      return;
+    }
+    ranges.sort((a, b) => a.start - b.start);
+    let html = '', cursor = 0;
+    for (const r of ranges) {
+      if (r.start < cursor) continue; // safety: no overlap
+      html += escMirror(text.slice(cursor, r.start));
+      html += '<span class="' + r.cls + '">' + escMirror(text.slice(r.start, r.end)) + '</span>';
+      cursor = r.end;
+    }
+    html += escMirror(text.slice(cursor));
+    m.innerHTML = '<div class="mirror-inner">' + html + '</div>';
+    syncScroll();
     m.dataset.built = '1';
-    return;
   }
-  ranges.sort((a, b) => a.start - b.start);
-  let html = '', cursor = 0;
-  for (const r of ranges) {
-    if (r.start < cursor) continue; // safety: no overlap
-    html += escMirror(text.slice(cursor, r.start));
-    html += '<span class="' + r.cls + '">' + escMirror(text.slice(r.start, r.end)) + '</span>';
-    cursor = r.end;
+
+  function refresh(val) { text = val; repaint(); }
+  function invalidate() { hlKey = ''; }   // force the next repaint to rebuild
+
+  // Caret tracking: repaint on caret moves that don't come through refresh()
+  // (clicks, arrow keys, focus). Blur rebuilds so the caret pair disappears
+  // while error ranges stay painted.
+  const onKeyup = (e) => {
+    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(e.key)) repaint();
+  };
+  const onBlur = () => { hlKey = ''; repaint(); };
+  const onSelectionChange = () => { if (document.activeElement === ta) repaint(); };
+  ta.addEventListener('click', repaint);
+  ta.addEventListener('keyup', onKeyup);
+  ta.addEventListener('focus', repaint);
+  ta.addEventListener('blur', onBlur);
+  ta.addEventListener('scroll', syncScroll);
+  document.addEventListener('selectionchange', onSelectionChange);
+
+  function destroy() {
+    ta.removeEventListener('click', repaint);
+    ta.removeEventListener('keyup', onKeyup);
+    ta.removeEventListener('focus', repaint);
+    ta.removeEventListener('blur', onBlur);
+    ta.removeEventListener('scroll', syncScroll);
+    document.removeEventListener('selectionchange', onSelectionChange);
   }
-  html += escMirror(text.slice(cursor));
-  m.innerHTML = '<div class="mirror-inner">' + html + '</div>';
-  syncMirrorScroll();
-  m.dataset.built = '1';
+
+  return { refresh, repaint, syncScroll, invalidate, destroy };
 }
-// Translate the mirror's inner layer to match the textarea scroll offset.
-function syncMirrorScroll() {
-  const ta = document.getElementById('htmlOutput');
-  const inner = document.querySelector('#htmlMirror .mirror-inner');
-  if (ta && inner) inner.style.transform = 'translate(' + (-ta.scrollLeft) + 'px,' + (-ta.scrollTop) + 'px)';
-}
+
+// Docked instance: the Clean HTML panel. getLinkRange feeds the green
+// linked-range highlight that only the docked panel has (preview mapping).
+const dockedHighlighter = createTagHighlighter({
+  textarea: document.getElementById('htmlOutput'),
+  mirror: document.getElementById('htmlMirror'),
+  getLinkRange: () => _linkRange
+});
 
 /* ============================================================================
    2.5 BIDIRECTIONAL HIGHLIGHT: Clean HTML <-> Live Preview
@@ -2122,7 +2178,7 @@ function buildPreviewMap() {
   previewElems = [];
   previewMapOk = false;
   if (!preview || previewPaused) { clearPreviewStamps(preview); return; }
-  const text = _mirrorText;
+  const text = document.getElementById('htmlOutput').value;
   const textEls = buildTextElements(text);
   const domEls = preview.querySelectorAll('*');
   let i = 0;
@@ -2164,11 +2220,11 @@ function textElementAtOffset(pos) {
 let _linkRange = null;
 function highlightTextRange(range, scroll) {
   _linkRange = range;
-  _hlKey = '';            // force repaint
-  paintTagHighlight();
+  dockedHighlighter.invalidate();   // force repaint
+  dockedHighlighter.repaint();
   if (scroll && range) {
     const ta = document.getElementById('htmlOutput');
-    const before = _mirrorText.slice(0, range.start);
+    const before = ta.value.slice(0, range.start);
     const line = (before.match(/\n/g) || []).length;
     const lineH = parseFloat(getComputedStyle(ta).lineHeight) || 19;
     const target = line * lineH - ta.clientHeight / 2;
@@ -2234,8 +2290,7 @@ document.getElementById('btnConvert').addEventListener('click', () => runConvert
   });
   htmlOut.addEventListener('scroll', () => {
     const g = document.getElementById('codeGutter'); if (g) g.scrollTop = htmlOut.scrollTop;
-    // Mirror follows BOTH axes via transform (scrollTop on the mirror is clamped).
-    syncMirrorScroll();
+    // Mirror scroll follows via the highlighter instance's own scroll listener.
   });
   htmlOut.addEventListener('keydown', (e) => {
     if (!(e.ctrlKey || e.metaKey)) return;
@@ -2243,17 +2298,8 @@ document.getElementById('btnConvert').addEventListener('click', () => runConvert
     if (k === 'z' && !e.shiftKey) { e.preventDefault(); htmlUndo.undo(); }
     else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); htmlUndo.redo(); }
   });
-  // Tag-highlight caret tracking (step 2.3). Repaint on any caret move that
-  // doesn't already go through onHtmlChanged (clicks, arrow keys, focus).
-  const repaint = () => paintTagHighlight();
-  htmlOut.addEventListener('click', repaint);
-  htmlOut.addEventListener('keyup', (e) => {
-    // Only caret-moving keys; text edits already repaint via onHtmlChanged.
-    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(e.key)) repaint();
-  });
-  htmlOut.addEventListener('focus', repaint);
-  htmlOut.addEventListener('blur', () => { _hlKey = ''; paintTagHighlight(); });
-  document.addEventListener('selectionchange', () => { if (document.activeElement === htmlOut) repaint(); });
+  // Tag-highlight caret tracking (clicks, arrow keys, focus, selectionchange)
+  // is installed by the docked createTagHighlighter instance itself.
 
   // 2.5 HTML -> Preview: clicking in the code outlines and scrolls to the
   // matching preview element. Click-driven only; plain caret moves don't scroll
@@ -3785,12 +3831,20 @@ function doClearAll() {
   const htmlOut   = document.getElementById('htmlOutput');
   const preview   = document.getElementById('previewArea');
   let kind = null, editEl = null, syncing = false;
+  let modalHL = null;   // tag-highlighter instance for the html modal editor
 
   const TITLES = { paste: 'Paste Word draft', html: 'Clean HTML', preview: 'Live Preview' };
+
+  // The modal body is rebuilt on every open/close; always tear the
+  // highlighter down with it so listeners never leak across opens.
+  function destroyModalHL() {
+    if (modalHL) { modalHL.destroy(); modalHL = null; }
+  }
 
   function open(k) {
     kind = k;
     titleEl.textContent = TITLES[k];
+    destroyModalHL();
     bodyEl.innerHTML = '';
     if (k === 'html') {
       editEl = document.createElement('textarea');
@@ -3802,6 +3856,7 @@ function doClearAll() {
         htmlOut.value = editEl.value;
         // skipModalSync: the edit originated here; re-syncing resets the caret.
         onHtmlChanged(editEl.value, { recordUndo: 'debounced', skipModalSync: true });
+        if (modalHL) modalHL.refresh(editEl.value);
       });
       editEl.addEventListener('keydown', (e) => {
         if (!(e.ctrlKey || e.metaKey)) return;
@@ -3809,7 +3864,19 @@ function doClearAll() {
         if (c === 'z' && !e.shiftKey) { e.preventDefault(); htmlUndo.undo(); }
         else if ((c === 'z' && e.shiftKey) || c === 'y') { e.preventDefault(); htmlUndo.redo(); }
       });
-      bodyEl.appendChild(editEl);
+      // Overlay stack + mirror so the modal editor gets the same matched-tag
+      // highlighting as the docked panel (no preview mapping here, so no
+      // getLinkRange). The mirror only paints; it never writes any .value.
+      const stack = document.createElement('div');
+      stack.className = 'modal-edit-stack';
+      const mir = document.createElement('pre');
+      mir.className = 'modal-mirror';
+      mir.setAttribute('aria-hidden', 'true');
+      stack.appendChild(mir);
+      stack.appendChild(editEl);
+      bodyEl.appendChild(stack);
+      modalHL = createTagHighlighter({ textarea: editEl, mirror: mir });
+      modalHL.refresh(editEl.value);
     } else if (k === 'paste') {
       editEl = document.createElement('div');
       editEl.className = 'modal-edit';
@@ -3849,6 +3916,7 @@ function doClearAll() {
   }
   function close() {
     if (kind === 'paste') { window._rteRestoreHome(); activePasteEditor = pasteRender; }
+    destroyModalHL();
     overlay.classList.add('hidden'); bodyEl.innerHTML = ''; kind = null; editEl = null;
   }
 
@@ -3859,7 +3927,11 @@ function doClearAll() {
     if (!kind || kind !== k || !editEl) return;
     if (!force && k === 'paste' && activePasteEditor === editEl) return;
     syncing = true;
-    if (k === 'html') editEl.value = htmlOut.value;
+    if (k === 'html') {
+      editEl.value = htmlOut.value;
+      // External text was pushed into the modal editor: repaint its mirror.
+      if (modalHL) modalHL.refresh(editEl.value);
+    }
     else if (k === 'paste') editEl.innerHTML = pasteRender.innerHTML;
     else {
       // Preview clone: drop runtime-only mapping/highlight artifacts.

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(node --check /tmp/km-check.js)",
+      "Bash(node --check km-check.js)",
+      "Bash(node -e \"try{require.resolve\\('jsdom'\\);console.log\\('jsdom available'\\)}catch\\(e\\){console.log\\('no jsdom'\\)}\")",
+      "Bash(npm ls *)",
+      "Bash(wc -l \"C:/Users/nechi/km-html-converter/index.html\" \"C:/Users/nechi/Downloads/km-paste-to-html-converter.html\")"
+    ]
+  }
+}

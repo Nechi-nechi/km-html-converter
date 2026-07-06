@@ -4,27 +4,68 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KM HTML Converter</title>
- <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23111827'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='38' font-family='Arial, sans-serif' font-weight='700' fill='%23E8F9FF'%3E%26lt;/%26gt;%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230A0E33'/%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11.5 11l-5 5 5 5'/%3E%3Cpath d='M20.5 11l5 5-5 5'/%3E%3Cpath d='M17.8 9.5l-3.6 13'/%3E%3C/g%3E%3C/svg%3E">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --ice-blue: #DCEEFF;
-    --signal-blue: #4DA3FF;
-    --blue-black: #111827;
-    --soft-white: #F8FBFF;
-    --cool-gray: #A7B4C2;
-    --accent-red: #D94141;
-    --border: #D0DDE8;
-    --panel-width: 320px;
+    --bg: #f5f8fc;
+    --surface: #ffffff;
+    --soft: #f8fbff;
+    --ice-blue: #dceeff;      /* soft blue */
+    --signal-blue: #4da3ff;   /* primary blue */
+    --dark-blue: #1f5f99;
+    --blue-black: #111827;    /* main text */
+    --soft-white: #f8fbff;
+    --cool-gray: #65758b;     /* muted text */
+    --accent-red: #d94141;    /* danger */
+    --success: #1f8a5b;
+    --warn-bg: #fff7e6;
+    --warn-text: #b7791f;
+    --border: #d8e4f2;
+    --panel-width: 340px;
   }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--soft-white); color: var(--blue-black); min-height: 100vh; display: flex; flex-direction: column; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--blue-black); min-height: 100vh; display: flex; flex-direction: column; }
 
-  header { background: #fff; border-bottom: 1.5px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 100; }
-  .header-left { display: flex; align-items: center; gap: 12px; }
-  .header-icon { width: 36px; height: 36px; background: var(--ice-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--signal-blue); font-size: 18px; flex-shrink: 0; }
+  .app-header { position: sticky; top: 0; z-index: 100; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; }
+  .header-inner { max-width: 1180px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 16px; }
+  .header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  .header-icon { width: 38px; height: 38px; background: #0A0E33; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; flex-shrink: 0; }
+  .header-icon svg { fill: #fff; }
+  .header-icon .hdr-ico-code { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .header-text h1 { font-size: 18px; font-weight: 700; color: var(--blue-black); line-height: 1.2; }
   .header-text p  { font-size: 12px; color: var(--cool-gray); margin-top: 1px; }
-  .header-badge { background: var(--ice-blue); color: var(--signal-blue); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+  .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  /* Live status dot reflecting validation state */
+  .status-chip { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--cool-gray); }
+  .status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+  .status-chip.ok   .status-dot { background: var(--success); }
+  .status-chip.ok   .status-word { color: var(--success); }
+  .status-chip.warn .status-dot { background: var(--warn-text); }
+  .status-chip.warn .status-word { color: var(--warn-text); }
+  .status-chip.err  .status-dot { background: var(--accent-red); }
+  .status-chip.err  .status-word { color: var(--accent-red); }
+  /* Quiet help button: square card with an outlined ? circle inside */
+  .hdr-divider { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+  .help-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--cool-gray); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0; }
+  .help-btn .help-q { width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid currentColor; font-size: 11px; font-weight: 700; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+  .help-btn:hover { background: var(--soft); color: var(--dark-blue); border-color: var(--signal-blue); }
+  .help-anchor { position: relative; }
+  .help-popover { position: absolute; top: calc(100% + 10px); right: 0; width: min(360px, 88vw); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 34px rgba(20,40,70,0.16); padding: 16px 18px; z-index: 300; font-size: 13px; color: var(--blue-black); line-height: 1.5; }
+  .help-popover.hidden { display: none; }
+  .help-popover h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .help-popover .help-step { display: flex; gap: 12px; align-items: flex-start; margin: 12px 0; }
+  .help-popover .help-step-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--ice-blue); color: var(--dark-blue); font-size: 12px; font-weight: 700; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+  .help-popover .help-step-title { font-size: 13px; font-weight: 700; color: var(--blue-black); line-height: 1.3; }
+  .help-popover .help-step-desc { font-size: 12px; color: var(--cool-gray); line-height: 1.45; margin-top: 2px; }
+  .help-popover .help-contact { color: var(--cool-gray); font-size: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .help-popover .help-contact a { color: var(--signal-blue); text-decoration: none; }
+  /* Workflow band */
+  .workflow-band { background: var(--soft); border-bottom: 1px solid var(--border); padding: 8px 24px; }
+  .wf-inner { max-width: 1180px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .wf-step { display: inline-flex; align-items: center; gap: 7px; color: var(--cool-gray); font-size: 12px; font-weight: 500; }
+  .wf-num { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--cool-gray); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .wf-arrow { color: var(--cool-gray); opacity: 0.6; font-size: 13px; }
 
   .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
   .main-content { flex: 1; overflow-y: auto; padding: 20px 24px; min-width: 0; transition: margin-right 0.25s ease; }
@@ -32,22 +73,26 @@
   .main-inner { max-width: 1180px; margin: 0 auto; }
   .section-label { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
   .panel-box-header .step-tag { flex: 1; }
-  .step-tag { color: var(--signal-blue); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .step-tag { color: #0A0E33; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
   .btn-ico { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
   .hdr-ico { width: 20px; height: 20px; fill: currentColor; }
+  /* Expand-to-modal buttons */
   .expand-btn { background: #fff; border: 1.5px solid var(--border); border-radius: 6px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--signal-blue); flex-shrink: 0; padding: 0; }
   .expand-btn:hover { background: var(--ice-blue); border-color: var(--signal-blue); }
   .expand-btn svg { width: 16px; height: 16px; fill: currentColor; }
   .paste-box { position: relative; }
+  /* Rich-text toolbar above the paste field */
   .rte-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 5px 6px; background: #fafcff; border: 1.5px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; }
   .rte-group { display: flex; align-items: center; gap: 2px; }
   .rte-sep { width: 1px; align-self: stretch; background: var(--border); margin: 2px 4px; }
-  .rte-btn { min-width: 28px; height: 28px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; background: #fff; border: 1px solid transparent; border-radius: 5px; cursor: pointer; color: var(--blue-black); font-size: 13px; line-height: 1; }
+  .rte-btn { min-width: 28px; height: 28px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; background: #fff; border: 1px solid transparent; border-radius: 5px; cursor: pointer; color: #333333; font-size: 13px; line-height: 1; }
   .rte-btn:hover { background: var(--ice-blue); }
   .rte-btn.active { background: var(--ice-blue); border-color: var(--signal-blue); color: var(--signal-blue); }
   .rte-btn svg { width: 17px; height: 17px; fill: currentColor; }
   .rte-btn b, .rte-btn i, .rte-btn u { font-size: 14px; }
-  .rte-select { height: 28px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--blue-black); font-size: 12px; padding: 0 4px; cursor: pointer; }
+  .rte-select { height: 28px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: #333333; font-size: 12px; padding: 0 4px; cursor: pointer; }
+  /* Read-only style-guide hint next to the block dropdown */
+  .rte-hint { display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 5px; background: var(--soft); border: 1px solid var(--border); color: var(--cool-gray); font-size: 11px; font-weight: 600; white-space: nowrap; user-select: none; pointer-events: none; }
   .rte-split { position: relative; display: inline-flex; }
   .rte-caret { min-width: 16px; width: 16px; padding: 0; font-size: 9px; color: var(--cool-gray); }
   .rte-menu { position: absolute; top: 100%; left: 0; margin-top: 2px; background: #fff; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.12); padding: 4px; z-index: 50; display: none; min-width: 130px; }
@@ -60,6 +105,7 @@
   .rte-spacer { margin-left: auto; }
   .rte-btn:disabled { opacity: 0.35; cursor: default; }
   .rte-btn:disabled:hover { background: #fff; }
+  /* Link dialog (image 2 style) */
   .link-dialog-overlay { position: fixed; inset: 0; background: rgba(20,33,51,0.25); z-index: 250; display: flex; align-items: flex-start; justify-content: center; padding-top: 16vh; }
   .link-dialog-overlay.hidden { display: none; }
   .link-dialog { background: #fff; border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,0.25); width: min(540px, 92vw); padding: 16px; }
@@ -74,6 +120,7 @@
   .link-remove { background: none; border: none; color: var(--accent-red); font-size: 12px; cursor: pointer; margin-top: 10px; padding: 0; }
   .link-remove.hidden { display: none; }
   .paste-box.has-toolbar { border-top-left-radius: 0; border-top-right-radius: 0; }
+  /* Field modal */
   .modal-overlay { position: fixed; inset: 0; background: rgba(20,33,51,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; }
   .modal-overlay.hidden { display: none; }
   .modal-box { background: #fff; border-radius: 10px; width: min(1100px, 96vw); height: min(86vh, 900px); display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.25); overflow: hidden; }
@@ -83,7 +130,17 @@
   .modal-close:hover { background: var(--ice-blue); color: var(--blue-black); }
   .modal-body { flex: 1; overflow: auto; padding: 16px 18px; min-height: 0; }
   .modal-edit { width: 100%; height: 100%; box-sizing: border-box; border: none; outline: none; resize: none; font-size: 13px; line-height: 1.6; color: var(--blue-black); }
-  textarea.modal-edit { font-family: 'SF Mono', Menlo, Consolas, monospace; white-space: pre; }
+  /* PAIRED TEXT METRICS — textarea.modal-edit and .modal-mirror .mirror-inner
+     MUST stay in sync (font family/size, line-height, padding, tab-size,
+     white-space), or the modal highlight boxes drift off the characters.
+     (.modal-edit supplies font-size 13px / line-height 1.6; the global reset
+     zeroes the textarea padding, so the mirror inner uses padding 0 too.) */
+  textarea.modal-edit { font-family: 'SF Mono', Menlo, Consolas, monospace; white-space: pre; tab-size: 8; position: relative; z-index: 1; background: transparent; }
+  /* Modal highlight mirror: same overlay pattern as the docked #htmlMirror —
+     outer box fixed, inner layer translated to follow the textarea scroll. */
+  .modal-edit-stack { position: relative; width: 100%; height: 100%; }
+  .modal-mirror { position: absolute; inset: 0; z-index: 0; margin: 0; border: none; overflow: hidden; background: transparent; color: transparent; pointer-events: none; }
+  .modal-mirror .mirror-inner { position: absolute; top: 0; left: 0; padding: 0; white-space: pre; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6; tab-size: 8; will-change: transform; }
   .modal-edit ol { padding-left: 24px; margin: 2px 0; list-style-type: decimal; }
   .modal-edit ul { padding-left: 24px; margin: 2px 0; list-style-type: disc; }
   .modal-edit ol ol { list-style-type: lower-alpha; }
@@ -96,6 +153,7 @@
   .modal-view ul ul { list-style-type: circle; }
   .modal-view ul ul ul { list-style-type: square; }
 
+  /* PASTE AREA - editable rendered preview */
   .paste-section { margin-bottom: 16px; }
   .paste-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; }
   .paste-box-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #fafcff; border-bottom: 1px solid var(--border); gap: 8px; }
@@ -104,10 +162,12 @@
   .paste-clear-btn:hover { background: #fff0f0; }
   #pasteRender { min-height: 160px; max-height: 280px; overflow-y: auto; padding: 14px 16px;
     font-family: Arial, sans-serif; font-size: 12px; line-height: 1.6; color: var(--blue-black); }
-  #pasteRender.empty::before { content: 'Click this field and paste (Ctrl+V)'; color: var(--cool-gray); font-style: italic; }
+  #pasteRender.empty::before { content: 'Paste your Word draft here (Ctrl+V)'; color: var(--cool-gray); font-style: italic; }
+  /* Render Word list styles faithfully inside the paste preview */
   #pasteRender ol { padding-left: 24px; margin: 2px 0; list-style-type: decimal; }
   #pasteRender ul { padding-left: 24px; margin: 2px 0; list-style-type: disc; }
   #pasteRender li { margin: 1px 0; }
+  /* Fallback nested markers by depth (JS sets inline styles which win) */
   #pasteRender ol ol { list-style-type: lower-alpha; }
   #pasteRender ol ol ol { list-style-type: lower-roman; }
   #pasteRender ul ul { list-style-type: circle; }
@@ -121,9 +181,11 @@
   #pasteRender td, #pasteRender th { border: 0.5px solid #aaa; padding: 3px 6px; vertical-align: top; }
   #pasteRender a { color: var(--signal-blue); }
   #pasteRender pre { background: #f4f6f8; padding: 8px; font-size: 11px; border-radius: 4px; overflow-x: auto; }
+  /* Make the paste area focusable so it can catch paste events */
   #pasteRender:focus { outline: 2px solid var(--signal-blue); outline-offset: -2px; border-radius: 8px; }
   .paste-hint { font-size: 11px; color: var(--cool-gray); margin-top: 5px; }
 
+  /* BUTTONS */
   .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; align-items: center; }
   button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; white-space: nowrap; }
   .btn-primary   { background: var(--signal-blue); color: #fff; border-color: var(--signal-blue); }
@@ -134,14 +196,23 @@
   .btn-danger:hover    { background: #fff0f0; }
   .btn-code      { background: var(--blue-black); color: #fff; border-color: var(--blue-black); }
   .btn-code:hover      { background: #1e2d42; }
-  #copyStatus { font-size: 11px; color: #2a9d2a; font-weight: 600; align-self: center; display: none; }
+  #copyStatus { display: none; }
+  .btn-copied, .btn-copied:hover { background: #e6f6ee; color: var(--success); border-color: #b6e2cc; }
 
+  /* OUTPUT GRID */
   .output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 900px) { .output-grid { grid-template-columns: 1fr; } }
-  .panel-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
-  .panel-box-header { padding: 8px 12px; background: #f3f9ff; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+  .panel-box { border: 1px solid var(--border); border-radius: 10px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+  .panel-box-header { padding: 8px 12px; background: var(--soft); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+  .panel-box-header .panel-kind { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cool-gray); }
 
-  #previewArea { flex: 1; min-height: 280px; max-height: 480px; overflow-y: auto; padding: 14px 16px; font-size: 12px; line-height: 1.6; font-family: Arial, sans-serif; }
+  /* Clean HTML = code surface with a left line-number gutter */
+  .code-panel { background: #eef3fa; }
+  .code-panel .panel-box-header { background: #e7eef8; }
+  .code-wrap { flex: 1; display: flex; min-height: 280px; max-height: 480px; overflow: hidden; background: #eef3fa; }
+  .code-gutter { flex-shrink: 0; padding: 12px 8px 12px 10px; text-align: right; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; color: #93a3b8; background: #e4ebf4; border-right: 1px solid var(--border); user-select: none; overflow: hidden; min-width: 34px; white-space: pre; }
+
+  #previewArea { flex: 1; min-height: 280px; max-height: 480px; overflow-y: auto; padding: 14px 16px; font-size: 12px; line-height: 1.6; font-family: Arial, sans-serif; background: #fff; }
   #previewArea:empty::before { content: 'Preview will appear here after conversion.'; color: var(--cool-gray); font-style: italic; font-size: 12px; }
   #previewArea h2 { font-size: 18px; font-weight: bold; margin: 10px 0 5px; font-family: Arial, sans-serif; }
   #previewArea h3 { font-size: 16px; font-weight: bold; margin: 8px 0 4px; font-family: Arial, sans-serif; }
@@ -154,7 +225,7 @@
   #previewArea ul ul ul { list-style-type: square; }
   #previewArea li { font-size: 12px; margin: 1px 0; font-family: Arial, sans-serif; }
   #previewArea table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; font-family: Arial, sans-serif; }
-  #previewArea th { border: 0.5px solid #808080; background-color: #0A0E33; color: #FFFFFF; font-weight: bold; padding: 4px; vertical-align: top; text-align: left; font-size: 12px; }
+  #previewArea th { border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; text-align: center; font-size: 12px; background: #0A0E33; color: #fff; }
   #previewArea td { border: 0.5px solid #808080; padding: 4px; vertical-align: top; }
   #previewArea a  { color: var(--signal-blue); }
   #previewArea pre { background: #f4f6f8; border-radius: 4px; padding: 10px 12px; font-size: 12px; overflow-x: auto; margin: 6px 0; }
@@ -162,34 +233,77 @@
   #previewArea hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
   #previewArea blockquote { border-left: 3px solid var(--signal-blue); margin: 6px 0; padding: 6px 12px; background: #f5f9ff; border-radius: 0 4px 4px 0; font-size: 12px; }
 
-  #htmlOutput { flex: 1; min-height: 280px; max-height: 480px; resize: vertical; padding: 12px 14px; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; color: var(--blue-black); border: none; outline: none; background: #fff; width: 100%; }
+  /* Overlay stack: textarea on top, highlight mirror underneath (same box). */
+  .code-editor-stack { position: relative; flex: 1; min-width: 0; display: flex; background: #eef3fa; }
+  /* PAIRED TEXT METRICS — #htmlOutput and #htmlMirror MUST stay in sync.
+     The mirror sits exactly under the textarea; highlight spans only align if
+     font family/size, line-height, padding, tab-size and white-space are
+     IDENTICAL on both. Change them here, never separately.
+     (Converter output can contain literal tabs inside code blocks, hence the
+     explicit tab-size; 8 is the browser default for textarea and pre.) */
+  #htmlOutput { font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; padding: 12px 12px; white-space: pre; tab-size: 8; }
+  /* Mirror metrics MUST match #htmlOutput; padding is applied on .mirror-inner
+     (which is what translates), never on #htmlMirror, to avoid double padding. */
+  /* Textarea on top, transparent background so mirror highlights show through. */
+  #htmlOutput { position: relative; z-index: 1; flex: 1; min-width: 0; min-height: 280px; max-height: 480px; resize: none; color: #1e2d42; border: none; outline: none; background: transparent; overflow: auto; }
+  /* Highlight mirror (step 2.3): real layout, text invisible, only the tag
+     highlight spans paint. The outer box is fixed; the inner layer is
+     translated to follow the textarea's scroll (mirror scrollTop would be
+     clamped to 0 by overflow:hidden, so transform is used instead). */
+  #htmlMirror { position: absolute; inset: 0; z-index: 0; margin: 0; border: none; overflow: hidden; background: transparent; color: transparent; pointer-events: none; }
+  #htmlMirror .mirror-inner { position: absolute; top: 0; left: 0; padding: 12px 12px; white-space: pre; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; tab-size: 8; will-change: transform; }
+  #htmlMirror .tag-hl, .modal-mirror .tag-hl { border-radius: 2px; background: rgba(77,163,255,0.22); box-shadow: inset 0 0 0 1px rgba(77,163,255,0.55); }
+  #htmlMirror .tag-hl-miss, .modal-mirror .tag-hl-miss { border-radius: 2px; background: rgba(229,72,77,0.16); box-shadow: inset 0 0 0 1px rgba(229,72,77,0.65); }
+  #htmlMirror .tag-hl-link, .modal-mirror .tag-hl-link { border-radius: 2px; background: rgba(46,182,125,0.20); box-shadow: inset 0 0 0 1px rgba(46,182,125,0.6); }
+  #previewArea .pv-link { outline: 2px solid rgba(46,182,125,0.7); outline-offset: 1px; border-radius: 2px; transition: outline-color 0.4s ease; }
   .output-hint { font-size: 11px; color: var(--cool-gray); padding: 6px 12px; border-top: 1px solid var(--border); background: #fafcff; }
 
-  .warnings-panel { position: fixed; top: 65px; right: 0; bottom: 0; width: var(--panel-width); background: #fff; border-left: 1.5px solid var(--border); display: flex; flex-direction: column; z-index: 90; transition: transform 0.25s ease; overflow: hidden; }
+  /* VALIDATION PANEL */
+  .warnings-panel { position: fixed; top: var(--header-h, 98px); right: 0; bottom: 0; width: var(--panel-width); background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 90; transition: transform 0.25s ease; overflow: hidden; }
   .warnings-panel.hidden { transform: translateX(100%); }
-  .warnings-panel-header { padding: 12px 14px; background: var(--ice-blue); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-  .warnings-panel-header span { font-size: 12px; font-weight: 700; color: var(--blue-black); text-transform: uppercase; letter-spacing: 0.05em; }
-  .panel-status { padding: 10px 14px; font-size: 12px; color: var(--blue-black); background: #fff; border-bottom: 1px solid var(--border); line-height: 1.4; flex-shrink: 0; }
-  .panel-status.ok   { color: #2a7d2a; }
-  .panel-status.warn { color: #b07800; }
+  .val-head { padding: 12px 14px; background: var(--soft); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .val-title { font-size: 12px; font-weight: 700; color: var(--blue-black); text-transform: uppercase; letter-spacing: 0.05em; }
+  .val-counts { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .val-count { font-size: 11px; font-weight: 600; color: var(--cool-gray); display: inline-flex; align-items: center; gap: 4px; }
+  .val-count b { font-weight: 800; }
+  .val-count.err.on  { color: var(--accent-red); }
+  .val-count.warn.on { color: var(--warn-text); }
+  .val-count.info.on { color: var(--dark-blue); }
+  .val-collapse { width: 24px; height: 24px; border: none; background: none; color: var(--cool-gray); font-size: 18px; line-height: 1; cursor: pointer; border-radius: 5px; flex-shrink: 0; }
+  .val-collapse:hover { background: var(--ice-blue); color: var(--blue-black); }
+  .panel-status { padding: 10px 14px; font-size: 12px; color: var(--blue-black); background: var(--surface); border-bottom: 1px solid var(--border); line-height: 1.45; flex-shrink: 0; display: flex; align-items: flex-start; gap: 8px; }
+  .panel-status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--success); margin-top: 4px; flex-shrink: 0; }
+  .panel-status.ok::before   { background: var(--success); }
+  .panel-status.warn::before { background: var(--warn-text); }
+  .panel-status.err::before  { background: var(--accent-red); }
+  .panel-status.ok   { color: var(--success); }
+  .panel-status.warn { color: var(--warn-text); }
   .panel-status.err  { color: var(--accent-red); }
   .warnings-scroll { flex: 1; overflow-y: auto; padding: 12px; }
   .warnings-empty { color: var(--cool-gray); font-size: 12px; font-style: italic; text-align: center; margin-top: 40px; padding: 0 16px; }
-  .warning-item { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 12px; line-height: 1.4; }
-  .warning-item.error   { background: #fff2f2; border: 1px solid #f0c0c0; }
-  .warning-item.warning { background: #fffbf0; border: 1px solid #f0e0a0; }
-  .warning-item.info    { background: #f0f8ff; border: 1px solid #c0d8f0; }
-  .warning-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-  .warning-text strong { display: block; font-size: 12px; font-weight: 700; margin-bottom: 1px; }
-  .warning-text span   { font-size: 11px; color: #555; }
-  .warnings-footer { padding: 8px 12px; border-top: 1px solid var(--border); background: #fafcff; font-size: 11px; color: var(--cool-gray); display: flex; gap: 10px; flex-shrink: 0; }
-  .wf-chip { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
-  .wf-chip.red   { color: var(--accent-red); }
-  .wf-chip.amber { color: #b07800; }
-  .wf-chip.blue  { color: var(--signal-blue); }
+  .val-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cool-gray); margin: 10px 2px 6px; }
+  .val-group-label:first-child { margin-top: 0; }
+  .warning-item { position: relative; padding: 9px 11px 9px 12px; border-radius: 9px; margin-bottom: 7px; font-size: 12px; line-height: 1.45; border: 1px solid var(--border); background: var(--surface); }
+  .warning-item.error   { background: #fdf2f2; border-color: #f2c9c9; }
+  .warning-item.warning { background: var(--warn-bg); border-color: #f0dfb0; }
+  .warning-item.info    { background: #f1f7ff; border-color: #cfe1f5; }
+  .val-badge { display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; margin-bottom: 5px; }
+  .warning-item.error   .val-badge { background: #f6d4d4; color: #a12626; }
+  .warning-item.warning .val-badge { background: #f4e2b0; color: var(--warn-text); }
+  .warning-item.info    .val-badge { background: #d3e6fb; color: var(--dark-blue); }
+  .warning-text strong { display: block; font-size: 12px; font-weight: 700; margin-bottom: 1px; color: var(--blue-black); }
+  .warning-text span   { font-size: 11px; color: #566072; }
 
-  .panel-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 95; background: #fff; border: 1.5px solid var(--border); border-right: none; border-radius: 8px 0 0 8px; padding: 10px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: right 0.25s ease, box-shadow 0.25s ease; box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
+  .panel-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 95; background: #fff; border: 1px solid var(--border); border-right: none; border-radius: 8px 0 0 8px; padding: 10px 7px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: right 0.25s ease, box-shadow 0.25s ease; box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
   .panel-toggle.panel-open { right: var(--panel-width); }
+  .panel-toggle .toggle-label { font-size: 10px; font-weight: 700; color: var(--cool-gray); writing-mode: vertical-rl; }
+  .panel-toggle .toggle-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--success); }
+  .panel-toggle.sev-ok   .toggle-dot { background: var(--success); }
+  .panel-toggle.sev-warn .toggle-dot { background: var(--warn-text); }
+  .panel-toggle.sev-err  .toggle-dot { background: var(--accent-red); }
+  .panel-toggle.sev-warn { border-color: #eBcF8f; }
+  .panel-toggle.sev-err  { border-color: #eec2c2; }
+  /* TOAST NOTIFICATION */
   #kmToast {
     position: fixed; bottom: 28px; right: 28px; z-index: 9999;
     background: var(--blue-black); color: #fff;
@@ -205,82 +319,141 @@
   }
   #kmToast.km-toast-error { background: var(--accent-red); }
 
+  /* Text-label toolbar buttons (Convert to list / text) */
+
+  /* Editor-only code block indent — margin applied inline via data-indent in JS */
+  #pasteRender [data-code-block], .modal-edit [data-code-block] { transition: margin-left 0.1s ease; }
+
+  /* Responsive: collapse to single column, panel becomes full-width overlay */
+  @media (max-width: 720px) {
+    .header-inner { flex-wrap: wrap; }
+    .workflow-band { gap: 6px; }
+    .warnings-panel { width: min(100vw, 340px); }
+    .main-content.panel-open { margin-right: 0; }
+    .output-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 
+<div class="app-header" id="appHeader">
 <header>
+  <div class="header-inner">
   <div class="header-left">
-    <div class="header-icon"><svg class="hdr-ico" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560h-80v120H280v-120h-80v560Zm280-560q17 0 28.5-11.5T520-800q0-17-11.5-28.5T480-840q-17 0-28.5 11.5T440-800q0 17 11.5 28.5T480-760Z"/></svg></div>
+    <div class="header-icon"><svg class="hdr-ico hdr-ico-code" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/><path d="M13.7 6.5l-3.4 11"/></svg></div>
     <div class="header-text">
       <h1>KM HTML Converter</h1>
-      <p>Paste content from Word and convert it into clean Salesforce Knowledge HTML.</p>
+      <p>Clean Word content into Salesforce-ready HTML.</p>
     </div>
   </div>
+  <div class="header-right">
+    <span class="status-chip ok" id="statusChip"><span class="status-dot"></span><span class="status-word" id="statusWord">Ready</span></span>
+    <span class="hdr-divider" aria-hidden="true"></span>
+    <div class="help-anchor">
+      <button class="help-btn" id="helpBtn" title="How it works" aria-label="How it works" aria-haspopup="true" aria-expanded="false"><span class="help-q" aria-hidden="true">?</span></button>
+      <div class="help-popover hidden" id="helpPopover" role="dialog" aria-label="How it works">
+        <h4>How it works</h4>
+        <div class="help-step">
+          <span class="help-step-num">1</span>
+          <div class="help-step-body">
+            <div class="help-step-title">Paste your draft</div>
+            <div class="help-step-desc">Drop your Word content into the editor.</div>
+          </div>
+        </div>
+        <div class="help-step">
+          <span class="help-step-num">2</span>
+          <div class="help-step-body">
+            <div class="help-step-title">Review the clean HTML</div>
+            <div class="help-step-desc">Scan the live preview and editable HTML for formatting issues.</div>
+          </div>
+        </div>
+        <div class="help-step">
+          <span class="help-step-num">3</span>
+          <div class="help-step-body">
+            <div class="help-step-title">Copy to Salesforce</div>
+            <div class="help-step-desc">Copy the cleaned HTML and paste it into the Salesforce Source Code.</div>
+          </div>
+        </div>
+        <div class="help-contact">Need help or found an issue? Contact <a href="mailto:nechille.bayan@sovos.com">nechille.bayan@sovos.com</a>.</div>
+      </div>
+    </div>
+  </div>
+  </div>
 </header>
+<div class="workflow-band">
+  <div class="wf-inner">
+  <span class="wf-step"><span class="wf-num">1</span> Paste draft</span>
+  <span class="wf-arrow">&rarr;</span>
+  <span class="wf-step"><span class="wf-num">2</span> Review HTML</span>
+  <span class="wf-arrow">&rarr;</span>
+  <span class="wf-step"><span class="wf-num">3</span> Copy to Salesforce</span>
+  </div>
+</div>
+</div>
 
 <div class="app-body">
   <div class="main-content" id="mainContent">
    <div class="main-inner">
 
     <div class="paste-section">
-      <div class="section-label"><span class="step-tag">Paste copied Word content here</span></div>
+      <div class="section-label"><span class="step-tag">Paste Word draft</span></div>
       <div class="rte-toolbar" id="rteToolbar">
+        <!-- history -->
         <div class="rte-group">
-          <button class="rte-btn" data-cmd="redo" title="Redo last undone change"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M396-200q-97 0-166.5-63T160-420q0-94 69.5-157T396-640h252L544-744l56-56 200 200-200 200-56-56 104-104H396q-63 0-109.5 40T240-420q0 60 46.5 100T396-280h284v80H396Z"/></svg></button>
           <button class="rte-btn" data-cmd="undo" title="Undo last change"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"/></svg></button>
+          <button class="rte-btn" data-cmd="redo" title="Redo last undone change"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M396-200q-97 0-166.5-63T160-420q0-94 69.5-157T396-640h252L544-744l56-56 200 200-200 200-56-56 104-104H396q-63 0-109.5 40T240-420q0 60 46.5 100T396-280h284v80H396Z"/></svg></button>
         </div>
         <div class="rte-sep"></div>
-        <select class="rte-select" id="rteFormat" title="Paragraph format">
-          <option value="p">Normal</option>
-          <option value="h2">Heading 2</option>
-          <option value="h3">Heading 3</option>
-          <option value="h4">Heading 4</option>
-          <option value="pre">Code</option>
-          <option value="blockquote">Blockquote</option>
-        </select>
+        <!-- format -->
+        <div class="rte-group">
+          <select class="rte-select" id="rteFormat" title="Block style (style guide)">
+            <option value="p">Normal</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+            <option value="h4">Heading 4</option>
+            <option value="pre">Code</option>
+            <option value="blockquote">Blockquote</option>
+          </select>
+          <span class="rte-hint" id="rteStyleHint" title="Style-guide format for the current block">Arial 12</span>
+        </div>
         <div class="rte-sep"></div>
+        <!-- inline -->
         <div class="rte-group">
           <button class="rte-btn" data-cmd="bold" title="Bold"><b>B</b></button>
           <button class="rte-btn" data-cmd="italic" title="Italic"><i>I</i></button>
           <button class="rte-btn" data-cmd="underline" title="Underline"><u>U</u></button>
         </div>
         <div class="rte-sep"></div>
-        <div class="rte-split">
-          <button class="rte-btn" data-cmd="bullet" title="Bulleted list"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M360-200v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360ZM200-160q-33 0-56.5-23.5T120-240q0-33 23.5-56.5T200-320q33 0 56.5 23.5T280-240q0 33-23.5 56.5T200-160Zm0-240q-33 0-56.5-23.5T120-480q0-33 23.5-56.5T200-560q33 0 56.5 23.5T280-480q0 33-23.5 56.5T200-400Zm0-240q-33 0-56.5-23.5T120-720q0-33 23.5-56.5T200-800q33 0 56.5 23.5T280-720q0 33-23.5 56.5T200-640Z"/></svg></button>
-          <button class="rte-btn rte-caret" data-menu="bulletMenu" title="Bullet style">&#9662;</button>
-          <div class="rte-menu" id="bulletMenu">
-            <div class="rte-menu-item" data-list="ul" data-style="disc"><span class="mk">&#9679;</span> Disc</div>
-            <div class="rte-menu-item" data-list="ul" data-style="circle"><span class="mk">&#9675;</span> Circle</div>
-            <div class="rte-menu-item" data-list="ul" data-style="square"><span class="mk">&#9632;</span> Square</div>
+        <!-- lists + indent -->
+        <div class="rte-group">
+          <div class="rte-split">
+            <button class="rte-btn" data-cmd="bullet" title="Bulleted list"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M360-200v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360ZM200-160q-33 0-56.5-23.5T120-240q0-33 23.5-56.5T200-320q33 0 56.5 23.5T280-240q0 33-23.5 56.5T200-160Zm0-240q-33 0-56.5-23.5T120-480q0-33 23.5-56.5T200-560q33 0 56.5 23.5T280-480q0 33-23.5 56.5T200-400Zm0-240q-33 0-56.5-23.5T120-720q0-33 23.5-56.5T200-800q33 0 56.5 23.5T280-720q0 33-23.5 56.5T200-640Z"/></svg></button>
+            <button class="rte-btn rte-caret" data-menu="bulletMenu" title="Bullet style">&#9662;</button>
+            <div class="rte-menu" id="bulletMenu">
+              <div class="rte-menu-item" data-list="ul" data-style="disc"><span class="mk">&#9679;</span> Disc</div>
+              <div class="rte-menu-item" data-list="ul" data-style="circle"><span class="mk">&#9675;</span> Circle</div>
+              <div class="rte-menu-item" data-list="ul" data-style="square"><span class="mk">&#9632;</span> Square</div>
+            </div>
           </div>
-        </div>
-        <div class="rte-split">
-          <button class="rte-btn" data-cmd="number" title="Numbered list"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg></button>
-          <button class="rte-btn rte-caret" data-menu="numberMenu" title="Number style">&#9662;</button>
-          <div class="rte-menu" id="numberMenu">
-            <div class="rte-menu-item" data-list="ol" data-style="decimal"><span class="mk">1.</span> Decimal</div>
-            <div class="rte-menu-item" data-list="ol" data-style="lower-alpha"><span class="mk">a.</span> Lower alpha</div>
-            <div class="rte-menu-item" data-list="ol" data-style="lower-roman"><span class="mk">i.</span> Lower roman</div>
+          <div class="rte-split">
+            <button class="rte-btn" data-cmd="number" title="Numbered list"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg></button>
+            <button class="rte-btn rte-caret" data-menu="numberMenu" title="Number style">&#9662;</button>
+            <div class="rte-menu" id="numberMenu">
+              <div class="rte-menu-item" data-list="ol" data-style="decimal"><span class="mk">1.</span> Decimal</div>
+              <div class="rte-menu-item" data-list="ol" data-style="lower-alpha"><span class="mk">a.</span> Lower alpha</div>
+              <div class="rte-menu-item" data-list="ol" data-style="lower-roman"><span class="mk">i.</span> Lower roman</div>
+            </div>
           </div>
+          <button class="rte-btn" data-cmd="outdent" title="Decrease indent (Shift+Tab)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 17h10v-2H11v2zm-8-5l4 4V8l-4 4zm0 9h18v-2H3v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg></button>
+          <button class="rte-btn" data-cmd="indent" title="Increase indent (Tab)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18v-2H3v2zM3 8v8l4-4-4-4zm8 9h10v-2H11v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg></button>
         </div>
         <div class="rte-sep"></div>
-        <select class="rte-select" id="rteFont" title="Font">
-          <option value="Arial, sans-serif">Arial</option>
-          <option value="'Courier New', Consolas, monospace">Monospace</option>
-        </select>
-        <select class="rte-select" id="rteSize" title="Font size">
-          <option value="10px">10</option>
-          <option value="11px">11</option>
-          <option value="12px" selected>12</option>
-          <option value="14px">14</option>
-          <option value="16px">16</option>
-          <option value="18px">18</option>
-          <option value="24px">24</option>
-        </select>
-        <div class="rte-sep"></div>
-        <button class="rte-btn" id="rteLink" data-cmd="link" title="Insert/remove link"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg></button>
-        <button class="rte-btn" id="rteCode" data-cmd="codesnippet" title="Code snippet">{;}</button>
+        <!-- insert + code + clear -->
+        <div class="rte-group">
+          <button class="rte-btn" id="rteLink" data-cmd="link" title="Insert/remove link"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg></button>
+          <button class="rte-btn" id="rteCode" data-cmd="codesnippet" title="Inline code (in-line selection) / code block (whole line)">{;}</button>
+          <button class="rte-btn" data-cmd="clearformat" title="Clear formatting"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.27 5L2 6.27l6.97 6.97L6.5 19h3l1.57-3.66L16.73 21 18 19.73 3.55 5.27 3.27 5zM6 5v.18L8.82 8h2.4l-.72 1.68 2.1 2.1L14.21 8H20V5H6z"/></svg></button>
+        </div>
         <button class="expand-btn rte-spacer" id="expandPaste" title="Open in larger window" aria-label="Expand paste field"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button>
       </div>
       <div class="paste-box has-toolbar">
@@ -291,18 +464,24 @@
     </div>
 
     <div class="actions">
-      <button class="btn-primary"   id="btnConvert">&#8635; Convert to HTML</button>
-      <button class="btn-secondary" id="btnCopy"><svg class="btn-ico" viewBox="0 -960 960 960" aria-hidden="true"><path d="M760-200H320q-33 0-56.5-23.5T240-280v-560q0-33 23.5-56.5T320-920h280l240 240v400q0 33-23.5 56.5T760-200ZM560-640v-200H320v560h440v-360H560ZM160-40q-33 0-56.5-23.5T80-120v-560h80v560h440v80H160Zm160-800v200-200 560-560Z"/></svg> Copy HTML</button>
-      <button class="btn-danger"    id="btnClearAll">&#128465; Clear</button>
+      <button class="btn-primary"   id="btnConvert"><svg class="btn-ico" viewBox="0 -960 960 960" aria-hidden="true"><path d="M204-318q-22-38-33-78t-11-82q0-134 93-228t227-94h7l-64-64 56-56 160 160-160 160-56-56 64-64h-7q-100 0-170 70.5T240-478q0 26 6 51t18 49l-60 60ZM481-40 321-200l160-160 56 56-64 64h7q100 0 170-70.5T720-482q0-26-6-51t-18-49l60-60q22 38 33 78t11 82q0 134-93 228t-227 94h-7l64 64-56 56Z"/></svg> <span class="btn-label">Convert to HTML</span></button>
+      <button class="btn-secondary" id="btnCopy"><svg class="btn-ico" viewBox="0 -960 960 960" aria-hidden="true"><path d="M760-200H320q-33 0-56.5-23.5T240-280v-560q0-33 23.5-56.5T320-920h280l240 240v400q0 33-23.5 56.5T760-200ZM560-640v-200H320v560h440v-360H560ZM160-40q-33 0-56.5-23.5T80-120v-560h80v560h440v80H160Zm160-800v200-200 560-560Z"/></svg> <span class="btn-label">Copy HTML</span></button>
+      <button class="btn-danger"    id="btnClearAll"><svg class="btn-ico" viewBox="0 -960 960 960" aria-hidden="true"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520h400v-520H280Z"/></svg> <span class="btn-label">Clear workspace</span></button>
     </div>
 
     <div class="output-grid">
-      <div class="panel-box">
-        <div class="panel-box-header"><span class="step-tag">HTML output (editable)</span><button class="expand-btn" id="expandHtml" title="Open in larger window" aria-label="Expand HTML output"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
-        <textarea id="htmlOutput" spellcheck="false" placeholder="Converted HTML will appear here. You can edit before copying."></textarea>
+      <div class="panel-box code-panel">
+        <div class="panel-box-header"><span class="step-tag">Clean HTML</span><span class="panel-kind">code</span><button class="expand-btn" id="expandHtml" title="Open in larger window" aria-label="Expand HTML output"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
+        <div class="code-wrap">
+          <div class="code-gutter" id="codeGutter">1</div>
+          <div class="code-editor-stack">
+            <textarea id="htmlOutput" spellcheck="false" placeholder="Converted HTML will appear here. You can edit before copying."></textarea>
+            <pre id="htmlMirror" aria-hidden="true"></pre>
+          </div>
+        </div>
       </div>
       <div class="panel-box">
-        <div class="panel-box-header"><span class="step-tag">Preview (rendered output)</span><button class="expand-btn" id="expandPreview" title="Open in larger window" aria-label="Expand preview"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
+        <div class="panel-box-header"><span class="step-tag">Live Preview</span><span class="panel-kind">document</span><button class="expand-btn" id="expandPreview" title="Open in larger window" aria-label="Expand preview"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
         <div id="previewArea"></div>
       </div>
     </div>
@@ -310,23 +489,24 @@
   </div>
 
   <div class="warnings-panel hidden" id="warningsPanel">
-    <div class="warnings-panel-header">
-      <span>Status &amp; Warnings</span>
+    <div class="val-head">
+      <span class="val-title">Validation</span>
+      <div class="val-counts" id="valCounts">
+        <span class="val-count err"  id="countError"><b>0</b> errors</span>
+        <span class="val-count warn" id="countWarning"><b>0</b> warnings</span>
+        <span class="val-count info" id="countInfo"><b>0</b> info</span>
+      </div>
+      <button class="val-collapse" id="valCollapse" title="Collapse panel" aria-label="Collapse panel">&rsaquo;</button>
     </div>
-    <div class="panel-status" id="panelStatus">Paste Word content and convert to begin.</div>
+    <div class="panel-status ok" id="panelStatus">Paste Word content and convert to begin.</div>
     <div class="warnings-scroll" id="warningsList">
       <div class="warnings-empty" id="warningsEmpty">No warnings yet. Paste content and convert to see results.</div>
     </div>
-    <div class="warnings-footer" id="warningsFooter" style="display:none;">
-      <span class="wf-chip red"   id="countError"></span>
-      <span class="wf-chip amber" id="countWarning"></span>
-      <span class="wf-chip blue"  id="countInfo"></span>
-    </div>
   </div>
 
-  <button class="panel-toggle" id="panelToggle" title="Toggle Warnings panel">
-    <span class="toggle-icon" id="toggleIcon">&#9664;</span>
-    <span class="toggle-label">Info</span>
+  <button class="panel-toggle sev-ok" id="panelToggle" title="Toggle Validation panel">
+    <span class="toggle-dot" id="toggleDot"></span>
+    <span class="toggle-label">Validation</span>
   </button>
   <div id="kmToast" role="status" aria-live="polite"></div>
 </div>
@@ -361,8 +541,6 @@ const BOLD_TAG   = 'strong';
 const ITALIC_TAG = 'em';
 const SF_FONT    = 'font-family: Arial, sans-serif; font-size: 12px;';
 const CODE_FONT  = "font-family: 'Courier New', Consolas, monospace; font-size: 12px;";
-/* Table header cell style (bug 6): navy background, white text, Arial 12 bold. */
-const TH_STYLE   = 'border:0.5px solid #808080;background-color:#0A0E33;color:#FFFFFF;font-weight:bold;padding:4px;vertical-align:top;text-align:left;' + SF_FONT;
 
 /* ============================================================================
    STATE
@@ -371,15 +549,19 @@ let storedClipboardHTML = '';
 let pasteAreaDirty = false;
 let renderingPastePreview = false;
 
+/* Unsaved-changes guard: warns on refresh/close/navigate only when there is
+   real, unsaved content. Cleared after copy/clear/reset. */
 let contentDirty = false;
 function setDirty(v) { contentDirty = !!v; }
 window.addEventListener('beforeunload', (e) => {
   if (!contentDirty) return;
+  // Native browser dialog only; text is controlled by the browser.
   e.preventDefault();
   e.returnValue = '';
   return '';
 });
 
+/* Status line at the top of the collapsible Status & Warnings panel. */
 function updatePanelStatus(msg, kind) {
   const el = document.getElementById('panelStatus');
   if (!el) return;
@@ -393,7 +575,6 @@ function updatePanelStatus(msg, kind) {
 let panelOpen = false;
 const warningsPanel = document.getElementById('warningsPanel');
 const panelToggle   = document.getElementById('panelToggle');
-const toggleIcon    = document.getElementById('toggleIcon');
 const mainContent   = document.getElementById('mainContent');
 
 function setPanelOpen(open) {
@@ -401,23 +582,62 @@ function setPanelOpen(open) {
   warningsPanel.classList.toggle('hidden', !open);
   mainContent.classList.toggle('panel-open', open);
   panelToggle.classList.toggle('panel-open', open);
-  toggleIcon.textContent = open ? '\u25B6' : '\u25C4';
 }
 panelToggle.addEventListener('click', () => setPanelOpen(!panelOpen));
+document.getElementById('valCollapse').addEventListener('click', () => setPanelOpen(false));
 
 /* ============================================================================
-   PASTE AREA
+   HEADER: help popover, live status chip, header-height measurement
+   ============================================================================ */
+(function () {
+  const btn = document.getElementById('helpBtn');
+  const pop = document.getElementById('helpPopover');
+  function openPop() { pop.classList.remove('hidden'); btn.setAttribute('aria-expanded', 'true'); }
+  function closePop() { pop.classList.add('hidden'); btn.setAttribute('aria-expanded', 'false'); }
+  btn.addEventListener('click', (e) => { e.stopPropagation(); pop.classList.contains('hidden') ? openPop() : closePop(); });
+  document.addEventListener('click', (e) => { if (!pop.classList.contains('hidden') && !pop.contains(e.target) && e.target !== btn) closePop(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.classList.contains('hidden')) closePop(); });
+
+  function measure() {
+    const h = document.getElementById('appHeader');
+    if (h) document.documentElement.style.setProperty('--header-h', h.offsetHeight + 'px');
+  }
+  window.addEventListener('resize', measure);
+  measure();
+})();
+
+// Reflect the worst current validation severity in the header status chip.
+// kind: 'ok' -> Ready, 'warn' -> Review, 'err' -> Error.
+function setHeaderStatus(kind) {
+  const chip = document.getElementById('statusChip');
+  const word = document.getElementById('statusWord');
+  if (!chip || !word) return;
+  chip.className = 'status-chip ' + kind;
+  word.textContent = kind === 'err' ? 'Error' : kind === 'warn' ? 'Review' : 'Ready';
+  const tog = document.getElementById('panelToggle');
+  const dot = document.getElementById('toggleDot');
+  if (tog) tog.className = 'panel-toggle sev-' + kind + (panelOpen ? ' panel-open' : '');
+  if (dot) dot.className = 'toggle-dot';
+}
+
+/* ============================================================================
+   PASTE AREA  (read-only rendered preview)
    ============================================================================ */
 const pasteRender = document.getElementById('pasteRender');
 const pasteStatus = document.getElementById('pasteStatus');
 
+/* ----------------------------------------------------------------------------
+   UNDO (Ctrl+Z / Ctrl+Y) for the paste field and the HTML output field.
+   Snapshot-based so it also covers programmatic edits (Tab indent/outdent,
+   mark-as-code) that the browser's native undo can't track.
+   ---------------------------------------------------------------------------- */
 function createUndo(getState, setState, onChange) {
   let stack = [getState()], idx = 0, timer = null;
   function notify() { if (onChange) onChange(); }
   function commit() {
     const s = getState();
     if (s === stack[idx]) return;
-    stack = stack.slice(0, idx + 1);
+    stack = stack.slice(0, idx + 1);   // a new edit clears the redo history
     stack.push(s);
     idx = stack.length - 1;
     if (stack.length > 200) { stack.shift(); idx--; }
@@ -467,11 +687,11 @@ const htmlUndo = createUndo(
   (val) => {
     const out = document.getElementById('htmlOutput');
     out.value = val;
-    try { document.getElementById('previewArea').innerHTML = val; } catch (_) {}
-    if (val.trim()) setDirty(true);
-    if (window._modalSyncFromSource) window._modalSyncFromSource('html');
+    onHtmlChanged(val);   // undo/redo restore: never re-records undo
   }
 );
+// After undoing/redoing paste-field edits, keep preview + HTML output in sync
+// if the user has already converted at least once.
 function reconvertIfGenerated() {
   if (typeof runConvert === 'function' && document.getElementById('htmlOutput').value.trim()) runConvert(true);
 }
@@ -482,8 +702,16 @@ pasteRender.addEventListener('keydown', (e) => {
   else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); pasteUndo.redo(); reconvertIfGenerated(); }
 });
 
+// Accept paste anywhere on the page, not just when pasteRender is focused.
 document.addEventListener('paste', handlePaste);
 
+/* ----------------------------------------------------------------------------
+   LIST INDENT / OUTDENT (Tab / Shift+Tab) inside the editable paste area.
+   Word-like behavior: Tab nests the current item one level deeper, Shift+Tab
+   moves it back one level; at the top level Shift+Tab removes list formatting.
+   Bullet/number style and aria-level follow nesting depth. Only the current
+   line is affected unless multiple list items are selected.
+   ---------------------------------------------------------------------------- */
 function closestLi(node, root) {
   let n = (node && node.nodeType === 1) ? node : (node ? node.parentElement : null);
   while (n && n !== root) { if (n.tagName === 'LI') return n; n = n.parentElement; }
@@ -500,6 +728,11 @@ function markerStyleFor(tag, depth) {
   const arr = (tag === 'OL') ? ol : ul;
   return arr[depth % arr.length];
 }
+// Re-apply marker style + aria-level across a whole list tree from its root.
+// Marker style depends on how many ancestor-or-self lists share this list's
+// type (ordered and unordered are counted independently), cycling every three
+// levels: ol -> 1, a, i; ul -> disc, circle, square. aria-level reflects the
+// absolute visible nesting level.
 function refreshListTree(rootList) {
   const olTypeAttr = { 'decimal': '1', 'lower-alpha': 'a', 'lower-roman': 'i' };
   (function walk(list, olCount, ulCount) {
@@ -523,21 +756,22 @@ function refreshListTree(rootList) {
 }
 function indentListItem(li) {
   const prev = li.previousElementSibling;
-  if (!prev || prev.tagName !== 'LI') return false;
+  if (!prev || prev.tagName !== 'LI') return false; // first item: nothing to nest under
   const parentList = li.parentElement;
   let sub = prev.lastElementChild;
   if (!sub || (sub.tagName !== 'UL' && sub.tagName !== 'OL')) {
-    sub = document.createElement(parentList.tagName);
+    sub = document.createElement(parentList.tagName); // keep ol/ul type; style set on refresh
     prev.appendChild(sub);
   }
-  sub.appendChild(li);
+  sub.appendChild(li); // moves the node, so any selection inside it stays valid
   return true;
 }
 function outdentListItem(li) {
-  const list = li.parentElement;
-  const host = list.parentElement;
+  const list = li.parentElement;       // current list
+  const host = list.parentElement;     // an LI when nested, otherwise top-level container
   if (host && host.tagName === 'LI') {
     const grandList = host.parentElement;
+    // Trailing siblings stay under this item as its own sublist (Word behavior).
     const trailing = [];
     let n = li.nextElementSibling;
     while (n) { const t = n; n = n.nextElementSibling; trailing.push(t); }
@@ -553,6 +787,7 @@ function outdentListItem(li) {
     if (!list.children.length) list.remove();
     return true;
   }
+  // Top level: remove list formatting. Split list, convert item to <p>.
   const after = [];
   let m = li.nextElementSibling;
   while (m) { const t = m; m = m.nextElementSibling; after.push(t); }
@@ -560,7 +795,7 @@ function outdentListItem(li) {
   const movedLists = [];
   Array.from(li.childNodes).forEach(ch => {
     if (ch.nodeType === 1 && (ch.tagName === 'UL' || ch.tagName === 'OL')) movedLists.push(ch);
-    else p.appendChild(ch);
+    else p.appendChild(ch); // move (not clone) to preserve caret
   });
   if (!p.innerHTML.trim()) p.innerHTML = '<br>';
   const parent = list.parentNode;
@@ -587,17 +822,101 @@ function getSelectedListItems(sel, root) {
   if (si === -1 || ei === -1) return startLi ? [startLi] : [];
   if (si > ei) { const t = si; si = ei; ei = t; }
   let slice = all.slice(si, ei + 1);
+  // Drop items nested inside another selected item to avoid double-moves.
   slice = slice.filter(li => !slice.some(o => o !== li && o.contains(li)));
   return slice;
 }
+/* ----------------------------------------------------------------------------
+   CODE-BLOCK INDENT (editor-only). A data-code-block element is indented as a
+   single unit: a fixed left-margin step tracked in a countable data-indent
+   level. The code text is never touched and never merged with neighbors.
+   Margins are editor-only and will not survive to Salesforce (expected).
+   ---------------------------------------------------------------------------- */
+const CODE_INDENT_STEP = 28; // px per level
+function codeBlockAncestor(root) {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return null;
+  if (!root.contains(sel.anchorNode)) return null;
+  let n = sel.anchorNode; n = (n && n.nodeType === 1) ? n : (n ? n.parentElement : null);
+  while (n && n !== root) { if (n.getAttribute && n.getAttribute('data-code-block') === 'true') return n; n = n.parentElement; }
+  return null;
+}
+function indentCodeBlock(el) {
+  let lvl = parseInt(el.getAttribute('data-indent') || '0', 10) || 0;
+  lvl++;
+  el.setAttribute('data-indent', String(lvl));
+  el.style.marginLeft = (lvl * CODE_INDENT_STEP) + 'px';
+}
+function outdentCodeBlock(el) {
+  let lvl = parseInt(el.getAttribute('data-indent') || '0', 10) || 0;
+  if (lvl <= 0) return false;            // at level 0, do nothing
+  lvl--;
+  if (lvl > 0) { el.setAttribute('data-indent', String(lvl)); el.style.marginLeft = (lvl * CODE_INDENT_STEP) + 'px'; }
+  else { el.removeAttribute('data-indent'); el.style.marginLeft = ''; }
+  return true;
+}
+
+/* Plain-paragraph indent. Same stepped data-indent mechanism as code blocks,
+   but the step matches Salesforce's own indent so the converted output
+   (margin-left: 40px per level) round-trips cleanly. Scope: <p>/<div> only.
+   Headings, blockquotes, list items and code blocks are handled elsewhere. */
+const PARA_INDENT_STEP = 40; // px per level (matches Salesforce Knowledge)
+function paragraphIndentTarget(root) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || !root.contains(sel.anchorNode)) return null;
+  let n = sel.anchorNode;
+  n = (n && n.nodeType === 1) ? n : (n ? n.parentElement : null);
+  let p = null;
+  while (n && n !== root) {
+    const t = n.tagName && n.tagName.toLowerCase();
+    if (t === 'li' || t === 'ul' || t === 'ol' || (n.getAttribute && n.getAttribute('data-code-block') === 'true')) return null;
+    if (t === 'p' || t === 'div') p = n;
+    n = n.parentElement;
+  }
+  return p;
+}
+function indentParagraph(el) {
+  let lvl = parseInt(el.getAttribute('data-indent') || '0', 10) || 0;
+  lvl++;
+  el.setAttribute('data-indent', String(lvl));
+  el.style.marginLeft = (lvl * PARA_INDENT_STEP) + 'px';
+}
+function outdentParagraph(el) {
+  let lvl = parseInt(el.getAttribute('data-indent') || '0', 10) || 0;
+  if (lvl <= 0) return false;
+  lvl--;
+  if (lvl > 0) { el.setAttribute('data-indent', String(lvl)); el.style.marginLeft = (lvl * PARA_INDENT_STEP) + 'px'; }
+  else { el.removeAttribute('data-indent'); el.style.marginLeft = ''; }
+  return true;
+}
+
+// Reusable Tab/Shift+Tab handler for any contenteditable editor root.
+// Branch order per spec: code block first, else list, else nothing (but Tab
+// is always swallowed so focus never leaves the editor).
+// onChange() runs after a successful change so callers can sync/record.
 function attachListTab(root, onChange) {
   root.addEventListener('keydown', (e) => {
     if (e.key !== 'Tab') return;
+    // 1) Code block: indent/outdent the block as a unit.
+    const cb = codeBlockAncestor(root);
+    if (cb) {
+      e.preventDefault();
+      const changed = e.shiftKey ? outdentCodeBlock(cb) : (indentCodeBlock(cb), true);
+      if (changed && onChange) onChange();
+      return;
+    }
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
+    if (!sel || sel.rangeCount === 0) { e.preventDefault(); return; }
+    // 2) List: per-item nesting.
     const items = getSelectedListItems(sel, root);
-    if (!items.length) return;
-    e.preventDefault();
+    if (!items.length) {
+      // 3) plain paragraph: stepped left-margin (buttons and Tab match).
+      e.preventDefault();
+      const p = paragraphIndentTarget(root);
+      if (p) { const changed = e.shiftKey ? outdentParagraph(p) : (indentParagraph(p), true); if (changed && onChange) onChange(); }
+      return;
+    }
+    e.preventDefault(); // never insert a tab char or move focus out
     items.forEach(li => { if (e.shiftKey) outdentListItem(li); else indentListItem(li); });
     root.querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree);
     if (onChange) onChange();
@@ -610,8 +929,107 @@ attachListTab(pasteRender, () => {
   pasteUndo.record();
 });
 
+/* ----------------------------------------------------------------------------
+   SELECTION-ONLY LIST TYPE CHANGE
+   Replaces execCommand('insert*List') for changing an EXISTING item's type, so
+   only the current item (or the selected items) change type. execCommand can
+   merge with adjacent lists and alter unselected siblings, which breaks the
+   selection-only guarantee the engine relies on.
+   ---------------------------------------------------------------------------- */
+// Group a flat list of selected <li> into maximal runs of DOM-adjacent siblings
+// sharing the same parent list.
+function groupAdjacentRuns(items) {
+  const runs = []; let cur = [];
+  items.forEach(li => {
+    const last = cur[cur.length - 1];
+    if (last && li.parentElement === last.parentElement && li.previousElementSibling === last) cur.push(li);
+    else { if (cur.length) runs.push(cur); cur = [li]; }
+  });
+  if (cur.length) runs.push(cur);
+  return runs;
+}
+// Split a contiguous run out of its parent list into a NEW list of newTag,
+// leaving unselected leading/trailing siblings in their own lists untouched.
+function splitRunIntoList(run, newTag, style) {
+  const parent = run[0].parentElement;
+  if (!parent) return null;
+  const doc = parent.ownerDocument;
+  const last = run[run.length - 1];
+  const trailing = []; let t = last.nextElementSibling;
+  while (t) { const nx = t.nextElementSibling; trailing.push(t); t = nx; }
+  const newList = doc.createElement(newTag);
+  if (style) newList.style.listStyleType = style;
+  parent.parentNode.insertBefore(newList, parent.nextSibling);
+  run.forEach(li => newList.appendChild(li));
+  if (trailing.length) {
+    const afterList = doc.createElement(parent.tagName.toLowerCase());
+    if (parent.style.listStyleType) afterList.style.listStyleType = parent.style.listStyleType;
+    if (parent.getAttribute('type')) afterList.setAttribute('type', parent.getAttribute('type'));
+    trailing.forEach(li => afterList.appendChild(li));
+    newList.parentNode.insertBefore(afterList, newList.nextSibling);
+  }
+  if (!parent.children.length) parent.remove();
+  return newList;
+}
+// Retype the selected items to targetTag ('ul'/'ol'), touching only those items.
+function retypeSelectedItems(root, targetTag) {
+  const sel = window.getSelection();
+  const items = getSelectedListItems(sel, root);
+  if (!items.length) return false;
+  groupAdjacentRuns(items).forEach(run => splitRunIntoList(run, targetTag, null));
+  return true;
+}
+// Remove list membership from the selected items, turning them into plain <p>.
+function removeSelectedListItems(root) {
+  const sel = window.getSelection();
+  const items = getSelectedListItems(sel, root);
+  if (!items.length) return false;
+  // Reverse document order reduces sibling interference while splitting.
+  items.slice().reverse().forEach(li => {
+    let guard = 0;
+    while (li && li.isConnected && li.tagName === 'LI' && guard++ < 40) outdentListItem(li);
+  });
+  return true;
+}
+const LINE_MARKER_RE = /^[\s ]*([0-9]+[.)]|[A-Za-z][.)]|[•●·◦▪■○]|[-*])[\s ]+/;
+function stripLeadingMarkerFromLi(li) {
+  let node = li;
+  while (node && node.nodeType !== 3) node = node.firstChild;
+  if (node && node.nodeType === 3) node.nodeValue = node.nodeValue.replace(LINE_MARKER_RE, '');
+}
+// Convert the selected plain lines into a real list, stripping any visible
+// markers the lines already carry (used by the bullet/number buttons).
+function convertLinesToList(root) {
+  const sel = window.getSelection();
+  if (getSelectedListItems(sel, root).length) return false; // already a list
+  // Detect type from the first line's marker.
+  let firstMarker = '';
+  if (sel && sel.rangeCount) {
+    const txt = sel.toString() || (sel.anchorNode && sel.anchorNode.textContent) || '';
+    const m = txt.match(LINE_MARKER_RE);
+    if (m) firstMarker = m[1];
+  }
+  const cls = firstMarker ? classifyMarker(firstMarker) : { tag: 'ol', typeAttr: '1', styleAttr: null };
+  document.execCommand(cls.tag === 'ul' ? 'insertUnorderedList' : 'insertOrderedList');
+  // Find the freshly created list around the caret.
+  let list = null, n = sel.anchorNode;
+  n = (n && n.nodeType === 1) ? n : (n ? n.parentElement : null);
+  while (n && n !== root) { if (n.tagName === 'UL' || n.tagName === 'OL') list = n; n = n.parentElement; }
+  if (list) {
+    Array.from(list.querySelectorAll('li')).forEach(stripLeadingMarkerFromLi);
+    if (cls.tag === 'ol') { list.setAttribute('type', cls.typeAttr || '1'); if (cls.styleAttr) list.style.listStyleType = cls.styleAttr; }
+    else if (cls.styleAttr) { list.style.listStyleType = cls.styleAttr; list.removeAttribute('type'); }
+  }
+  root.querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree);
+  return true;
+}
+
 pasteRender.addEventListener('input', () => {
   if (renderingPastePreview) return;
+  // Toggle the placeholder on EVERY input (typing, inserted list, delete),
+  // not just on paste. Empty only when there is truly no content.
+  const isEmpty = !pasteRender.textContent.trim() && !pasteRender.querySelector('img,table,ul,ol,pre,[data-code-block]');
+  pasteRender.classList.toggle('empty', isEmpty);
   pasteAreaDirty = true;
   setDirty(true);
   storedClipboardHTML = pasteRender.innerHTML;
@@ -630,6 +1048,7 @@ function handlePaste(e) {
 
   if (!html && !text) return;
 
+  // Don't intercept pastes into the HTML output textarea.
   if (e.target === document.getElementById('htmlOutput')) return;
 
   e.preventDefault();
@@ -638,6 +1057,7 @@ function handlePaste(e) {
   const hasContent = editor.textContent.trim().length > 0 || editor.querySelector('img,table,ul,ol');
 
   if (hasContent) {
+    // Insert at the caret, preserving existing content around it.
     renderingPastePreview = true;
     if (html) insertAtCaret(editor, cleanPastedHtml(html), true);
     else insertAtCaret(editor, text, false);
@@ -654,16 +1074,19 @@ function handlePaste(e) {
     storedClipboardHTML = ''; pasteAreaDirty = true;
   }
 
+  // Keep pasteRender (the source of truth for conversion) in sync.
   if (editor !== pasteRender) { pasteRender.innerHTML = editor.innerHTML; pasteAreaDirty = true; }
   if (pasteAreaDirty) storedClipboardHTML = pasteRender.innerHTML;
 
   pasteRender.classList.remove('empty');
   pasteStatus.textContent = 'Word content pasted. Ready to convert.';
   setDirty(true);
-  pasteUndo.record();
+  pasteUndo.record();   // record (not reset) so the paste can be undone
   if (window._modalSyncFromSource) window._modalSyncFromSource('paste');
 }
 
+// Insert html/text at the current caret inside `editor` (or append if the
+// caret isn't inside it). Leaves the caret after the inserted content.
 function insertAtCaret(editor, payload, isHtml) {
   const sel = window.getSelection();
   let range = (sel.rangeCount && editor.contains(sel.anchorNode)) ? sel.getRangeAt(0) : null;
@@ -691,10 +1114,15 @@ function renderPastePreview(html) {
   renderingPastePreview = false;
 }
 
+// Strip MSO junk but PRESERVE Word list markers, returning cleaned HTML.
 function cleanPastedHtml(html) {
+  // Word puts the visible marker inside a downlevel-REVEALED conditional comment
+  // <![if !supportLists]><span style='mso-list:Ignore'>...</span><![endif]> which
+  // we unwrap (keep the span). The downlevel-HIDDEN form holds VML/xml junk and is
+  // removed whole.
   let clean = html
-    .replace(/<!--\[if[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '')
-    .replace(/<!\[if[^\]]*\]>/gi, '')
+    .replace(/<!--\[if[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '')   // hidden junk: remove whole
+    .replace(/<!\[if[^\]]*\]>/gi, '')                            // revealed: unwrap, keep marker
     .replace(/<!\[endif\]>/gi, '')
     .replace(/<\?xml[^>]*>/gi, '')
     .replace(/<(script|style|link|meta|xml|o:p)[^>]*>[\s\S]*?<\/\1>/gi, '')
@@ -703,8 +1131,8 @@ function cleanPastedHtml(html) {
   const temp = document.createElement('div');
   temp.innerHTML = clean;
 
-  buildPreviewWordOnlineLists(temp);
-  buildPreviewLists(temp);
+  buildPreviewWordOnlineLists(temp);   // Word Online / Office 365 web
+  buildPreviewLists(temp);             // Desktop Word mso-list format
   removePreviewWordArtifacts(temp);
   stripWordControlText(temp);
 
@@ -714,7 +1142,9 @@ function cleanPastedHtml(html) {
   return temp.innerHTML.replace(/(?:\s*\n\s*){2,}/g, '\n').trim();
 }
 
+// Preview version of Word Online list rebuilding — same DOM-order logic.
 function buildPreviewWordOnlineLists(root) {
+  // STEP 1: Flatten outer SCXW grouping divs into root's child list.
   Array.from(root.children).forEach(child => {
     if (!isWordOnlineOuterDiv(child)) return;
     const parent = child.parentNode;
@@ -725,6 +1155,7 @@ function buildPreviewWordOnlineLists(root) {
     parent.removeChild(child);
   });
 
+  // STEP 2: Walk children, collect consecutive ListContainerWrapper runs.
   const children = Array.from(root.childNodes);
   let i = 0;
 
@@ -788,10 +1219,12 @@ function buildPreviewLists(root) {
     const items = run.map((p, idx) => {
       const cls = classes[idx];
       const contentNode = p.cloneNode(true);
+      // Strip the mso:Ignore span (full Word format).
       const ignSpan = Array.from(contentNode.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
       if (ignSpan) {
         ignSpan.remove();
       } else {
+        // Chrome format: strip the leading marker text node + adjacent spacer span.
         let firstChild = contentNode.firstChild;
         while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
           firstChild = firstChild.nextSibling;
@@ -812,6 +1245,7 @@ function buildPreviewLists(root) {
     const listDOM = buildPreviewListDOM(items, document);
     run[0].parentNode.insertBefore(listDOM, run[0]);
     run.forEach(el => el.parentNode && el.parentNode.removeChild(el));
+    gaps.forEach(g => g.parentNode && g.parentNode.removeChild(g));
     i = next;
   }
 }
@@ -823,13 +1257,21 @@ function getWordLevel(node) {
   return wordListLevel(node);
 }
 function getWordMarkerChar(node) {
+  // Path 1: full Word clipboard — marker is in a span with mso-list:Ignore.
   const ignoreSpan = Array.from(node.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
   if (ignoreSpan) return normalizeWordMarker(ignoreSpan.textContent);
+
+  // Path 2: Chrome-stripped Word clipboard — marker is the raw leading text/glyph
+  // at the very start of the paragraph (first text node or first element's text),
+  // optionally followed by a spacer span with a tiny font-size.
   return extractLeadingMarker(node);
 }
 
+// Pull the marker token out of the paragraph's leading content without altering
+// the node. Returns the normalized marker string, or '' if not detected.
 function extractLeadingMarker(node) {
   let firstChild = node.firstChild;
+  // Skip zero-width / whitespace-only text nodes at the front.
   while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
     firstChild = firstChild.nextSibling;
   }
@@ -843,31 +1285,41 @@ function extractLeadingMarker(node) {
   }
   rawMarker = normalizeWordMarker(rawMarker);
 
+  // Confirm it looks like a list marker token (not real content).
   if (isMarkerToken(rawMarker)) return rawMarker;
   return '';
 }
 
+// Returns true if the string is a plausible list marker: a bullet glyph, a
+// number, a lower/upper letter, or a roman numeral — with or without separator.
 function isMarkerToken(s) {
   if (!s) return false;
+  // Single bullet glyph.
   if (/^[\u2022\u25cf\u00b7\u2219\u2023\u25aa\u25a0\u25ab\u25a1\u25cb\u25e6\u25ef\u00a7]$/.test(s)) return true;
+  // Word's circle bullet: lone 'o' with no letters around it.
   if (/^o$/.test(s)) return true;
   const core = s.replace(/[.)\]]+$/, '').trim();
-  if (/^\d{1,3}$/.test(core)) return true;
-  if (/^[a-zA-Z]$/.test(core)) return true;
-  if (/^[ivxlcdmIVXLCDM]{2,6}$/.test(core)) return true;
+  if (/^\d{1,3}$/.test(core)) return true;                       // 1 2 3 ... 99
+  if (/^[a-zA-Z]$/.test(core)) return true;                      // a b ... z A B
+  if (/^[ivxlcdmIVXLCDM]{2,6}$/.test(core)) return true;        // ii iii iv ...
   return false;
 }
 
 /* ============================================================================
    SHARED WORD MARKER NORMALISATION + RUN-AWARE CLASSIFICATION
+   Used by BOTH the paste preview and the final HTML output so they always
+   agree on list type, nesting, and start numbers.
    ============================================================================ */
+
+// Map Word's Symbol/Wingdings private-use bullet glyphs to real unicode bullets,
+// strip other control glyphs, and collapse whitespace. Separators (. ) ]) kept.
 function normalizeWordMarker(text) {
   return (text || '')
     .replace(/[\u0009\u000b\u000c\u00a0\u200b-\u200f\ufeff]/g, ' ')
-    .replace(/[\uf0a7\uf0fc]/g, '\u25aa')
-    .replace(/[\uf06f]/g, '\u25e6')
-    .replace(/[\uf0b7\uf0d8\uf0a8\uf09f]/g, '\u2022')
-    .replace(/[\uf000-\uf0ff]/g, '')
+    .replace(/[\uf0a7\uf0fc]/g, '\u25aa')        // square bullet
+    .replace(/[\uf06f]/g, '\u25e6')              // circle bullet
+    .replace(/[\uf0b7\uf0d8\uf0a8\uf09f]/g, '\u2022') // disc bullet
+    .replace(/[\uf000-\uf0ff]/g, '')             // any other private-use glyph
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -879,10 +1331,14 @@ function isRomanLetters(s) {
   return s.length >= 1 && /^[ivxlcdm]+$/i.test(s);
 }
 
+// Classify a single normalized marker. levelIsRoman lets an ambiguous single
+// letter (i, v, x...) be read as roman when a sibling at the same level proves
+// the level is roman (e.g. it also contains "ii"/"iii").
 function classifyWordMarker(marker, levelIsRoman) {
   const m = (marker || '').trim();
   if (!m) return { tag:'ol', typeAttr:'1', styleAttr:null, startAttr:null };
 
+  // Bullet glyphs (already normalized to unicode).
   if (/^[\u25aa\u25a0\u25ab\u25a1\u00a7]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'square', startAttr:null };
   if (/^[\u25cb\u25e6\u25ef]$/.test(m))             return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
   if (/^[\u2022\u25cf\u00b7\u2219\u2023]$/.test(m) || /^[-*]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
@@ -890,6 +1346,7 @@ function classifyWordMarker(marker, levelIsRoman) {
   const hasSep = /[.)\]]$/.test(m);
   const core = m.replace(/[.)\]]+$/, '').trim();
 
+  // A lone "o" with no separator is Word's circle bullet, not the letter o.
   if (!hasSep && /^o$/i.test(core)) return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
 
   if (/^\d+$/.test(core)) {
@@ -904,9 +1361,12 @@ function classifyWordMarker(marker, levelIsRoman) {
   if (/^[a-z]$/.test(core)) { const n = alphaToInt(core); return { tag:'ol', typeAttr:'a', styleAttr:null, startAttr: n > 1 ? String(n) : null }; }
   if (/^[A-Z]$/.test(core)) { const n = alphaToInt(core); return { tag:'ol', typeAttr:'A', styleAttr:null, startAttr: n > 1 ? String(n) : null }; }
 
+  // Unknown marker: treat as a disc bullet rather than inventing a number.
   return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
 }
 
+// Classify a whole run together so per-level roman detection is consistent.
+// rawItems: [{ level, marker }] with markers already normalized.
 function classifyWordRun(rawItems) {
   const romanLevels = new Set();
   rawItems.forEach(it => {
@@ -918,6 +1378,10 @@ function classifyWordRun(rawItems) {
 
 /* ----------------------------------------------------------------------------
    RUN COLLECTION (shared by preview + output)
+   A Word multilevel list is a sequence of list paragraphs that share the same
+   Word list id (mso-list:lN). Word often drops empty "spacer" paragraphs or
+   <o:p> nodes between items; those must NOT split the list. Real non-empty,
+   non-list content DOES split it.
    ---------------------------------------------------------------------------- */
 function wordListId(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
@@ -925,6 +1389,7 @@ function wordListId(node) {
   return m ? m[1].toLowerCase() : null;
 }
 function sameWordList(a, b) {
+  // If either side lacks an id (margin-only fallback list), allow grouping.
   if (a == null || b == null) return true;
   return a === b;
 }
@@ -939,6 +1404,8 @@ function isIgnorableGapNode(node) {
   }
   return false;
 }
+// Collect one list run starting at items[startIdx]. isPara(node) decides list
+// membership. Returns { run, gaps, next }.
 function collectListRun(items, startIdx, isPara) {
   const first = items[startIdx];
   const listId = wordListId(first);
@@ -1010,7 +1477,7 @@ function cleanWordControlText(text) {
     .replace(/[\u0009\u000b\u000c\u200b-\u200f\ufeff]/g, ' ')
     .replace(/[\uf020-\uf0ff]/g, '')
     .replace(/\u00a0+/g, ' ')
-    .replace(/[ \t]{2,}/g, ' ');
+    .replace(/[ \t]{2,}/g, ' ');  // collapse runs, but keep a single trailing space before inline links
 }
 
 function cleanWordMarkerText(text) {
@@ -1029,6 +1496,7 @@ function trimPreviewHTML(html) {
    MARK SELECTION AS CODE
    ============================================================================ */
 const CODE_BLOCK_STYLE = 'background:#f8fafc;border:1px solid #d8e0ea;border-radius:10px;padding:14px;margin:6px 0;width:100%;box-sizing:border-box;overflow-x:auto;font-family:\'Courier New\',Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre;color:#2d3748;';
+const INLINE_CODE_STYLE = 'font-family:\'Courier New\',Consolas,monospace;font-size:12px;background:#eef1f5;border-radius:4px;padding:1px 4px;color:#2d3748;';
 
 function markSelectionAsCode() {
   const editor = activePasteEditor;
@@ -1040,28 +1508,67 @@ function markSelectionAsCode() {
     setPanelOpen(true); return;
   }
 
+  // Toggle: if already inside a code block or inline <code>, remove it.
   let node = range.commonAncestorContainer;
   node = node.nodeType === 1 ? node : node.parentElement;
-  let existing = null;
-  while (node && node !== editor) { if (node.getAttribute && node.getAttribute('data-code-block') === 'true') { existing = node; break; } node = node.parentElement; }
-  if (existing) {
+  let blockCode = null, inlineCode = null, n = node;
+  while (n && n !== editor) {
+    if (n.getAttribute && n.getAttribute('data-code-block') === 'true') blockCode = blockCode || n;
+    if (n.tagName === 'CODE' && (!n.getAttribute || n.getAttribute('data-code-block') !== 'true')) inlineCode = inlineCode || n;
+    n = n.parentElement;
+  }
+  if (blockCode) {
     const p = document.createElement('p');
-    p.textContent = existing.textContent;
-    existing.replaceWith(p);
+    p.textContent = blockCode.textContent;
+    blockCode.replaceWith(p);
     sel.removeAllRanges();
     pasteStatus.textContent = 'Code formatting removed.';
+  } else if (inlineCode) {
+    const parent = inlineCode.parentNode;
+    while (inlineCode.firstChild) parent.insertBefore(inlineCode.firstChild, inlineCode);
+    parent.removeChild(inlineCode);
+    sel.removeAllRanges();
+    pasteStatus.textContent = 'Inline code removed.';
   } else {
     if (sel.isCollapsed) { addWarning('info', 'No selection', 'Select text first, then use the code snippet button.'); setPanelOpen(true); return; }
-    const text = cleanCodeText(getPlainText(range.cloneContents()));
-    if (!text.trim()) return;
-    const marker = document.createElement('div');
-    marker.setAttribute('data-code-block', 'true');
-    marker.style.cssText = CODE_BLOCK_STYLE;
-    marker.textContent = text;
-    range.deleteContents();
-    range.insertNode(marker);
-    sel.removeAllRanges();
-    pasteStatus.textContent = 'Code block marked.';
+    // Decide inline vs block. Block when the selection spans multiple lines or
+    // covers a whole line; inline when it sits within a single line.
+    const plain = getPlainText(range.cloneContents());
+    const multiline = /\n/.test(plain.replace(/\n+$/, ''));
+    let block = range.commonAncestorContainer;
+    block = block.nodeType === 1 ? block : block.parentElement;
+    const BLOCKS = ['P', 'H2', 'H3', 'H4', 'LI', 'DIV', 'BLOCKQUOTE', 'PRE'];
+    while (block && block !== editor && !BLOCKS.includes(block.tagName)) block = block.parentElement;
+    let wholeLine = false;
+    if (block && block !== editor) {
+      const bt = (block.textContent || '').replace(/ /g, ' ').trim();
+      const st = plain.replace(/ /g, ' ').trim();
+      wholeLine = bt.length > 0 && st === bt;
+    }
+    if (multiline || wholeLine) {
+      const text = cleanCodeText(plain);
+      if (!text.trim()) return;
+      const marker = document.createElement('div');
+      marker.setAttribute('data-code-block', 'true');
+      marker.style.cssText = CODE_BLOCK_STYLE;
+      marker.textContent = text;
+      range.deleteContents();
+      range.insertNode(marker);
+      sel.removeAllRanges();
+      pasteStatus.textContent = 'Code block marked.';
+    } else {
+      const code = document.createElement('code');
+      code.style.cssText = INLINE_CODE_STYLE;
+      try {
+        code.appendChild(range.extractContents());
+        // Strip any nested block/code wrappers so it stays a clean inline run.
+        code.querySelectorAll('div,p,pre,code,[data-code-block]').forEach(x => { while (x.firstChild) x.parentNode.insertBefore(x.firstChild, x); x.remove(); });
+        range.insertNode(code);
+        sel.removeAllRanges();
+        const r = document.createRange(); r.selectNodeContents(code); sel.addRange(r);
+      } catch (_) { return; }
+      pasteStatus.textContent = 'Inline code marked.';
+    }
   }
 
   if (editor !== pasteRender) pasteRender.innerHTML = editor.innerHTML;
@@ -1079,6 +1586,7 @@ function markSelectionAsCode() {
   let savedRange = null;
   const ed = () => activePasteEditor;
 
+  // Allow the expand modal to borrow the toolbar and point it at the modal editor.
   window._rteMountInModal = (container) => container.insertBefore(bar, container.firstChild);
   window._rteRestoreHome = () => homeParent.insertBefore(bar, homeNext);
 
@@ -1118,6 +1626,25 @@ function markSelectionAsCode() {
     while (n && n !== ed()) { if (n.tagName === tag) return n; n = n.parentElement; }
     return null;
   }
+  // Read the highlighted text's effective font to infer a heading tier.
+  // Returns 'h2' | 'h3' | 'h4' | null. Display-only; does not touch the DOM.
+  function detectVisualHeading() {
+    const s = window.getSelection();
+    if (!s || !s.rangeCount || !ed().contains(s.anchorNode)) return null;
+    let n = s.anchorNode; n = (n && n.nodeType === 1) ? n : (n ? n.parentElement : null);
+    if (!n || n === ed()) return null;
+    const cs = window.getComputedStyle(n);
+    const px = parseFloat(cs.fontSize) || 0;
+    if (!px) return null;
+    let bold = (parseInt(cs.fontWeight, 10) || 400) >= 600;
+    if (!bold) { try { bold = document.queryCommandState('bold'); } catch (_) {} }
+    if (!bold) return null;
+    const pt = px * 0.75;          // match the converter's px to pt scale
+    if (pt >= 17)   return 'h2';   // Arial 18
+    if (pt >= 15)   return 'h3';   // Arial 16
+    if (pt >= 13.5) return 'h4';   // Arial 14
+    return null;
+  }
   function blockAncestor() {
     const s = window.getSelection(); if (!s.rangeCount) return null;
     let n = s.anchorNode; n = (n && n.nodeType === 1) ? n : (n ? n.parentElement : null);
@@ -1143,19 +1670,32 @@ function markSelectionAsCode() {
       const r = document.createRange(); r.selectNodeContents(span); s.addRange(r);
     } catch (_) {}
   }
+  function setListStyleAttrs(list, listTag, style) {
+    list.style.listStyleType = style;
+    if (listTag === 'ol') { const m = { 'decimal':'1','lower-alpha':'a','lower-roman':'i' }; list.setAttribute('type', m[style] || '1'); }
+    else list.removeAttribute('type');
+  }
   function applyListStyle(listTag, style) {
     restore();
-    let list = ancestor(listTag);
-    if (!list) {
+    const sel = window.getSelection();
+    const items = getSelectedListItems(sel, ed());
+    if (!items.length) {
+      // No existing list: create one from the plain paragraph, then style it.
       document.execCommand(listTag === 'ul' ? 'insertUnorderedList' : 'insertOrderedList');
-      list = ancestor(listTag);
-    }
-    if (list) {
-      list.style.listStyleType = style;
-      if (listTag === 'ol') { const m = { 'decimal':'1','lower-alpha':'a','lower-roman':'i' }; list.setAttribute('type', m[style] || '1'); }
-      else list.removeAttribute('type');
+      const list = ancestor(listTag);
+      if (list) setListStyleAttrs(list, listTag, style);
+    } else {
+      // Existing item(s): retype only the selected items, then set their marker
+      // style explicitly (no depth-based refresh, so the pick is respected).
+      const already = items.every(li => li.parentElement && li.parentElement.tagName.toLowerCase() === listTag);
+      if (!already) groupAdjacentRuns(items).forEach(run => splitRunIntoList(run, listTag, style));
+      const parents = new Set();
+      getSelectedListItems(window.getSelection(), ed()).forEach(li => { const p = li.parentElement; if (p && (p.tagName === 'UL' || p.tagName === 'OL')) parents.add(p); });
+      items.forEach(li => { const p = li.parentElement; if (p && (p.tagName === 'UL' || p.tagName === 'OL')) parents.add(p); });
+      parents.forEach(p => setListStyleAttrs(p, listTag, style));
     }
     afterEdit();
+    updateState();
   }
   function updateState() {
     try {
@@ -1167,10 +1707,25 @@ function markSelectionAsCode() {
       bar.querySelector('[data-cmd="codesnippet"]').classList.toggle('active', blockAncestor() === 'pre');
     } catch (_) {}
     document.getElementById('rteLink').classList.toggle('is-link', !!ancestor('a'));
+    // Reflect the caret's block format in the dropdown so the label matches.
     const blk = blockAncestor();
     const fmt = document.getElementById('rteFormat');
-    if (blk && fmt) { const opt = Array.from(fmt.options).find(o => o.value === blk); if (opt) fmt.value = blk; }
-    else if (fmt) fmt.value = 'p';
+    let current = (blk && fmt && Array.from(fmt.options).some(o => o.value === blk)) ? blk : 'p';
+    // Font-signature fallback: a plain paragraph whose highlighted text is bold
+    // and large enough reports as the matching heading (Arial 18 -> H2,
+    // 16 -> H3, 14 -> H4), even when the source tagged it Normal.
+    if (current === 'p') {
+      const vh = detectVisualHeading();
+      if (vh) current = vh;
+    }
+    if (fmt) fmt.value = current;
+    updateStyleHint(current);
+  }
+  // Read-only style-guide hint reflecting the current block. Never editable.
+  function updateStyleHint(block) {
+    const HINTS = { p: 'Arial 12', h2: 'Arial 18', h3: 'Arial 16', h4: 'Arial 14', pre: 'Courier 12', blockquote: 'Arial 12 · note' };
+    const el = document.getElementById('rteStyleHint');
+    if (el) el.textContent = HINTS[block] || 'Arial 12';
   }
 
   bar.addEventListener('mousedown', (e) => {
@@ -1197,27 +1752,67 @@ function markSelectionAsCode() {
     if (cmd === 'redo') { pasteUndo.redo(); reconvertIfGenerated(); return; }
     restore();
     if (cmd === 'bold' || cmd === 'italic' || cmd === 'underline') { document.execCommand(cmd); }
-    else if (cmd === 'bullet') { document.execCommand('insertUnorderedList'); ed().querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree); }
-    else if (cmd === 'number') { document.execCommand('insertOrderedList'); ed().querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree); }
+    else if (cmd === 'bullet' || cmd === 'number') { toggleListType(cmd === 'bullet' ? 'ul' : 'ol'); }
+    else if (cmd === 'indent')  { doIndentOutdent(false); afterEdit(); updateState(); return; }
+    else if (cmd === 'outdent') { doIndentOutdent(true);  afterEdit(); updateState(); return; }
+    else if (cmd === 'clearformat') { document.execCommand('removeFormat'); document.execCommand('unlink'); }
     else if (cmd === 'link') { window.openLinkDialog(ed(), savedRange, afterEdit); return; }
     else if (cmd === 'codesnippet') { markSelectionAsCode(); return; }
     afterEdit();
     updateState();
   });
 
+  // Bullet/number button: create a list from plain paragraphs (marker-aware:
+  // lines already carrying visible "1." / "a)" / "-" markers are converted
+  // with the markers stripped and the type detected from them), retype
+  // selected items to the requested type (selection-only), or toggle the list
+  // off when the selection is already entirely of that type.
+  function toggleListType(tag) {
+    const sel = window.getSelection();
+    const items = getSelectedListItems(sel, ed());
+    if (!items.length) {
+      // Marker-aware path: same detection convertLinesToList uses internally.
+      const txt = (sel && sel.rangeCount) ? (sel.toString() || (sel.anchorNode && sel.anchorNode.textContent) || '') : '';
+      if (LINE_MARKER_RE.test(txt)) { convertLinesToList(ed()); }
+      else document.execCommand(tag === 'ul' ? 'insertUnorderedList' : 'insertOrderedList');
+    } else {
+      const allSame = items.every(li => li.parentElement && li.parentElement.tagName.toLowerCase() === tag);
+      if (allSame) removeSelectedListItems(ed());
+      else retypeSelectedItems(ed(), tag);
+    }
+    ed().querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree);
+  }
+  // Shared indent/outdent used by the toolbar buttons: code block first, then
+  // list items, else nothing structural (paragraphs are left untouched).
+  function doIndentOutdent(shift) {
+    const root = ed();
+    const cb = codeBlockAncestor(root);
+    if (cb) { if (shift) outdentCodeBlock(cb); else indentCodeBlock(cb); return; }
+    const sel = window.getSelection();
+    const items = getSelectedListItems(sel, root);
+    if (items.length) {
+      items.forEach(li => { if (shift) outdentListItem(li); else indentListItem(li); });
+      root.querySelectorAll(':scope > ul, :scope > ol').forEach(refreshListTree);
+      return;
+    }
+    // Plain paragraph: stepped left-margin, same mechanism as code blocks.
+    const p = paragraphIndentTarget(root);
+    if (p) { if (shift) outdentParagraph(p); else indentParagraph(p); }
+  }
+
   document.getElementById('rteFormat').addEventListener('change', (e) => {
     restore();
     document.execCommand('formatBlock', false, e.target.value);
+    updateStyleHint(e.target.value);
     afterEdit();
   });
-  document.getElementById('rteFont').addEventListener('change', (e) => { restore(); wrapStyle({ fontFamily: e.target.value }); afterEdit(); });
-  document.getElementById('rteSize').addEventListener('change', (e) => { restore(); wrapStyle({ fontSize: e.target.value }); afterEdit(); });
 
   refreshUndoButtons();
+  updateStyleHint('p');
 })();
 
 /* ============================================================================
-   LINK DIALOG
+   LINK DIALOG (Text + URL + Apply), resembling the editor's link popup.
    ============================================================================ */
 window.openLinkDialog = function (editor, range, done) {
   const dlg = document.getElementById('linkDialog');
@@ -1273,6 +1868,379 @@ window.openLinkDialog = function (editor, range, done) {
 };
 
 /* ============================================================================
+   CENTRAL HTML-CHANGE SIDE-EFFECTS
+   Every writer to #htmlOutput.value routes through here AFTER setting .value.
+   Never modifies .value itself. opts reproduce the exact per-writer
+   differences that existed before the refactor:
+     fromConvert:   fresh converter output — preview is set directly and
+                    becomes the new valid baseline (no validation pass),
+                    dirty is set unconditionally, and the modal preview
+                    pane is synced in addition to the html pane
+     skipPreview:   caller already handled the preview itself (doClearAll
+                    clears it directly and resets lastValidHtml)
+     skipDirty:     caller manages the dirty flag itself (doClearAll)
+     recordUndo:    'debounced' — typing paths (direct edit, modal edit)
+                    'reset'     — fresh convert replaces the undo baseline
+                    undefined   — no recording here: undo/redo restore must
+                                  not re-record; doClearAll records inline
+     skipModalSync: the edit originated inside the modal editor (re-syncing
+                    would reset the caret), or the caller force-syncs all
+                    modal panes itself (doClearAll)
+   ============================================================================ */
+function onHtmlChanged(val, opts) {
+  opts = opts || {};
+  if (opts.fromConvert) {
+    document.getElementById('previewArea').innerHTML = val;
+    // Fresh converter output is the new valid baseline for the live preview.
+    previewPaused = false; lastValidHtml = val; htmlIssues = [];
+  } else if (!opts.skipPreview) {
+    if (typeof applyHtmlToPreview === 'function') applyHtmlToPreview(val);   // validates; pauses preview on Error
+    else { try { document.getElementById('previewArea').innerHTML = val; } catch (_) {} }
+  }
+  updateCodeGutter();
+  resetCopyButton();               // any edit reverts the Copied state
+  if (opts.fromConvert) setDirty(true);
+  else if (!opts.skipDirty && val.trim()) setDirty(true);
+  if (opts.recordUndo === 'debounced') htmlUndo.recordDebounced();
+  else if (opts.recordUndo === 'reset') htmlUndo.reset();
+  refreshHtmlMirror(val);
+  if (opts.fromConvert) buildPreviewMap();   // _mirrorText now current
+  if (!opts.skipModalSync && window._modalSyncFromSource) {
+    window._modalSyncFromSource('html');
+    if (opts.fromConvert) window._modalSyncFromSource('preview');
+  }
+}
+// Docked mirror wiring. refreshHtmlMirror(val) stays the single entry point
+// used by onHtmlChanged; the shared highlighter factory and the docked
+// instance live below the tag-scan helpers. Mirrors render the HTML text
+// with transparent glyphs and never touch any .value, so the copy buffer
+// stays byte-identical.
+function refreshHtmlMirror(val) {
+  _linkRange = null;      // a text edit invalidates any cross-panel link highlight
+  dockedHighlighter.refresh(val);
+}
+// Legacy-named hook kept for pre-factory callers (preview-map link highlight).
+function paintTagHighlight() { dockedHighlighter.repaint(); }
+
+// esc for building mirror HTML from ranges (text is invisible; this only keeps
+// the layout identical so highlight boxes land on the right characters).
+function escMirror(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* Find the tag whose <...> span contains (or is adjacent to) offset `pos`.
+   Boundary rule: caret from '<' through '>' inclusive counts; ties at a
+   boundary resolve to the tag on the left. Returns the tag object or null. */
+function tagAtOffset(tags, pos) {
+  for (const t of tags) {
+    if (pos >= t.start && pos <= t.end) return t;
+  }
+  return null;
+}
+
+/* Given the scanned tags and an index into that array for the clicked tag,
+   return the array index of its structural partner using the SAME stack logic
+   the validator uses, or -1 if none. Only open<->close pairs match; void,
+   selfclose and 'other' never have partners. */
+function findPartnerIndex(tags, targetIdx) {
+  const target = tags[targetIdx];
+  if (!target || (target.kind !== 'open' && target.kind !== 'close')) return -1;
+  if (target.kind === 'open') {
+    let depth = 0;
+    for (let k = targetIdx + 1; k < tags.length; k++) {
+      const t = tags[k];
+      if (t.kind === 'open' && t.name === target.name) depth++;
+      else if (t.kind === 'close' && t.name === target.name) {
+        if (depth === 0) return k;
+        depth--;
+      }
+    }
+    return -1;
+  } else {
+    let depth = 0;
+    for (let k = targetIdx - 1; k >= 0; k--) {
+      const t = tags[k];
+      if (t.kind === 'close' && t.name === target.name) depth++;
+      else if (t.kind === 'open' && t.name === target.name) {
+        if (depth === 0) return k;
+        depth--;
+      }
+    }
+    return -1;
+  }
+}
+
+/* Offsets of every tag the validator would flag as an ERROR: unmatched opens,
+   extra/crossed closers, odd-quoted tags, and the truncated tail of a
+   malformed or quote-broken tag (scan.stop). Runs the SAME stack walk as
+   validateEditedHtml, collecting ranges instead of messages, so the red boxes
+   and the panel errors can never disagree. Warning-level findings (e.g. an
+   hrefless <a>) do not paint red. Returns merged, sorted [start,end] pairs. */
+function computeErrorRanges(scan) {
+  const ranges = [];
+  const stack = [];
+  for (const t of scan.tags) {
+    if (t.kind === 'other') continue;
+    if (t.oddQuotes) ranges.push([t.start, t.end]);
+    if (t.kind === 'void' || t.kind === 'selfclose') continue;
+    if (t.kind === 'open') { stack.push(t); continue; }
+    // closing tag
+    if (!stack.length) { ranges.push([t.start, t.end]); continue; }
+    if (stack[stack.length - 1].name === t.name) { stack.pop(); continue; }
+    let idx = -1;
+    for (let k = stack.length - 1; k >= 0; k--) { if (stack[k].name === t.name) { idx = k; break; } }
+    if (idx >= 0) {
+      // crossed nesting: flag the closer and the opens it swallows
+      ranges.push([t.start, t.end]);
+      for (let k = idx + 1; k < stack.length; k++) ranges.push([stack[k].start, stack[k].end]);
+      stack.length = idx;
+    } else {
+      ranges.push([t.start, t.end]);
+    }
+  }
+  stack.forEach(t => ranges.push([t.start, t.end]));   // opens never closed
+  if (scan.stop) ranges.push([scan.stop.start, scan.stop.end]);
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  for (const r of ranges) {
+    const last = merged[merged.length - 1];
+    if (last && r[0] <= last[1]) { if (r[1] > last[1]) last[1] = r[1]; }
+    else merged.push([r[0], r[1]]);
+  }
+  return merged;
+}
+
+/* ============================================================================
+   SHARED TAG-HIGHLIGHTER FACTORY
+   One instance per textarea+mirror pair: the docked Clean HTML panel and the
+   expand-modal HTML editor. Each instance owns its text snapshot and repaint
+   key, installs its own caret/scroll listeners, and removes them in
+   destroy(). Painted layers:
+     - blue pair (.tag-hl): the caret's tag + its structural partner
+     - red (.tag-hl-miss): validator-error tags, caret or not — unmatched
+       opens, extra/crossed closers, odd quotes, truncated tails
+     - green linked range (.tag-hl-link) via opts.getLinkRange — supplied by
+       the docked panel's preview mapping only; the modal passes none
+   READ-ONLY by contract: reads textarea.value/selection, paints the mirror.
+   It never writes any .value, so the copy buffer stays byte-identical.
+   ============================================================================ */
+function createTagHighlighter(opts) {
+  const ta = opts.textarea;
+  const m = opts.mirror;
+  const getLinkRange = opts.getLinkRange || null;
+  let text = '', hlKey = '';
+
+  // Translate the mirror's inner layer to match the textarea scroll offset
+  // (mirror scrollTop would be clamped to 0 by overflow:hidden).
+  function syncScroll() {
+    const inner = m.querySelector('.mirror-inner');
+    if (inner) inner.style.transform = 'translate(' + (-ta.scrollLeft) + 'px,' + (-ta.scrollTop) + 'px)';
+  }
+
+  function repaint() {
+    // Decide the highlight ranges: [{start,end,cls}] or [].
+    let ranges = [];
+    const scan = text ? scanTags(text) : null;
+    const errRanges = scan ? computeErrorRanges(scan) : [];
+    const overlapsErr = (s, e) => errRanges.some(r => s < r[1] && e > r[0]);
+    // Tag highlight follows the caret whenever the textarea is focused with a
+    // collapsed caret. Independent of any preview state.
+    const active = document.activeElement === ta && ta.selectionStart === ta.selectionEnd;
+    if (active && text) {
+      const pos = ta.selectionStart;
+      const tags = scan.tags;
+      const idx = tags.findIndex(t => pos >= t.start && pos <= t.end);
+      if (idx >= 0) {
+        const t = tags[idx];
+        if (t.kind === 'open' || t.kind === 'close') {
+          const partner = findPartnerIndex(tags, idx);
+          if (partner >= 0) {
+            ranges = [
+              { start: t.start, end: t.end, cls: 'tag-hl' },
+              { start: tags[partner].start, end: tags[partner].end, cls: 'tag-hl' }
+            ];
+          } else {
+            ranges = [{ start: t.start, end: t.end, cls: 'tag-hl-miss' }];
+          }
+        }
+      }
+    }
+    const link = getLinkRange ? getLinkRange() : null;
+    if (link) ranges.push({ start: link.start, end: link.end, cls: 'tag-hl-link' });
+    // Error ranges win wherever a caret/link range overlaps one.
+    ranges = ranges.filter(r => !overlapsErr(r.start, r.end));
+    errRanges.forEach(r => ranges.push({ start: r[0], end: r[1], cls: 'tag-hl-miss' }));
+    // Avoid needless DOM churn: only rebuild when the highlight state changes.
+    const key = ranges.map(r => r.start + ':' + r.end + ':' + r.cls).join('|') + '#' + text.length;
+    if (key === hlKey && m.dataset.built === '1') return;
+    hlKey = key;
+
+    if (!ranges.length) {
+      m.innerHTML = '<div class="mirror-inner">' + escMirror(text) + '</div>';
+      syncScroll();
+      m.dataset.built = '1';
+      return;
+    }
+    ranges.sort((a, b) => a.start - b.start);
+    let html = '', cursor = 0;
+    for (const r of ranges) {
+      if (r.start < cursor) continue; // safety: no overlap
+      html += escMirror(text.slice(cursor, r.start));
+      html += '<span class="' + r.cls + '">' + escMirror(text.slice(r.start, r.end)) + '</span>';
+      cursor = r.end;
+    }
+    html += escMirror(text.slice(cursor));
+    m.innerHTML = '<div class="mirror-inner">' + html + '</div>';
+    syncScroll();
+    m.dataset.built = '1';
+  }
+
+  function refresh(val) { text = val; repaint(); }
+  function invalidate() { hlKey = ''; }   // force the next repaint to rebuild
+
+  // Caret tracking: repaint on caret moves that don't come through refresh()
+  // (clicks, arrow keys, focus). Blur rebuilds so the caret pair disappears
+  // while error ranges stay painted.
+  const onKeyup = (e) => {
+    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(e.key)) repaint();
+  };
+  const onBlur = () => { hlKey = ''; repaint(); };
+  const onSelectionChange = () => { if (document.activeElement === ta) repaint(); };
+  ta.addEventListener('click', repaint);
+  ta.addEventListener('keyup', onKeyup);
+  ta.addEventListener('focus', repaint);
+  ta.addEventListener('blur', onBlur);
+  ta.addEventListener('scroll', syncScroll);
+  document.addEventListener('selectionchange', onSelectionChange);
+
+  function destroy() {
+    ta.removeEventListener('click', repaint);
+    ta.removeEventListener('keyup', onKeyup);
+    ta.removeEventListener('focus', repaint);
+    ta.removeEventListener('blur', onBlur);
+    ta.removeEventListener('scroll', syncScroll);
+    document.removeEventListener('selectionchange', onSelectionChange);
+  }
+
+  return { refresh, repaint, syncScroll, invalidate, destroy };
+}
+
+// Docked instance: the Clean HTML panel. getLinkRange feeds the green
+// linked-range highlight that only the docked panel has (preview mapping).
+const dockedHighlighter = createTagHighlighter({
+  textarea: document.getElementById('htmlOutput'),
+  mirror: document.getElementById('htmlMirror'),
+  getLinkRange: () => _linkRange
+});
+
+/* ============================================================================
+   2.5 BIDIRECTIONAL HIGHLIGHT: Clean HTML <-> Live Preview
+   Element-level mapping with NO instrumentation in the copy buffer. The text
+   is parsed positionally; the preview DOM is stamped with a runtime data-k
+   attribute (display-only, never read back into #htmlOutput.value, stripped
+   from any modal clone). Rebuilt only on a successful render; disabled while
+   the preview is paused on an error.
+   ============================================================================ */
+let previewElems = [];   // index -> { openStart, openEnd, fullEnd, name }
+let previewMapOk = false;
+// Tag names the HTML parser auto-inserts that the converter never emits, so
+// they appear in the preview DOM but not in the source text. Skipped during
+// alignment (their children still map correctly).
+const AUTO_WRAPPERS = new Set(['tbody', 'colgroup']);
+
+// Build the text-side element list (document order) with full spans, by
+// pairing scanTags output. Void/selfclose elements have fullEnd === openEnd.
+function buildTextElements(text) {
+  const { tags } = scanTags(text);
+  const elems = [];
+  const stack = [];
+  for (const t of tags) {
+    if (t.kind === 'open') {
+      const e = { openStart: t.start, openEnd: t.end, fullEnd: t.end, name: t.name };
+      elems.push(e); stack.push(e);
+    } else if (t.kind === 'void' || t.kind === 'selfclose') {
+      elems.push({ openStart: t.start, openEnd: t.end, fullEnd: t.end, name: t.name });
+    } else if (t.kind === 'close') {
+      for (let k = stack.length - 1; k >= 0; k--) {
+        if (stack[k].name === t.name) { stack[k].fullEnd = t.end; stack.length = k; break; }
+      }
+    }
+  }
+  return elems;
+}
+
+// Align preview DOM elements (document order) to text elements, tolerating
+// auto-inserted wrappers. Stamps data-k on paired preview elements. If the
+// streams don't reconcile, clears everything and disables mapping (safe: no
+// wrong highlight rather than a misleading one).
+function buildPreviewMap() {
+  const preview = document.getElementById('previewArea');
+  previewElems = [];
+  previewMapOk = false;
+  if (!preview || previewPaused) { clearPreviewStamps(preview); return; }
+  const text = document.getElementById('htmlOutput').value;
+  const textEls = buildTextElements(text);
+  const domEls = preview.querySelectorAll('*');
+  let i = 0;
+  clearPreviewStamps(preview);
+  for (const pe of domEls) {
+    const name = pe.tagName.toLowerCase();
+    if (i < textEls.length && textEls[i].name === name) {
+      pe.setAttribute('data-k', String(i));
+      i++;
+    } else if (AUTO_WRAPPERS.has(name) && (i >= textEls.length || textEls[i].name !== name)) {
+      continue;   // parser-inserted wrapper: skip, don't consume a text element
+    } else {
+      // Divergence we can't reconcile: bail out cleanly.
+      clearPreviewStamps(preview);
+      return;
+    }
+  }
+  if (i !== textEls.length) { clearPreviewStamps(preview); return; }
+  previewElems = textEls;
+  previewMapOk = true;
+}
+function clearPreviewStamps(preview) {
+  if (!preview) return;
+  preview.querySelectorAll('[data-k]').forEach(el => el.removeAttribute('data-k'));
+}
+
+// Innermost text element whose full span contains offset `pos`.
+function textElementAtOffset(pos) {
+  let best = -1, bestStart = -1;
+  for (let k = 0; k < previewElems.length; k++) {
+    const e = previewElems[k];
+    if (pos >= e.openStart && pos <= e.fullEnd && e.openStart > bestStart) { best = k; bestStart = e.openStart; }
+  }
+  return best;
+}
+
+// Paint a distinct "linked element" highlight on the mirror for a text range,
+// independent of the caret tag-highlight, and scroll it into view.
+let _linkRange = null;
+function highlightTextRange(range, scroll) {
+  _linkRange = range;
+  dockedHighlighter.invalidate();   // force repaint
+  dockedHighlighter.repaint();
+  if (scroll && range) {
+    const ta = document.getElementById('htmlOutput');
+    const before = ta.value.slice(0, range.start);
+    const line = (before.match(/\n/g) || []).length;
+    const lineH = parseFloat(getComputedStyle(ta).lineHeight) || 19;
+    const target = line * lineH - ta.clientHeight / 2;
+    ta.scrollTop = Math.max(0, target);
+  }
+}
+function flashPreviewEl(el, scroll) {
+  const preview = document.getElementById('previewArea');
+  if (!preview) return;
+  preview.querySelectorAll('.pv-link').forEach(e => e.classList.remove('pv-link'));
+  if (!el) return;
+  el.classList.add('pv-link');
+  if (scroll) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+/* ============================================================================
    CONVERT
    ============================================================================ */
 function runConvert(silent) {
@@ -1294,43 +2262,68 @@ function runConvert(silent) {
   }
 
   document.getElementById('htmlOutput').value = converted;
-  document.getElementById('previewArea').innerHTML = converted;
-  setDirty(true);
-  htmlUndo.reset();
-  if (window._modalSyncFromSource) { window._modalSyncFromSource('html'); window._modalSyncFromSource('preview'); }
+  onHtmlChanged(converted, { fromConvert: true, recordUndo: 'reset' });
 
-  if (silent) return;
+  if (silent) return;   // refreshing after undo/redo: leave warnings panel untouched
 
-  clearWarnings();
-  dedupeWarnings(warnings).forEach(w => addWarning(w.level, w.title, w.msg));
-  addWarning('info', 'Conversion complete', 'Review the preview and HTML output before copying into Salesforce.');
-  updateWarningsFooter();
+  panelItems = [];   // reset conversion items (keep htmlIssues empty for fresh output)
+  dedupeWarnings(warnings).forEach(w => panelItems.push({ level: w.level, title: w.title, msg: w.msg }));
+  panelItems.push({ level: 'info', title: 'Conversion complete', msg: 'Review the preview and HTML output before copying into Salesforce.' });
+  renderValidation();
   const issues = warnings.filter(w => w.level === 'error' || w.level === 'warning').length;
-  if (issues) updatePanelStatus('Converted with ' + issues + ' warning' + (issues !== 1 ? 's' : '') + '. Review before copying.', 'warn');
-  else updatePanelStatus('Converted successfully. No warnings. Review, then copy the HTML.', 'ok');
+  if (issues) updatePanelStatus('Converted with ' + issues + ' item' + (issues !== 1 ? 's' : '') + ' to review. Check the panel before copying.', 'warn');
+  else updatePanelStatus('Converted successfully. Ready to copy.', 'ok');
   if (warnings.some(w => w.level === 'error' || w.level === 'warning') || warnings.length > 1) setPanelOpen(true);
 }
 document.getElementById('btnConvert').addEventListener('click', () => runConvert(false));
 
 /* ============================================================================
    LIVE PREVIEW SYNC
+   Edits in the HTML source field update the preview immediately. No convert
+   or refresh click needed. Incomplete markup while typing parses leniently
+   and never throws.
    ============================================================================ */
 (function () {
   const htmlOut = document.getElementById('htmlOutput');
-  const preview = document.getElementById('previewArea');
   htmlOut.addEventListener('input', () => {
-    const val = htmlOut.value;
-    try { preview.innerHTML = val; }
-    catch (_) { }
-    if (val.trim()) setDirty(true);
-    htmlUndo.recordDebounced();
-    if (window._modalSyncFromSource) window._modalSyncFromSource('html');
+    onHtmlChanged(htmlOut.value, { recordUndo: 'debounced' });
+  });
+  htmlOut.addEventListener('scroll', () => {
+    const g = document.getElementById('codeGutter'); if (g) g.scrollTop = htmlOut.scrollTop;
+    // Mirror scroll follows via the highlighter instance's own scroll listener.
   });
   htmlOut.addEventListener('keydown', (e) => {
     if (!(e.ctrlKey || e.metaKey)) return;
     const k = e.key.toLowerCase();
     if (k === 'z' && !e.shiftKey) { e.preventDefault(); htmlUndo.undo(); }
     else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); htmlUndo.redo(); }
+  });
+  // Tag-highlight caret tracking (clicks, arrow keys, focus, selectionchange)
+  // is installed by the docked createTagHighlighter instance itself.
+
+  // 2.5 HTML -> Preview: clicking in the code outlines and scrolls to the
+  // matching preview element. Click-driven only; plain caret moves don't scroll
+  // the preview (that would make it jump around while editing).
+  htmlOut.addEventListener('click', () => {
+    if (!previewMapOk || previewPaused) { flashPreviewEl(null); return; }
+    const idx = textElementAtOffset(htmlOut.selectionStart);
+    if (idx < 0) { flashPreviewEl(null); return; }
+    const el = document.querySelector('#previewArea [data-k="' + idx + '"]');
+    flashPreviewEl(el, true);
+  });
+
+  // 2.5 Preview -> HTML: clicking an element highlights its source range in the
+  // code and scrolls it into view. Uses the nearest mapped ancestor.
+  document.getElementById('previewArea').addEventListener('click', (e) => {
+    if (!previewMapOk || previewPaused) return;
+    let node = e.target;
+    while (node && node !== document.getElementById('previewArea') && !node.hasAttribute('data-k')) node = node.parentElement;
+    if (!node || !node.hasAttribute || !node.hasAttribute('data-k')) return;
+    const idx = parseInt(node.getAttribute('data-k'), 10);
+    const el = previewElems[idx];
+    if (!el) return;
+    highlightTextRange({ start: el.openStart, end: el.openEnd }, true);
+    flashPreviewEl(node, false);
   });
 })();
 
@@ -1356,20 +2349,23 @@ function convertHTML(source, useFallback, warnings) {
 
   removePageBreaks(body);
   collapseEmptyParagraphs(body, warnings);
-  groupWordOnlineLists(body, warnings);
-  groupNativeWordLists(body, warnings);
+  groupWordOnlineLists(body, warnings);   // ← Word Online / Office 365 web
+  groupNativeWordLists(body, warnings);   // ← desktop Word mso-list format
   groupManualLists(body, warnings);
   groupJsonBlocks(body, warnings);
   groupCodeParagraphs(body, warnings);
-  normalizeListMarkers(body);
+  normalizeListMarkers(body);   // unify ol(1/a/i) & ul(disc/circle/square) by per-type nesting
 
-  const outHtml = finalizeHr(processTopLevel(body, warnings))
-    .replace(/^[ \t]+$/gm, '')
+  return finalizeHr(processChildren(body, warnings))
+    .replace(/^[ \t]+$/gm, '')   // lines that are only spaces/tabs
     .replace(/\n{3,}/g, '\n\n')
     .trim();
-  return dedupeNestedWrappers(outHtml);
 }
 
+/* Assign each list its marker style from how many ancestor-or-self lists share
+   its type (ordered vs unordered counted independently), cycling every three
+   levels. This is the same rule the editable paste field uses, so the converted
+   HTML matches what the user sees after Tab-indenting. */
 function normalizeListMarkers(root) {
   const olStyle = ['decimal', 'lower-alpha', 'lower-roman'];
   const ulStyle = ['disc', 'circle', 'square'];
@@ -1403,11 +2399,19 @@ function removePageBreaks(body) {
   });
 }
 
-/* Bug 3: preserve each blank paragraph as its own spacer. Blank paragraphs are
-   now turned into a visible <p>&nbsp;</p> in processNode/processTopLevel, except
-   where suppressed adjacent to a list/table (bug 4). */
 function collapseEmptyParagraphs(body, warnings) {
-  /* no-op: blank paragraphs are now preserved as spacers */
+  let emptyRun = 0, warned = false;
+  Array.from(body.childNodes).forEach(node => {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const tag = node.tagName.toLowerCase();
+      if ((tag === 'p' || tag === 'div') && !isSentinel(node) && !node.textContent.trim()) {
+        if (++emptyRun > 1) {
+          node.parentNode.removeChild(node);
+          if (!warned) { warnings.push({ level: 'info', title: 'Empty paragraphs collapsed', msg: 'Consecutive empty paragraphs reduced to one.' }); warned = true; }
+        }
+      } else emptyRun = 0;
+    }
+  });
 }
 
 function isSentinel(node) {
@@ -1417,60 +2421,22 @@ function isSentinel(node) {
      node.getAttribute('data-code-block') === 'true');
 }
 
-/* Bug 3/4 helpers --------------------------------------------------------- */
-function isEmptyPara(node) {
-  if (!node || node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) return false;
-  const tag = node.tagName.toLowerCase();
-  if (tag !== 'p' && tag !== 'div') return false;
-  if (node.querySelector('img, table, ul, ol, br')) return false;
-  return !node.textContent.trim();
-}
-function isListOrTable(node) {
-  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
-  if (node.getAttribute && node.getAttribute('data-list') === 'true') return true;
-  const tag = node.tagName.toLowerCase();
-  return tag === 'ul' || tag === 'ol' || tag === 'table';
-}
-function meaningfulSibling(node, dir) {
-  let n = dir === 'prev' ? node.previousSibling : node.nextSibling;
-  while (n) {
-    if (n.nodeType === Node.ELEMENT_NODE) return n;
-    if (n.nodeType === Node.TEXT_NODE && n.textContent.trim()) return n;
-    n = dir === 'prev' ? n.previousSibling : n.nextSibling;
-  }
-  return null;
-}
-function spacerSuppressed(node) {
-  const prev = meaningfulSibling(node, 'prev');
-  const next = meaningfulSibling(node, 'next');
-  return isListOrTable(prev) || isListOrTable(next);
-}
-/* Bug 5: trailing-space trim on a paragraph's inner HTML. Removes trailing
-   whitespace but preserves all trailing <br> tags. Leading whitespace untouched. */
-function trimInnerTrailing(html) {
-  let s = html || '';
-  let brs = '';
-  const brRe = /(?:\s|&nbsp;)*(<br\s*\/?>)(?:\s|&nbsp;)*$/i;
-  let m;
-  while ((m = s.match(brRe))) {
-    brs = '<br>' + brs;
-    s = s.slice(0, m.index);
-  }
-  s = s.replace(/(?:\s|&nbsp;)+$/g, '');
-  return s + brs;
-}
-
 /* ============================================================================
    MARKER CLASSIFICATION
+   Returns { tag, typeAttr, styleAttr }
+   - typeAttr  used on <ol type="a">  (HTML4, broad Salesforce support)
+   - styleAttr used on <ul style="list-style-type: circle;">
    ============================================================================ */
 function classifyMarker(marker) {
   const m = (marker || '').trim();
   const core = m.replace(/[.)\]]+$/, '').trim();
 
+  // Bullets
   if (/^[\u25AA\u25A0\u25AB\u25A1\u00A7]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'square', startAttr:null };
   if (/^[\u25CB\u25E6\u25EF o]$/.test(m))            return { tag:'ul', typeAttr:null, styleAttr:'circle', startAttr:null };
   if (/^[\u2022\u25CF\u00B7\u2219\u2023]$/.test(m) || /^[-*]$/.test(m)) return { tag:'ul', typeAttr:null, styleAttr:'disc', startAttr:null };
 
+  // Ordered
   if (/^\d+$/.test(core))   return { tag:'ol', typeAttr:'1',   styleAttr:null, startAttr: parseInt(core, 10) > 1 ? String(parseInt(core, 10)) : null };
   if (isRoman(core))        return { tag:'ol', typeAttr: core === core.toLowerCase() ? 'i' : 'I', styleAttr:null, startAttr: romanToInt(core) > 1 ? String(romanToInt(core)) : null };
   if (/^[a-z]$/.test(core)) return { tag:'ol', typeAttr:'a',   styleAttr:null, startAttr: alphaToInt(core) > 1 ? String(alphaToInt(core)) : null };
@@ -1515,6 +2481,20 @@ function serializeList(node) {
 
 /* ============================================================================
    WORD ONLINE / OFFICE 365 WEB LIST PRE-PASS
+   Word Online puts each list item in its own <ol>/<ul> wrapped in a
+   <div class="ListContainerWrapper">. The nesting metadata lives on the <li>:
+     data-aria-level  = depth (1-based)
+     data-listid      = a list family id (NOT reliable for grouping — multiple
+                        listids can appear interleaved in one logical list)
+   The parent <ol>/<ul> already carries the correct list-style-type.
+
+   Critical insight: Word Online sometimes uses a DIFFERENT listid for a
+   sub-list that is visually and logically nested inside the main list
+   (e.g. roman numeral level-3 items under a level-2 item get listid "21"
+   while the rest of the list uses listid "14"). Grouping by listid breaks
+   these apart. Instead we process ALL Word Online li elements in DOM order
+   as one sequence, using only data-aria-level to drive nesting, and break
+   the sequence only when a non-list element appears between items.
    ============================================================================ */
 function isWordOnlineLi(node) {
   return node && node.nodeType === Node.ELEMENT_NODE &&
@@ -1523,23 +2503,32 @@ function isWordOnlineLi(node) {
     node.hasAttribute('data-listid');
 }
 
+// Is this a top-level Word Online wrapper node (ListContainerWrapper div, or
+// an outer SCXW div containing only ListContainerWrapper children)?
+// A ListContainerWrapper div — the direct container of a Word Online <li>.
 function isListContainerWrapper(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
   return /ListContainerWrapper/i.test(node.getAttribute('class') || '');
 }
 
+// A Word Online outer SCXW grouping div. These contain a mix of
+// ListContainerWrapper children and OutlineElement (heading/paragraph) children.
+// We must NOT treat the whole div as a list — we need to flatten its children
+// into the body so headings and notes between list items are preserved.
 function isWordOnlineOuterDiv(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
   const cls = node.getAttribute('class') || '';
   return /SCXW\d+/i.test(cls) && !isListContainerWrapper(node);
 }
 
+// An OutlineElement that is NOT a list item (heading, paragraph, note).
 function isWordOnlineNonListOutline(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
   const cls = node.getAttribute('class') || '';
   return /OutlineElement/i.test(cls) && !node.querySelector('li[data-aria-level]');
 }
 
+// Pull list-type info from the <li>'s parent <ol>/<ul>.
 function wordOnlineListType(li) {
   const parent = li.parentElement;
   if (!parent) return { tag:'ol', typeAttr:'1', styleAttr:null };
@@ -1556,6 +2545,7 @@ function wordOnlineListType(li) {
   return { tag:'ol', typeAttr: typeMap[lsType] || '1', styleAttr:null };
 }
 
+// Extract clean text/HTML from a Word Online <li>, preserving inline links.
 function wordOnlineLiContent(li, warnings) {
   const clone = li.cloneNode(true);
   clone.querySelectorAll('.EOP, [data-ccp-props]').forEach(el => el.remove());
@@ -1566,20 +2556,27 @@ function wordOnlineLiContent(li, warnings) {
   return processInlineChildren(clone, warnings).trim();
 }
 
+// Convert a Word Online OutlineElement non-list node (heading or paragraph)
+// into a body-level sentinel so it can be processed by the normal pipeline.
 function promoteWordOnlineOutline(outlineEl, body) {
+  // The actual content paragraph is inside the OutlineElement div.
   const pEl = outlineEl.querySelector('p.Paragraph, p[paraid]') || outlineEl.querySelector('p') || outlineEl;
   const clone = pEl.cloneNode(true);
   clone.querySelectorAll('.EOP, [data-ccp-props]').forEach(el => el.remove());
+  // Check for heading role on the <p>.
   const headingRole = pEl.getAttribute('role') === 'heading';
   const ariaLevel = parseInt(pEl.getAttribute('aria-level') || '0', 10);
   if (headingRole || ariaLevel > 0) {
+    // Create a real heading element so the heading detector picks it up.
     const tag = ariaLevel === 1 ? 'h1' : ariaLevel === 2 ? 'h2' : 'h' + ariaLevel;
     const h = body.ownerDocument.createElement(tag);
+    // Copy font-size style for heading level detection.
     const fontSize = (pEl.getAttribute('style') || '').match(/font-size\s*:\s*[\d.]+pt/i);
     if (fontSize) h.setAttribute('style', fontSize[0]);
     h.innerHTML = clone.innerHTML;
     return h;
   }
+  // Plain paragraph — return the cleaned <p>.
   clone.removeAttribute('class');
   clone.removeAttribute('paraid');
   clone.removeAttribute('paraeid');
@@ -1587,6 +2584,11 @@ function promoteWordOnlineOutline(outlineEl, body) {
 }
 
 function groupWordOnlineLists(body, warnings) {
+  // STEP 1: Flatten outer SCXW grouping divs.
+  // These divs mix ListContainerWrapper children with OutlineElement (heading/para)
+  // children. We replace each outer div with its children in-place so that
+  // headings, Note/Warning paragraphs, and list wrappers all become direct
+  // body children and can be handled in correct document order.
   Array.from(body.children).forEach(child => {
     if (!isWordOnlineOuterDiv(child)) return;
     const parent = child.parentNode;
@@ -1594,6 +2596,7 @@ function groupWordOnlineLists(body, warnings) {
     const kids = Array.from(child.childNodes);
     kids.forEach(k => {
       if (isWordOnlineNonListOutline(k)) {
+        // Promote heading/para outline elements to real elements.
         parent.insertBefore(promoteWordOnlineOutline(k, body), child);
       } else {
         parent.insertBefore(k.cloneNode(true), child);
@@ -1602,6 +2605,8 @@ function groupWordOnlineLists(body, warnings) {
     parent.removeChild(child);
   });
 
+  // STEP 2: Walk body children in DOM order. Collect consecutive
+  // ListContainerWrapper nodes as one list run; emit non-list content as-is.
   const children = Array.from(body.childNodes);
   let i = 0, warned = false;
 
@@ -1609,6 +2614,7 @@ function groupWordOnlineLists(body, warnings) {
     const node = children[i];
     if (!isListContainerWrapper(node)) { i++; continue; }
 
+    // Collect consecutive ListContainerWrapper nodes (the list run).
     const wrappers = [node];
     let j = i + 1;
     while (j < children.length) {
@@ -1686,12 +2692,17 @@ function isWordListPara(node) {
   if (tag !== 'p' && tag !== 'div') return false;
   const cls   = node.getAttribute('class') || '';
   const style = node.getAttribute('style') || '';
+  // Accept: explicit mso-list style, MsoListParagraph class (with or without mso-list),
+  // or any paragraph that has a margin-left >= 0.4in suggesting Word list indentation.
   if (/MsoListParagraph/i.test(cls) || /mso-list\s*:/i.test(style)) return true;
   return wordIndentInches(node) >= 0.35 && /text-indent\s*:\s*-\s*[\d.]+/i.test(style);
 }
 function wordListLevel(node) {
+  // Primary: explicit mso-list level attribute.
   const m = (node.getAttribute('style') || '').match(/mso-list\s*:[^;]*\blevel(\d+)/i);
   if (m) return parseInt(m[1], 10);
+  // Fallback: derive level from margin-left for flat indented lists (no mso-list metadata).
+  // Word uses ~0.5in per level. Clipboard HTML expresses this as margin-left in inches or pt/px.
   const style = node.getAttribute('style') || '';
   const mi = style.match(/margin-left\s*:\s*([\d.]+)\s*(in|pt|px|cm)/i);
   if (mi) {
@@ -1703,6 +2714,7 @@ function wordListLevel(node) {
     else if (unit === 'px') inches = val / 96;
     else if (unit === 'cm') inches = val / 2.54;
     else inches = 0;
+    // Round to nearest 0.5in step; level 1 starts at 0.5in.
     return Math.max(1, Math.round(inches / 0.5));
   }
   return 1;
@@ -1711,13 +2723,16 @@ function extractWordMarker(node, warnings) {
   const clone = node.cloneNode(true);
   let markerText = '';
 
+  // Path 1: full Word clipboard — marker in mso-list:Ignore span.
   const ignSpan = Array.from(clone.querySelectorAll('span')).find(s => /mso-list\s*:\s*ignore/i.test(s.getAttribute('style') || ''));
   if (ignSpan) {
     markerText = normalizeWordMarker(ignSpan.textContent || '');
     ignSpan.remove();
+    // Also remove the adjacent spacer span (tiny-font spacer Word adds after the marker).
     const next = clone.firstChild;
     if (next && next.nodeType === Node.ELEMENT_NODE && isSpacerSpan(next)) next.remove();
   } else {
+    // Path 2: Chrome-stripped — marker is the first text node / first child.
     let firstChild = clone.firstChild;
     while (firstChild && firstChild.nodeType === Node.TEXT_NODE && !firstChild.nodeValue.trim()) {
       firstChild = firstChild.nextSibling;
@@ -1729,6 +2744,7 @@ function extractWordMarker(node, warnings) {
       if (isMarkerToken(rawMarker)) {
         markerText = rawMarker;
         firstChild.remove();
+        // Remove the adjacent spacer span (small-font nbsp padding).
         const spacer = clone.firstChild;
         if (spacer && isSpacerSpan(spacer)) spacer.remove();
       }
@@ -1737,6 +2753,7 @@ function extractWordMarker(node, warnings) {
 
   let contentHTML = processInlineChildren(clone, warnings).trim();
 
+  // Last-resort: if marker still not found, try to strip it from rendered HTML.
   if (!markerText) {
     const mx = contentHTML.match(/^\s*([0-9]+[.)]|[A-Za-z][.)]|[\u2022\u25CF\u00B7\u2219\u2023\u25AA\u25A0\u25CB\u25E6o\u25AA\u25a0\-*])\s*(?:&nbsp;|\s)*/);
     if (mx) { markerText = normalizeWordMarker(mx[1]); contentHTML = contentHTML.slice(mx[0].length); }
@@ -1745,12 +2762,16 @@ function extractWordMarker(node, warnings) {
   return { markerText: markerText.trim(), contentHTML: contentHTML.replace(/^(?:&nbsp;|\s)+/, '') };
 }
 
+// A spacer span is the tiny-font padding span Word inserts between the marker
+// and the list item text: <span style="font:7.0pt 'Times New Roman'"> </span>
+// or Chrome's equivalent <span style="font-size:7pt">&nbsp;</span>.
 function isSpacerSpan(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
   const tag = node.tagName.toLowerCase();
   if (tag !== 'span') return false;
   const style = (node.getAttribute('style') || '').toLowerCase();
   if (/font-size\s*:\s*[1-9]\s*pt|font\s*:\s*[1-9]/i.test(style)) return true;
+  // Also discard tabs / mso-tab-count spans.
   if (/mso-tab-count/i.test(style)) return true;
   return false;
 }
@@ -1764,6 +2785,8 @@ function buildLeveledTree(items) {
       stack.length = lvl;
       const top = stack[lvl - 1];
       if (top.listNode.typeAttr !== it.typeAttr || top.listNode.styleAttr !== it.styleAttr || top.listNode.tag !== it.tag) {
+        // Type changed at this level: replace the old list node so we don't
+        // create an unwanted sibling list under the same parent item.
         const listNode = { tag: it.tag, typeAttr: it.typeAttr, styleAttr: it.styleAttr, startAttr: it.startAttr, items: [li] };
         if (lvl >= 2) {
           const parentItem = stack[lvl - 2].currentItem;
@@ -1819,6 +2842,11 @@ function groupManualLists(body, warnings) {
       break;
     }
 
+    // Decide whether this run is really a list. Ambiguous single-item cases stay
+    // text (and a lone letter raises a section-label warning). A run of two or
+    // more consecutive markers is treated as a genuine sequence.
+    if (!manualRunShouldConvert(run, warnings)) { i = j; continue; }
+
     const romanPresent = run.some(p => { const c = leadingCore(p.textContent); return c && isRoman(c); });
     const items = run.map(p => {
       const { markerText, contentHTML } = stripManualMarker(p, warnings);
@@ -1834,6 +2862,30 @@ function groupManualLists(body, warnings) {
     if (!warned) { warnings.push({ level:'info', title:'Manual list detected', msg:'Typed markers converted to nested lists by marker type.' }); warned=true; }
     i = j;
   }
+}
+
+// Raw leading marker token of a paragraph, e.g. "10.", "a.", "•". '' if none.
+function firstManualMarker(node) {
+  const t = (node.textContent || '').replace(/ /g, ' ').replace(/^\s+/, '');
+  const m = t.match(/^([0-9]+[.)]|[A-Za-z][.)]|[•●·∙‣▪■▫□○◦◯]|[-*])\s+/);
+  return m ? m[1] : '';
+}
+// Heuristic gate for manual-list conversion. Prefer detect-and-warn over silent
+// conversion for ambiguous single-item cases.
+function manualRunShouldConvert(run, warnings) {
+  if (run.length >= 2) return true;                        // consecutive markers = a sequence
+  const marker = firstManualMarker(run[0]);
+  const core = marker.replace(/[.)\]]+$/, '').trim();
+  // Bullet glyphs / dashes are unambiguous.
+  if (/^[•●·∙‣▪■▫□○◦◯]$/.test(marker) || /^[-*]$/.test(marker)) return true;
+  if (/^[1-9]$/.test(core)) return true;                   // single digit 1–9: auto-convert
+  if (/^\d+$/.test(core)) return false;                    // lone multi-digit (e.g. 2026.): stays text
+  if (/^[A-Za-z]$/.test(core)) {                            // lone letter: stays text + warn
+    warnings.push({ level:'warning', title:'Possible section label',
+      msg: 'A lone "' + marker + '" marker was kept as text — it may be a section label, not a list. If it should be a list, select the lines and press the bulleted or numbered list button.' });
+    return false;
+  }
+  return false;
 }
 
 function leadingCore(text) {
@@ -1961,42 +3013,26 @@ function groupCodeParagraphs(body, warnings) {
     i++;
   }
 }
-/* Bug 2: a paragraph is "code-like" only when it is PREDOMINANTLY monospace,
-   not merely when it contains a few inline monospace tokens (e.g. <UnitPrice>).
-   A whole-block monospace font still counts; otherwise we require the monospace
-   text to be at least 90% of the paragraph's text. */
 function isCodeLike(node) {
   if (node.tagName.toLowerCase() === 'pre') return true;
   const style = (node.getAttribute('style') || '').toLowerCase();
-  const MONO = /font-family:[^;]*(courier|consolas|lucida console|monospace)/i;
-  if (MONO.test(style)) return true;
-
-  const total = (node.textContent || '').replace(/\s/g, '').length;
-  if (!total) return false;
-  let mono = 0;
-  node.querySelectorAll('span, font, code').forEach(el => {
-    if (MONO.test((el.getAttribute('style') || '').toLowerCase()) || el.tagName.toLowerCase() === 'code') {
-      mono += (el.textContent || '').replace(/\s/g, '').length;
-    }
-  });
-  return (mono / total) >= 0.9;
+  if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test(style)) return true;
+  for (const span of node.querySelectorAll('span')) {
+    if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test((span.getAttribute('style') || '').toLowerCase())) return true;
+  }
+  return false;
 }
 function getTextWithTabs(node) {
   let t = '';
   node.childNodes.forEach(ch => {
     if (ch.nodeType === Node.TEXT_NODE) t += ch.textContent;
     else if (ch.nodeType === Node.ELEMENT_NODE) {
+      // Skip Word Online EOP / data-ccp-props trailing spans — they add a spurious space.
       if (/\bEOP\b/.test(ch.getAttribute('class') || '') || ch.hasAttribute('data-ccp-props')) return;
       t += ch.tagName.toLowerCase() === 'br' ? '\n' : getTextWithTabs(ch);
     }
   });
   return t;
-}
-/* Bug 2: does this span/font carry a monospace font-family? Used to wrap inline
-   monospace runs in <code> so prose tokens like <UnitPrice> keep their styling. */
-function isMonospaceInline(node) {
-  const ss = (node.getAttribute('style') || '').toLowerCase();
-  return /font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test(ss);
 }
 
 /* ============================================================================
@@ -2010,6 +3046,7 @@ function processNode(node, warnings) {
   if (['script','style','link','meta','head','xml','o:p','w:sdt','w:sdtcontent'].includes(tag)) return '';
   if (tag === 'html' || tag === 'body') return processChildren(node, warnings);
 
+  // Sentinels
   if (node.getAttribute('data-list') === 'true')      return node.innerHTML + '\n';
   if (node.getAttribute('data-pre-code') === 'true')  return codeBlock(node.textContent);
   if (node.getAttribute('data-code-block') === 'true') return codeBlock(node.textContent);
@@ -2031,6 +3068,7 @@ function processNode(node, warnings) {
   if (tag === 'sub') return `<sub>${processChildren(node, warnings)}</sub>`;
   if (tag === 's' || tag === 'strike' || tag === 'del') return `<s>${processChildren(node, warnings)}</s>`;
 
+  // Native headings
   if (/^h[1-6]$/.test(tag)) {
     const lvl = detectHeadingLevel(node, tag);
     return headingHtml(lvl || 2, cleanText(node.textContent));
@@ -2039,17 +3077,10 @@ function processNode(node, warnings) {
   if (tag === 'p' || tag === 'div') {
     const raw = cleanText(node.textContent);
 
-    // Bug 3/4: empty paragraph -> spacer, unless adjacent to a list/table.
-    if (!raw && !node.querySelector('img, table, ul, ol, br')) {
-      if (spacerSuppressed(node)) return '';
-      return `<p style="${SF_FONT}">&nbsp;</p>\n`;
-    }
-
+    // Note/Warning/Important detection: try DOM-aware version first so inline
+    // markup in the remainder is preserved (Word Online uses bold spans).
     const note = buildNoteFromNode(node, raw, warnings);
     if (note) return note;
-
-    const splitHeads = splitMixedHeadingParagraph(node, warnings);
-    if (splitHeads) return splitHeads;
 
     const lvl = detectHeadingLevel(node, tag);
     if (lvl && raw) return headingHtml(lvl, raw);
@@ -2059,15 +3090,19 @@ function processNode(node, warnings) {
       return codeBlock(node.textContent.trim());
     }
 
-    const inner = trimInnerTrailing(processChildren(node, warnings).trim());
+    const inner = processChildren(node, warnings).trim();
     if (!inner) return '';
     if (hasBlock(inner)) return inner + (inner.endsWith('\n') ? '' : '\n');
-    return `<p style="${SF_FONT}">${normalizeNbsp(inner)}</p>\n`;
+    // Plain-paragraph indent: emit Salesforce-normalized margin. Level 0 emits
+    // nothing extra, so unindented output stays byte-identical to before.
+    const pIndent = parseInt(node.getAttribute('data-indent') || '0', 10) || 0;
+    const pStyle = pIndent > 0 ? `${SF_FONT} margin-left: ${pIndent * PARA_INDENT_STEP}px;` : SF_FONT;
+    return `<p style="${pStyle}">${normalizeNbsp(inner)}</p>\n`;
   }
 
   if (tag === 'ul' || tag === 'ol') return processSourceList(node, tag, warnings, 0);
   if (tag === 'li') {
-    const inner = trimInnerTrailing(processChildren(node, warnings).trim());
+    const inner = processChildren(node, warnings).trim();
     return inner ? `<li style="${SF_FONT}">${inner}</li>\n` : '';
   }
 
@@ -2076,17 +3111,12 @@ function processNode(node, warnings) {
   if (tag === 'u')  return `<u>${processChildren(node, warnings)}</u>`;
   if (tag === 'br') return '<br>';
 
-  if (tag === 'span' || tag === 'font') {
+  if (tag === 'span') {
     const ss = (node.getAttribute('style') || '').toLowerCase();
     if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
     if (/mso-spacerun/.test(ss)) return ' ';
     const inner = processChildren(node, warnings);
-    // Bug 2: inline monospace run -> wrap in <code> so tokens keep their styling.
-    if (isMonospaceInline(node)) return `<code style="${CODE_FONT}">${inner}</code>`;
     if (ss.includes('line-through')) return `<s>${inner}</s>`;
-    if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
-    if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
-    if (/text-decoration[^;]*underline/.test(ss)) return `<u>${inner}</u>`;
     return inner;
   }
 
@@ -2101,13 +3131,14 @@ function processNode(node, warnings) {
   }
 
   if (tag === 'table') return processTable(node, warnings);
+  if (tag === 'font')  return processChildren(node, warnings);
   if (tag === 'hr')    return '<hr>\n';
 
   if (tag === 'blockquote') {
     const inner = processChildren(node, warnings).trim();
     if (!inner) return '';
     if (/<blockquote\b/i.test(inner)) return inner + '\n';
-    return `<blockquote style="${SF_FONT}">${inner}</blockquote>\n`;
+    return `<blockquote>${inner}</blockquote>\n`;
   }
 
   return processChildren(node, warnings);
@@ -2119,34 +3150,12 @@ function processChildren(node, warnings) {
   return out;
 }
 
-function processTopLevel(node, warnings) {
-  const BLOCK = { p:1, div:1, h1:1, h2:1, h3:1, h4:1, h5:1, h6:1,
-                  ul:1, ol:1, table:1, pre:1, blockquote:1, hr:1, img:1 };
-  let out = '', buf = '';
-  const flush = () => {
-    const t = trimInnerTrailing(buf.trim());
-    buf = '';
-    if (!t) return;
-    if (/^(<br\s*\/?>\s*)+$/i.test(t)) return;
-    if (hasBlock(t)) {
-      out += t + (t.endsWith('\n') ? '' : '\n');
-      return;
-    }
-    out += `<p style="${SF_FONT}">${normalizeNbsp(t)}</p>\n`;
-  };
-  Array.from(node.childNodes).forEach(ch => {
-    if (ch.nodeType === Node.TEXT_NODE) { buf += processNode(ch, warnings); return; }
-    if (ch.nodeType !== Node.ELEMENT_NODE) return;
-    const tag = ch.tagName.toLowerCase();
-    if (BLOCK[tag] || isSentinel(ch)) { flush(); out += processNode(ch, warnings); }
-    else { buf += processNode(ch, warnings); }
-  });
-  flush();
-  return out;
-}
-
 function processSourceList(node, tag, warnings, depth) {
+  // Preserve type attribute from source if present.
   const typeAttr  = node.getAttribute('type') || sourceListType(node, tag, depth);
+  // normalizeListMarkers sets the per-type style inline; prefer it so the
+  // emitted inline style overrides any depth-based stylesheet rule (which would
+  // otherwise mis-render e.g. a decimal list nested 3 deep as lower-roman).
   const styleAttr = (node.style && node.style.listStyleType) ? node.style.listStyleType : sourceListStyle(node);
   const startAttr = tag === 'ol' && parseInt(node.getAttribute('start') || '', 10) > 1 ? String(parseInt(node.getAttribute('start'), 10)) : null;
   let openTag = `<${tag}`;
@@ -2159,6 +3168,9 @@ function processSourceList(node, tag, warnings, depth) {
   Array.from(node.children).forEach(ch => {
     if (!ch.tagName || ch.tagName.toLowerCase() !== 'li') return;
 
+    // Count block-content children (excluding nested lists). A list item whose
+    // only block wrapper is a single <p>/<div> (common after editing the
+    // contenteditable preview) should render as plain text, not <li><p>...</p>.
     const blockKids = Array.from(ch.children).filter(c => {
       const t = c.tagName.toLowerCase();
       return t === 'p' || t === 'div';
@@ -2170,12 +3182,12 @@ function processSourceList(node, tag, warnings, depth) {
       if (gc.nodeType === Node.ELEMENT_NODE && /^(ul|ol)$/i.test(gc.tagName)) {
         nested += processSourceList(gc, gc.tagName.toLowerCase(), warnings, depth + 1);
       } else if (loneWrapper && gc === blockKids[0]) {
-        liInner += processChildren(gc, warnings);
+        liInner += processChildren(gc, warnings); // unwrap the lone <p>/<div>
       } else {
         liInner += processNode(gc, warnings);
       }
     });
-    items += `<li style="${SF_FONT}">${trimInnerTrailing(liInner.trim())}${nested ? '\n' + nested : ''}</li>\n`;
+    items += `<li style="${SF_FONT}">${liInner.trim()}${nested ? '\n' + nested : ''}</li>\n`;
   });
   if (!items) return '';
   return `${openTag}\n${items}</${tag}>\n`;
@@ -2209,10 +3221,6 @@ function processInlineNode(node, warnings) {
   if (node.nodeType !== Node.ELEMENT_NODE) return '';
   const tag = node.tagName.toLowerCase();
   if (['script','style','link','meta','head','xml','o:p'].includes(tag)) return '';
-  if (tag === 'img') {
-    warnings.push({ level:'warning', title:'Image skipped', msg:'Replace [Insert image here] with the actual image in Salesforce.' });
-    return '<em>[Insert image here]</em>';
-  }
   if (tag === 'br') return '<br>';
   if (tag === 'strong' || tag === 'b') return `<${BOLD_TAG}>${processInlineChildren(node, warnings)}</${BOLD_TAG}>`;
   if (tag === 'em' || tag === 'i')     return `<${ITALIC_TAG}>${processInlineChildren(node, warnings)}</${ITALIC_TAG}>`;
@@ -2226,8 +3234,6 @@ function processInlineNode(node, warnings) {
     if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
     if (/mso-spacerun/.test(ss)) return ' ';
     const inner = processInlineChildren(node, warnings);
-    // Bug 2: inline monospace run -> wrap in <code>.
-    if (isMonospaceInline(node)) return `<code style="${CODE_FONT}">${inner}</code>`;
     if (ss.includes('line-through')) return `<s>${inner}</s>`;
     if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
     if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
@@ -2286,70 +3292,6 @@ function maxFontSize(node) {
   return max;
 }
 
-/* Lift every <br> in `p` so it becomes a direct child, splitting any inline
-   wrapper (span/font/em/...) around it. Word Online nests <br> inside
-   LineBreakBlob spans; this normalizes that so the paragraph can be segmented. */
-function flattenBreaks(p) {
-  let guard = 0;
-  let br = p.querySelector('br');
-  while (br && guard++ < 500) {
-    while (br.parentNode && br.parentNode !== p) {
-      const parent = br.parentNode;
-      const after = parent.cloneNode(false);
-      let n = br.nextSibling;
-      while (n) { const t = n; n = n.nextSibling; after.appendChild(t); }
-      parent.parentNode.insertBefore(br, parent.nextSibling);
-      if (after.childNodes.length) parent.parentNode.insertBefore(after, br.nextSibling);
-    }
-    br.setAttribute('data-flat', '1');
-    br = p.querySelector('br:not([data-flat])');
-  }
-  p.querySelectorAll('br[data-flat]').forEach(b => b.removeAttribute('data-flat'));
-}
-
-/* Word Online sometimes glues a heading-sized run onto another line of a body
-   paragraph, separated only by <br>. Split such a paragraph at its <br>
-   boundaries and promote any clearly heading-sized line (>= 13.5pt and short) to
-   a real heading. Returns combined HTML, or null when no split is warranted. */
-function splitMixedHeadingParagraph(node, warnings) {
-  if (!node.querySelector('br')) return null;
-  const work = node.cloneNode(true);
-  flattenBreaks(work);
-
-  const segments = [[]];
-  Array.from(work.childNodes).forEach(ch => {
-    if (ch.nodeType === Node.ELEMENT_NODE && ch.tagName.toLowerCase() === 'br') segments.push([]);
-    else segments[segments.length - 1].push(ch);
-  });
-  if (segments.length < 2) return null;
-
-  const doc = node.ownerDocument;
-  const descs = segments.map(nodes => {
-    const holder = doc.createElement('p');
-    nodes.forEach(n => holder.appendChild(n.cloneNode(true)));
-    return { holder, text: cleanText(holder.textContent), size: maxFontSize(holder) };
-  });
-  const isHeadingSeg = d => d.text.length > 0 && d.size != null && d.size >= 13.5 && d.text.length <= 140;
-  const nonEmpty = descs.filter(d => d.text.length > 0);
-  // Split when there are multiple lines and at least one is heading-sized. Body
-  // text is 12pt and the threshold is 13.5pt, so all-body paragraphs (no heading
-  // line) are left untouched as a normal <p> with <br>.
-  if (nonEmpty.length < 2 || !nonEmpty.some(isHeadingSeg)) return null;
-
-  let out = '';
-  descs.forEach(d => {
-    if (!d.text.length) return;
-    if (isHeadingSeg(d)) {
-      const lvl = d.size >= 17 ? 2 : d.size >= 15 ? 3 : 4;
-      out += headingHtml(lvl, d.text);
-    } else {
-      const inner = trimInnerTrailing(processChildren(d.holder, warnings).trim());
-      if (inner) out += hasBlock(inner) ? inner + (inner.endsWith('\n') ? '' : '\n') : `<p style="${SF_FONT}">${normalizeNbsp(inner)}</p>\n`;
-    }
-  });
-  return out || null;
-}
-
 /* ============================================================================
    NOTE / IMPORTANT / WARNING
    ============================================================================ */
@@ -2363,12 +3305,14 @@ function buildNote(raw) {
   for (const d of defs) {
     if (d.re.test(t)) {
       const rest = t.slice(d.label.length).trim();
-      return `<blockquote style="${SF_FONT}">${d.rep}${rest ? ' ' + esc(rest) : ''}</blockquote>\n`;
+      return `<blockquote>${d.rep}${rest ? ' ' + esc(rest) : ''}</blockquote>\n`;
     }
   }
   return null;
 }
 
+// DOM-aware version: detects Note/Warning/Important from raw text but renders
+// the content after the label using processChildren so inline markup is kept.
 function buildNoteFromNode(node, raw, warnings) {
   const t = (raw || '').trimStart();
   const defs = [
@@ -2384,7 +3328,7 @@ function buildNoteFromNode(node, raw, warnings) {
       .replace(new RegExp(`^\\s*<(?:strong|b)[^>]*>\\s*${labelEsc.replace(':','\\:')}\\s*</(?:strong|b)>\\s*`, 'i'), '')
       .replace(new RegExp(`^\\s*${labelEsc.replace(':','\\:')}\\s*`, 'i'), '')
       .trim();
-    return `<blockquote style="${SF_FONT}">${d.rep}${rest ? ' ' + normalizeNbsp(rest) : ''}</blockquote>\n`;
+    return `<blockquote>${d.rep}${rest ? ' ' + normalizeNbsp(rest) : ''}</blockquote>\n`;
   }
   return null;
 }
@@ -2415,16 +3359,13 @@ function processTable(tableNode, warnings) {
     inner += '<tr>';
     getCells(row).forEach(cell => {
       const attrs = cellAttrs(cell);
-      let cellInner = processTableCell(cell, warnings) || '&nbsp;';
+      const cellInner = processTableCell(cell, warnings) || '&nbsp;';
       const isHdr = ri === 0 || cell.tagName.toLowerCase() === 'th' || isBoldCell(cell);
       if (isHdr) {
-        // Bug 1: strip redundant inner <strong>/<b> so header text is bold once
-        // (the <th> style already provides bold + white).
-        const hdrInner = cellInner.replace(/<\/?(?:strong|b)>/gi, '');
-        inner += `<th style="${TH_STYLE}"${attrs}>${hdrInner}</th>`;
-      } else {
-        inner += `<td style="border:0.5px solid #808080;padding:4px;vertical-align:top;${SF_FONT}"${attrs}>${cellInner}</td>`;
+        const hdrInner = cellInner.replace(/<\/?(?:strong|b)(?:\s[^>]*)?>/gi, '');
+        inner += `<th style="border:0.5px solid #808080;background:#0A0E33;color:#ffffff;font-weight:bold;padding:4px;vertical-align:top;text-align:center;${SF_FONT}"${attrs}>${hdrInner}</th>`;
       }
+      else        inner += `<td style="border:0.5px solid #808080;padding:4px;vertical-align:top;${SF_FONT}"${attrs}>${cellInner}</td>`;
     });
     inner += '</tr>\n';
   });
@@ -2443,12 +3384,7 @@ function processTableCellNode(node, warnings) {
   if (node.nodeType !== Node.ELEMENT_NODE) return '';
   const tag = node.tagName.toLowerCase();
   if (['script','style','link','meta','xml','o:p'].includes(tag)) return '';
-  if (node.getAttribute && node.getAttribute('data-img-flag') === 'true') return '<em>[Insert image here]</em>';
   if (tag === 'br') return '<br>';
-  if (tag === 'img') {
-    warnings.push({ level:'warning', title:'Image skipped', msg:'Replace [Insert image here] with the actual image in Salesforce.' });
-    return '<em>[Insert image here]</em>';
-  }
   if (/^h[1-6]$/.test(tag) || tag === 'p' || tag === 'div') return processTCChildren(node, warnings).trim();
   if (tag === 'hr') return '';
   if (tag === 'strong'||tag==='b') return `<${BOLD_TAG}>${processTCChildren(node,warnings)}</${BOLD_TAG}>`;
@@ -2462,8 +3398,6 @@ function processTableCellNode(node, warnings) {
     if (/mso-list\s*:\s*ignore|mso-tab-count/.test(ss)) return '';
     if (/mso-spacerun/.test(ss)) return ' ';
     const inner = processTCChildren(node,warnings);
-    // Bug 2: inline monospace run -> wrap in <code> inside table cells too.
-    if (isMonospaceInline(node)) return `<code style="${CODE_FONT}">${inner}</code>`;
     if (ss.includes('line-through')) return `<s>${inner}</s>`;
     if (/font-weight\s*:\s*(bold|[6-9]00)/.test(ss)) return `<${BOLD_TAG}>${inner}</${BOLD_TAG}>`;
     if (/font-style\s*:\s*italic/.test(ss)) return `<${ITALIC_TAG}>${inner}</${ITALIC_TAG}>`;
@@ -2525,7 +3459,7 @@ function isBoldCell(cell) {
 }
 
 /* ============================================================================
-   HR
+   HR  (one before each h2 except the first)
    ============================================================================ */
 function finalizeHr(html) {
   let first = true, depth = 0;
@@ -2598,75 +3532,230 @@ function safeHref(href, warnings) {
   if (href.length) warnings.push({ level:'info', title:'Link protocol stripped', msg:'Unsupported link protocol removed. Text preserved.' });
   return '';
 }
-/* Final safety pass: remove any form of double wrapping in the output. Unwraps
-   an inline formatter (bold/italic/underline/strike/code/sup/sub) when an
-   ancestor already provides the same format, including bold supplied by a
-   heading or <th>. Whitespace and structure are preserved. */
-function dedupeNestedWrappers(html) {
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  const SAME = { strong:'b', b:'b', em:'i', i:'i', u:'u', s:'s', strike:'s', del:'s', code:'code', sup:'sup', sub:'sub' };
-  const providesBold = el => {
-    const t = (el.tagName || '').toLowerCase();
-    if (/^h[1-6]$/.test(t) || t === 'th') return true;
-    const st = ((el.getAttribute && el.getAttribute('style')) || '').toLowerCase();
-    return /font-weight\s*:\s*(bold|[6-9]00)/.test(st);
-  };
-  const redundant = [];
-  div.querySelectorAll('strong,b,em,i,u,s,strike,del,code,sup,sub').forEach(el => {
-    const key = SAME[el.tagName.toLowerCase()];
-    let anc = el.parentElement;
-    while (anc && anc !== div) {
-      const ak = SAME[(anc.tagName || '').toLowerCase()];
-      if (ak === key || (key === 'b' && providesBold(anc))) { redundant.push(el); break; }
-      anc = anc.parentElement;
-    }
-  });
-  redundant.forEach(el => {
-    const p = el.parentNode;
-    if (!p) return;
-    while (el.firstChild) p.insertBefore(el.firstChild, el);
-    p.removeChild(el);
-  });
-  return div.innerHTML;
-}
-
 function dedupeWarnings(warnings) {
   const seen = new Set();
   return warnings.filter(w => { const k=w.level+'|'+w.title; if(seen.has(k))return false; seen.add(k);return true; });
 }
 
 /* ============================================================================
-   WARNINGS
+   VALIDATION MODEL
+   panelItems  \u2014 conversion warnings + ad-hoc notices (reset each convert/clear)
+   htmlIssues  \u2014 live validation of the edited Clean HTML
+   The panel renders both, grouped by severity, and drives the header status dot,
+   the collapsed toggle color, and the live-preview pause.
    ============================================================================ */
+let panelItems = [];
+let htmlIssues = [];
+let previewPaused = false;
+let lastValidHtml = '';
+
 function clearWarnings() {
-  document.getElementById('warningsList').innerHTML = '';
-  const e = document.getElementById('warningsEmpty'); if(e) e.style.display='none';
+  panelItems = [];
+  htmlIssues = [];
+  previewPaused = false;
+  renderValidation();
 }
+// Backward-compatible: conversion + ad-hoc callers push items via addWarning.
 function addWarning(level, title, msg) {
-  const list = document.getElementById('warningsList');
-  const e = document.getElementById('warningsEmpty'); if(e) e.style.display='none';
-  const icons = { error:'\u{1F534}', warning:'\u26A0\uFE0F', info:'\u2139\uFE0F' };
-  const item = document.createElement('div');
-  item.className = `warning-item ${level}`;
-  item.innerHTML = `<span class="warning-icon">${icons[level]||icons.info}</span><div class="warning-text"><strong>${esc(title)}</strong><span>${esc(msg)}</span></div>`;
-  list.appendChild(item);
+  panelItems.push({ level, title, msg });
+  renderValidation();
 }
-function updateWarningsFooter() {
-  const items = document.querySelectorAll('.warning-item');
-  const footer = document.getElementById('warningsFooter');
-  if (!items.length) { footer.style.display='none'; return; }
-  let e=0,w=0,i=0;
-  items.forEach(x=>{ if(x.classList.contains('error'))e++; else if(x.classList.contains('warning'))w++; else i++; });
-  document.getElementById('countError').textContent   = e ? `\u{1F534} ${e} Issue${e!==1?'s':''}` : '';
-  document.getElementById('countWarning').textContent = w ? `\u26A0\uFE0F ${w} Warning${w!==1?'s':''}` : '';
-  document.getElementById('countInfo').textContent    = i ? `\u2139\uFE0F ${i} Info` : '';
-  footer.style.display = (e||w||i) ? 'flex' : 'none';
+function updateWarningsFooter() { renderValidation(); }
+
+function setCount(id, n, word) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = '<b>' + n + '</b> ' + word;
+  el.classList.toggle('on', n > 0);
+}
+function renderValidation() {
+  const all = dedupeWarnings([...panelItems, ...htmlIssues]);
+  const errs  = all.filter(w => w.level === 'error');
+  const warns = all.filter(w => w.level === 'warning');
+  const infos = all.filter(w => w.level !== 'error' && w.level !== 'warning');
+
+  setCount('countError',   errs.length,  errs.length === 1 ? 'error' : 'errors');
+  setCount('countWarning', warns.length, warns.length === 1 ? 'warning' : 'warnings');
+  setCount('countInfo',    infos.length, 'info');
+
+  const list  = document.getElementById('warningsList');
+  const empty = document.getElementById('warningsEmpty');
+  list.innerHTML = '';
+  if (!all.length) {
+    if (empty) { empty.style.display = 'block'; list.appendChild(empty); }
+  } else {
+    const BADGE = { error: 'Error', warning: 'Warning', info: 'Info' };
+    [['Errors', errs, 'error'], ['Warnings', warns, 'warning'], ['Info', infos, 'info']].forEach(([label, arr]) => {
+      if (!arr.length) return;
+      const gl = document.createElement('div');
+      gl.className = 'val-group-label';
+      gl.textContent = label;
+      list.appendChild(gl);
+      arr.forEach(w => {
+        const card = document.createElement('div');
+        const lvl = (w.level === 'error' || w.level === 'warning') ? w.level : 'info';
+        card.className = 'warning-item ' + lvl;
+        card.innerHTML = '<span class="val-badge">' + (BADGE[lvl]) + '</span>' +
+          '<div class="warning-text"><strong>' + esc(w.title) + '</strong><span>' + esc(w.msg) + '</span></div>';
+        list.appendChild(card);
+      });
+    });
+  }
+  const sev = (previewPaused || errs.length) ? 'err' : warns.length ? 'warn' : 'ok';
+  setHeaderStatus(sev);
+}
+
+/* Void elements shared by the tokenizer and the validator (includes !doctype
+   for historical reasons \u2014 kept for bug-for-bug compatibility). */
+const VOID_TAGS = new Set(['br','hr','img','input','meta','link','area','base','col','embed','param','source','track','wbr','!doctype']);
+
+/* THE single tag tokenizer for validation and (future) tag highlighting.
+   Offsets refer to #htmlOutput.value verbatim: for every emitted tag,
+   text.slice(start, end) is the full '<...>' source including both brackets.
+   Returns { tags, malformed, unclosedQuote } where each tag is
+   { start, end, name, kind, raw, oddQuotes } and kind is
+   'open' | 'close' | 'void' | 'selfclose' | 'other' ('other' = comments,
+   doctype, processing instructions, and bracket pairs with no valid name).
+   Bug-for-bug port of the scanner that lived inside validateEditedHtml:
+   quote-aware (attributes may contain < and > inside quotes, tags may span
+   lines), STOPS at the first malformed tag or unclosed quote (later tags are
+   not emitted), treats an unquoted '<' inside a tag as malformed, and detects
+   self-closing naively via raw.endsWith('/'). Do not "fix" these quirks here
+   without updating every consumer in the same change. */
+function scanTags(text) {
+  const tags = [];
+  const s = text, n = s.length;
+  let i = 0, malformed = false, unclosedQuote = false, stop = null;
+  while (i < n) {
+    const lt = s.indexOf('<', i);
+    if (lt < 0) break;
+    let j = lt + 1, inq = null, closed = false;
+    for (; j < n; j++) {
+      const c = s[j];
+      if (inq) { if (c === inq) inq = null; }
+      else if (c === '"' || c === "'") inq = c;
+      else if (c === '>') { closed = true; break; }
+      else if (c === '<') break;   // unquoted '<' inside a tag: malformed
+    }
+    // stop = the truncated tag's range, so the highlighter can paint it red;
+    // the validator ignores this field.
+    if (!closed) { if (inq) unclosedQuote = true; else malformed = true; stop = { start: lt, end: j }; break; }
+    const raw = s.slice(lt + 1, j).trim();
+    i = j + 1;
+    const oddQuotes = ((raw.match(/"/g) || []).length % 2) !== 0 || ((raw.match(/'/g) || []).length % 2) !== 0;
+    if (!raw || raw[0] === '!' || raw[0] === '?') { tags.push({ start: lt, end: j + 1, name: null, kind: 'other', raw, oddQuotes }); continue; }
+    const isEnd = raw[0] === '/';
+    const selfClose = raw.endsWith('/');
+    const nameMatch = (isEnd ? raw.slice(1) : raw).match(/^([a-zA-Z][a-zA-Z0-9]*)/);
+    if (!nameMatch) { tags.push({ start: lt, end: j + 1, name: null, kind: 'other', raw, oddQuotes }); continue; }
+    const name = nameMatch[1].toLowerCase();
+    const kind = VOID_TAGS.has(name) ? 'void' : (selfClose ? 'selfclose' : (isEnd ? 'close' : 'open'));
+    tags.push({ start: lt, end: j + 1, name, kind, raw, oddQuotes });
+  }
+  return { tags, malformed, unclosedQuote, stop };
+}
+
+/* Lightweight validation of the edited Clean HTML. Returns [{level,title,msg}].
+   Detects: missing opening/closing tags (stack match, void tags skipped),
+   improper nesting, unclosed attribute quotes, broken/hrefless anchors.
+   Consumes scanTags() so the validator and the (future) tag highlighter can
+   never disagree on scanning rules. */
+function validateEditedHtml(html) {
+  const issues = [];
+  if (!html || !html.trim()) return issues;
+  const { tags, malformed, unclosedQuote } = scanTags(html);
+  // 1-based line number for a character offset, for user-facing messages.
+  const lineAt = (off) => { let n = 1; for (let k = 0; k < off && k < html.length; k++) if (html[k] === '\n') n++; return n; };
+  const stack = [];   // entries: { name, line }
+  for (const t of tags) {
+    if (t.kind === 'other') continue;   // comments/doctype/PI: no checks, as before
+    const name = t.name;
+    const line = lineAt(t.start);
+    if (t.oddQuotes) {
+      issues.push({ level: 'error', title: 'Unclosed attribute quote', msg: 'A quoted attribute inside <' + name + '> is missing its closing quote.' });
+    }
+    // Anchor-specific check stays here: kind 'open' === the old !isEnd && !selfClose.
+    if (name === 'a' && t.kind === 'open' && !/\shref\s*=/.test(' ' + t.raw)) {
+      issues.push({ level: 'warning', title: 'Broken anchor', msg: 'An <a> tag has no href attribute. Add a link target or remove the tag.' });
+    }
+    if (t.kind === 'void' || t.kind === 'selfclose') continue;
+    if (t.kind === 'open') { stack.push({ name, line }); continue; }
+    // closing tag
+    if (!stack.length) { issues.push({ level: 'error', title: 'Matching tag missing', msg: '</' + name + '> on line ' + line + ' has no matching opening <' + name + '>.' }); continue; }
+    if (stack[stack.length - 1].name === name) { stack.pop(); continue; }
+    let idx = -1;
+    for (let k = stack.length - 1; k >= 0; k--) { if (stack[k].name === name) { idx = k; break; } }
+    if (idx >= 0) {
+      issues.push({ level: 'error', title: 'Improper nesting', msg: '</' + name + '> on line ' + line + ' closes while <' + stack[stack.length - 1].name + '> is still open \u2014 tags overlap or a closing tag is missing.' });
+      stack.length = idx;
+    } else {
+      issues.push({ level: 'error', title: 'Matching tag missing', msg: '</' + name + '> on line ' + line + ' has no matching opening <' + name + '>.' });
+    }
+  }
+  if (unclosedQuote) issues.push({ level: 'error', title: 'Unclosed attribute quote', msg: 'A tag has a quote that is never closed.' });
+  if (malformed) issues.push({ level: 'error', title: 'Malformed tag', msg: 'A \u201C<\u201D opens a tag that is never closed with \u201C>\u201D.' });
+  const seen = new Set();
+  stack.forEach(e => { if (seen.has(e.name)) return; seen.add(e.name); issues.push({ level: 'error', title: 'Matching tag missing', msg: '<' + e.name + '> on line ' + e.line + ' has no closing </' + e.name + '>.' }); });
+  const uniq = new Set();
+  return issues.filter(x => { const k = x.level + '|' + x.title + '|' + x.msg; if (uniq.has(k)) return false; uniq.add(k); return true; }).slice(0, 14);
+}
+
+/* Apply edited HTML to the Live Preview, pausing the render on validation
+   ERRORS (only Error pauses; Warning/Info/Review do not). Keeps the last valid
+   preview while paused, resumes once the HTML is valid again. */
+function applyHtmlToPreview(val) {
+  htmlIssues = validateEditedHtml(val);
+  const hasErr = htmlIssues.some(w => w.level === 'error');
+  const preview = document.getElementById('previewArea');
+  if (hasErr) {
+    previewPaused = true;
+    updatePanelStatus('Preview paused \u2014 the edited HTML has errors. Fix the flagged tags to resume the live preview.', 'err');
+    _linkRange = null; buildPreviewMap();   // clears stamps + disables mapping while paused
+  } else {
+    previewPaused = false;
+    try { preview.innerHTML = val; lastValidHtml = val; } catch (_) {}
+    buildPreviewMap();
+    refreshDefaultStatus();
+  }
+  renderValidation();
+}
+function refreshDefaultStatus() {
+  const all = [...panelItems, ...htmlIssues];
+  if (all.some(w => w.level === 'error')) updatePanelStatus('Errors found. Resolve them before copying.', 'err');
+  else if (all.some(w => w.level === 'warning')) updatePanelStatus('Review needed. Check the flagged items, then copy.', 'warn');
+  else updatePanelStatus('Ready to copy. Paste into the Salesforce Source Code view.', 'ok');
+}
+function updateCodeGutter() {
+  const ta = document.getElementById('htmlOutput');
+  const gutter = document.getElementById('codeGutter');
+  if (!ta || !gutter) return;
+  const lines = ta.value.split('\n').length || 1;
+  let out = '';
+  for (let k = 1; k <= lines; k++) out += k + (k < lines ? '\n' : '');
+  gutter.textContent = out;
+  gutter.scrollTop = ta.scrollTop;
 }
 
 /* ============================================================================
    COPY / CLEAR
    ============================================================================ */
+// Copy button turns into a green "Copied" state on success and reverts on the
+// next edit of the Clean HTML output (not on a timer).
+function setCopiedButton() {
+  const b = document.getElementById('btnCopy');
+  const label = b.querySelector('.btn-label');
+  b.classList.add('btn-copied');
+  b.dataset.copied = 'true';
+  if (label) label.textContent = 'Copied';
+}
+function resetCopyButton() {
+  const b = document.getElementById('btnCopy');
+  if (!b || b.dataset.copied !== 'true') return;
+  const label = b.querySelector('.btn-label');
+  b.classList.remove('btn-copied');
+  b.dataset.copied = '';
+  if (label) label.textContent = 'Copy HTML';
+}
 document.getElementById('btnCopy').addEventListener('click', () => {
   const out = document.getElementById('htmlOutput');
   if (!out.value.trim()) {
@@ -2674,7 +3763,19 @@ document.getElementById('btnCopy').addEventListener('click', () => {
     updatePanelStatus('Convert content before copying HTML.', 'warn');
     setPanelOpen(true); return;
   }
-  const onCopied = () => { showToast('HTML copied.'); updatePanelStatus('HTML copied. Paste it into Salesforce source view.', 'ok'); setDirty(false); };
+  // Confirm-on-errors: if the edited HTML still has validation errors, ask first.
+  const errs = validateEditedHtml(out.value).filter(w => w.level === 'error').length
+             + panelItems.filter(w => w.level === 'error').length;
+  if (errs > 0) {
+    setPanelOpen(true);
+    if (!window.confirm('This HTML still has validation errors. Copy anyway?')) return;
+  }
+  const onCopied = () => {
+    showToast('HTML copied.');
+    setCopiedButton();
+    updatePanelStatus('Copied. Paste into Salesforce Source Code view.', 'ok');
+    setDirty(false);
+  };
   const tryLegacy = () => {
     try { out.select(); return document.execCommand('copy'); } catch (e) { return false; }
   };
@@ -2707,16 +3808,20 @@ function doClearAll() {
   setDirty(false);
   document.getElementById('previewArea').innerHTML = '';
   document.getElementById('htmlOutput').value = '';
-  pasteUndo.record();
+  lastValidHtml = '';
+  // Preview/dirty handled above; undo recorded inline below (paste first);
+  // modal panes force-synced at the end of this function.
+  onHtmlChanged('', { skipPreview: true, skipDirty: true, skipModalSync: true });
+  pasteUndo.record();   // record cleared state so Undo can restore the content
   htmlUndo.record();
   clearWarnings();
-  const e = document.getElementById('warningsEmpty'); if(e) e.style.display='block';
-  updateWarningsFooter();
-  updatePanelStatus('Paste Word content and convert to begin.');
+  updatePanelStatus('Paste Word content and convert to begin.', 'ok');
   if (window._modalSyncFromSource) { window._modalSyncFromSource('paste', true); window._modalSyncFromSource('html', true); window._modalSyncFromSource('preview', true); }
 }
 /* ============================================================================
    FIELD EXPAND MODAL
+   Opens any field in a large popup. Edits sync live back to the source field,
+   so existing behavior (live preview, undo, convert) keeps working.
    ============================================================================ */
 (function () {
   const overlay   = document.getElementById('fieldModal');
@@ -2726,12 +3831,20 @@ function doClearAll() {
   const htmlOut   = document.getElementById('htmlOutput');
   const preview   = document.getElementById('previewArea');
   let kind = null, editEl = null, syncing = false;
+  let modalHL = null;   // tag-highlighter instance for the html modal editor
 
-  const TITLES = { paste: 'Paste copied Word content here', html: 'HTML output (editable)', preview: 'Preview (rendered output)' };
+  const TITLES = { paste: 'Paste Word draft', html: 'Clean HTML', preview: 'Live Preview' };
+
+  // The modal body is rebuilt on every open/close; always tear the
+  // highlighter down with it so listeners never leak across opens.
+  function destroyModalHL() {
+    if (modalHL) { modalHL.destroy(); modalHL = null; }
+  }
 
   function open(k) {
     kind = k;
     titleEl.textContent = TITLES[k];
+    destroyModalHL();
     bodyEl.innerHTML = '';
     if (k === 'html') {
       editEl = document.createElement('textarea');
@@ -2741,9 +3854,9 @@ function doClearAll() {
       editEl.addEventListener('input', () => {
         if (syncing) return;
         htmlOut.value = editEl.value;
-        try { preview.innerHTML = editEl.value; } catch (_) {}
-        if (editEl.value.trim()) setDirty(true);
-        htmlUndo.recordDebounced();
+        // skipModalSync: the edit originated here; re-syncing resets the caret.
+        onHtmlChanged(editEl.value, { recordUndo: 'debounced', skipModalSync: true });
+        if (modalHL) modalHL.refresh(editEl.value);
       });
       editEl.addEventListener('keydown', (e) => {
         if (!(e.ctrlKey || e.metaKey)) return;
@@ -2751,7 +3864,19 @@ function doClearAll() {
         if (c === 'z' && !e.shiftKey) { e.preventDefault(); htmlUndo.undo(); }
         else if ((c === 'z' && e.shiftKey) || c === 'y') { e.preventDefault(); htmlUndo.redo(); }
       });
-      bodyEl.appendChild(editEl);
+      // Overlay stack + mirror so the modal editor gets the same matched-tag
+      // highlighting as the docked panel (no preview mapping here, so no
+      // getLinkRange). The mirror only paints; it never writes any .value.
+      const stack = document.createElement('div');
+      stack.className = 'modal-edit-stack';
+      const mir = document.createElement('pre');
+      mir.className = 'modal-mirror';
+      mir.setAttribute('aria-hidden', 'true');
+      stack.appendChild(mir);
+      stack.appendChild(editEl);
+      bodyEl.appendChild(stack);
+      modalHL = createTagHighlighter({ textarea: editEl, mirror: mir });
+      modalHL.refresh(editEl.value);
     } else if (k === 'paste') {
       editEl = document.createElement('div');
       editEl.className = 'modal-edit';
@@ -2791,16 +3916,31 @@ function doClearAll() {
   }
   function close() {
     if (kind === 'paste') { window._rteRestoreHome(); activePasteEditor = pasteRender; }
+    destroyModalHL();
     overlay.classList.add('hidden'); bodyEl.innerHTML = ''; kind = null; editEl = null;
   }
 
+  // Let source-side changes (undo, convert, clear) reflect into an open modal.
+  // Skipped for edits that originate inside the modal editor (force re-sync only
+  // on external changes) so the caret isn't reset while typing/formatting.
   window._modalSyncFromSource = function (k, force) {
     if (!kind || kind !== k || !editEl) return;
     if (!force && k === 'paste' && activePasteEditor === editEl) return;
     syncing = true;
-    if (k === 'html') editEl.value = htmlOut.value;
+    if (k === 'html') {
+      editEl.value = htmlOut.value;
+      // External text was pushed into the modal editor: repaint its mirror.
+      if (modalHL) modalHL.refresh(editEl.value);
+    }
     else if (k === 'paste') editEl.innerHTML = pasteRender.innerHTML;
-    else editEl.innerHTML = preview.innerHTML;
+    else {
+      // Preview clone: drop runtime-only mapping/highlight artifacts.
+      const tmp = document.createElement('div');
+      tmp.innerHTML = preview.innerHTML;
+      tmp.querySelectorAll('[data-k]').forEach(el => el.removeAttribute('data-k'));
+      tmp.querySelectorAll('.pv-link').forEach(el => el.classList.remove('pv-link'));
+      editEl.innerHTML = tmp.innerHTML;
+    }
     syncing = false;
   };
 

@@ -2349,6 +2349,7 @@ function convertHTML(source, useFallback, warnings) {
 
   removePageBreaks(body);
   collapseEmptyParagraphs(body, warnings);
+  wrapLooseInlineContent(body);           // bare sentences -> real paragraphs
   groupWordOnlineLists(body, warnings);   // ← Word Online / Office 365 web
   groupNativeWordLists(body, warnings);   // ← desktop Word mso-list format
   groupManualLists(body, warnings);
@@ -2419,6 +2420,35 @@ function isSentinel(node) {
     (node.getAttribute('data-list') === 'true' ||
      node.getAttribute('data-pre-code') === 'true' ||
      node.getAttribute('data-code-block') === 'true');
+}
+
+/* Loose top-level content: a sentence typed into the paste area, or a partial
+   sentence copied from Word, arrives as bare text/inline nodes (text, <span>,
+   <u>, <a>, ...) with no block wrapper, so it fell through the converter
+   untagged - no <p>, no Arial 12 style. Group each run of consecutive
+   inline/text siblings into a real <p> so it gets the normal paragraph
+   treatment (SF_FONT, heading/note/code detection, manual-list grouping).
+   A <br> ends the current run (two typed lines become two paragraphs);
+   block elements end the run and are left untouched. */
+const LOOSE_INLINE_TAGS = new Set(['span','b','strong','i','em','u','a','code','sup','sub','s','strike','del','font','mark','small','abbr','kbd']);
+function wrapLooseInlineContent(body) {
+  const doc = body.ownerDocument;
+  let run = null;
+  Array.from(body.childNodes).forEach(node => {
+    const isText = node.nodeType === Node.TEXT_NODE;
+    const tag = node.nodeType === Node.ELEMENT_NODE ? node.tagName.toLowerCase() : null;
+    if ((isText && node.textContent.trim()) || (tag && LOOSE_INLINE_TAGS.has(tag))) {
+      if (!run) { run = doc.createElement('p'); body.insertBefore(run, node); }
+      run.appendChild(node);
+    } else if (tag === 'br' && run) {
+      node.remove();          // the break separates two paragraphs
+      run = null;
+    } else if (isText && run) {
+      run.appendChild(node);  // keep inter-word whitespace inside the run
+    } else if (!isText) {
+      run = null;             // block element: close the run, leave it as is
+    }
+  });
 }
 
 /* ============================================================================

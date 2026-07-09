@@ -2352,6 +2352,7 @@ function convertHTML(source, useFallback, warnings) {
   wrapLooseInlineContent(body);           // bare sentences -> real paragraphs
   groupWordOnlineLists(body, warnings);   // ← Word Online / Office 365 web
   groupNativeWordLists(body, warnings);   // ← desktop Word mso-list format
+  wrapLooseInlineContent(body);           // re-wrap anything the flattens left loose
   groupManualLists(body, warnings);
   groupJsonBlocks(body, warnings);
   groupCodeParagraphs(body, warnings);
@@ -2580,8 +2581,11 @@ function isListContainerWrapper(node) {
 // ListContainerWrapper children and OutlineElement (heading/paragraph) children.
 // We must NOT treat the whole div as a list — we need to flatten its children
 // into the body so headings and notes between list items are preserved.
+// DIV only: the paste-area display keeps SCXW classes on already-promoted
+// <p> paragraphs, and flattening those on a re-convert (after the user edits
+// the paste field) would dissolve every paragraph into loose inline text.
 function isWordOnlineOuterDiv(node) {
-  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  if (!node || node.nodeType !== Node.ELEMENT_NODE || node.tagName !== 'DIV') return false;
   const cls = node.getAttribute('class') || '';
   return /SCXW\d+/i.test(cls) && !isListContainerWrapper(node);
 }

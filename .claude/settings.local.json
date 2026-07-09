@@ -13,7 +13,10 @@
       "Bash(git commit -m 'Phase 2 step 2.0: centralize #htmlOutput change side-effects in onHtmlChanged\\(\\) *)",
       "Bash(git commit -q -m 'Phase 2 step 2.2: extract shared tag tokenizer scanTags\\(\\) *)",
       "Bash(git commit -q -m 'Shared tag-highlighter factory + matching-tag highlight in the expand modal *)",
-      "Bash(git commit -q -m 'Update Claude Code local permission allowlist *)"
+      "Bash(git commit -q -m 'Update Claude Code local permission allowlist *)",
+      "Bash(cp \"C:/Users/nechi/km-html-converter/index.html\" \"C:/Users/nechi/Downloads/km-paste-to-html-converter.html\" && wc -l \"C:/Users/nechi/Downloads/km-paste-to-html-converter.html\")",
+      "Bash(git commit -q -m 'Wrap loose top-level text/inline content in paragraphs before converting *)",
+      "Bash(cp index.html \"C:/Users/nechi/Downloads/km-paste-to-html-converter.html\")"
     ]
   }
 }

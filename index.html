@@ -2355,6 +2355,7 @@ function convertHTML(source, useFallback, warnings) {
   groupManualLists(body, warnings);
   groupJsonBlocks(body, warnings);
   groupCodeParagraphs(body, warnings);
+  groupNoteBlocks(body);                  // callout + its list(s) -> one blockquote
   normalizeListMarkers(body);   // unify ol(1/a/i) & ul(disc/circle/square) by per-type nesting
 
   return finalizeHr(processChildren(body, warnings))
@@ -2420,6 +2421,40 @@ function isSentinel(node) {
     (node.getAttribute('data-list') === 'true' ||
      node.getAttribute('data-pre-code') === 'true' ||
      node.getAttribute('data-code-block') === 'true');
+}
+
+/* Callout absorption: a Note:/Important:/Warning: paragraph followed directly
+   by bullet/number lists pulls those lists INTO its blockquote. Absorption
+   takes consecutive lists only (real <ul>/<ol> or grouped data-list
+   sentinels); the first non-list sibling — a new paragraph, an empty
+   paragraph (blank line in the draft), a heading, a table — ends the callout,
+   stays outside, and everything after it is untouched. A callout with only
+   inline text keeps its existing single-blockquote rendering (no wrapper).
+   Runs AFTER the list-grouping passes so the lists already exist as units. */
+function groupNoteBlocks(body) {
+  const NOTE_RE = /^\s*(Note|Important|Warning):/i;
+  const isListEl = (n) => n.nodeType === Node.ELEMENT_NODE &&
+    (/^(ul|ol)$/i.test(n.tagName) || n.getAttribute('data-list') === 'true');
+  Array.from(body.children).forEach(el => {
+    const tag = el.tagName ? el.tagName.toLowerCase() : '';
+    if ((tag !== 'p' && tag !== 'div') || isSentinel(el)) return;
+    if (el.getAttribute('data-note-block') === 'true') return;
+    if (!NOTE_RE.test(el.textContent || '')) return;
+    // Look ahead: consecutive lists (whitespace between them is fine).
+    const absorb = [];
+    let sib = el.nextSibling;
+    while (sib) {
+      if (sib.nodeType === Node.TEXT_NODE && !sib.textContent.trim()) { absorb.push(sib); sib = sib.nextSibling; continue; }
+      if (!isListEl(sib)) break;
+      absorb.push(sib); sib = sib.nextSibling;
+    }
+    if (!absorb.some(isListEl)) return;   // nothing to absorb: plain inline callout
+    const wrap = body.ownerDocument.createElement('div');
+    wrap.setAttribute('data-note-block', 'true');
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
+    absorb.forEach(n => wrap.appendChild(n));
+  });
 }
 
 /* Loose top-level content: a sentence typed into the paste area, or a partial
@@ -3080,6 +3115,18 @@ function processNode(node, warnings) {
   if (node.getAttribute('data-list') === 'true')      return node.innerHTML + '\n';
   if (node.getAttribute('data-pre-code') === 'true')  return codeBlock(node.textContent);
   if (node.getAttribute('data-code-block') === 'true') return codeBlock(node.textContent);
+  if (node.getAttribute('data-note-block') === 'true') {
+    // Callout + absorbed list(s): render the label paragraph as its normal
+    // note blockquote, then move the list markup inside before the close.
+    const label = node.firstElementChild;
+    const note = label ? buildNoteFromNode(label, cleanText(label.textContent), warnings) : null;
+    if (!note) return processChildren(node, warnings);   // safety net
+    let rest = '';
+    Array.from(node.childNodes).forEach(gc => { if (gc !== label) rest += processNode(gc, warnings); });
+    rest = rest.trim();
+    if (!rest) return note;
+    return note.replace(/<\/blockquote>\s*$/, '\n' + rest + '\n</blockquote>\n');
+  }
 
   if (tag === 'img') {
     warnings.push({ level:'warning', title:'Image skipped', msg:'Replace [Insert image here] with the actual image in Salesforce.' });
@@ -3518,11 +3565,20 @@ function convertPlainText(text, warnings) {
     body.appendChild(p);
   });
   groupManualLists(body, warnings || []);
+  groupNoteBlocks(body);   // callout + its list(s) -> one blockquote
   let out = '';
   Array.from(body.childNodes).forEach(node => {
     if (isSentinel(node)) {
       out += node.innerHTML + '\n';
       return;
+    }
+    if (node.nodeType === Node.ELEMENT_NODE && node.getAttribute('data-note-block') === 'true') {
+      const label = node.firstElementChild;
+      const note = label ? buildNote(cleanText(label.textContent)) : null;
+      let rest = '';
+      Array.from(node.children).forEach(ch => { if (ch !== label && isSentinel(ch)) rest += ch.innerHTML + '\n'; });
+      rest = rest.trim();
+      if (note) { out += rest ? note.replace(/<\/blockquote>\s*$/, '\n' + rest + '\n</blockquote>\n') : note; return; }
     }
     const t = cleanText(node.textContent);
     if (!t) return;

@@ -16,7 +16,8 @@
       "Bash(git commit -q -m 'Update Claude Code local permission allowlist *)",
       "Bash(cp \"C:/Users/nechi/km-html-converter/index.html\" \"C:/Users/nechi/Downloads/km-paste-to-html-converter.html\" && wc -l \"C:/Users/nechi/Downloads/km-paste-to-html-converter.html\")",
       "Bash(git commit -q -m 'Wrap loose top-level text/inline content in paragraphs before converting *)",
-      "Bash(cp index.html \"C:/Users/nechi/Downloads/km-paste-to-html-converter.html\")"
+      "Bash(cp index.html \"C:/Users/nechi/Downloads/km-paste-to-html-converter.html\")",
+      "Bash(git commit -q -m 'Callouts absorb their bullet lists into the blockquote *)"
     ]
   }
 }

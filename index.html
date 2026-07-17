@@ -175,8 +175,9 @@
   #pasteRender p  { margin: 3px 0; }
   #pasteRender h1, #pasteRender h2, #pasteRender h3, #pasteRender h4 { font-weight: bold; margin: 6px 0 3px; }
   #pasteRender h1 { font-size: 18px; }
-  #pasteRender h2 { font-size: 16px; }
-  #pasteRender h3 { font-size: 14px; }
+  #pasteRender h2 { font-size: 18px; }
+  #pasteRender h3 { font-size: 16px; }
+  #pasteRender h4 { font-size: 14px; }
   #pasteRender table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; }
   #pasteRender td, #pasteRender th { border: 0.5px solid #aaa; padding: 3px 6px; vertical-align: top; }
   #pasteRender a { color: var(--signal-blue); }
@@ -3350,7 +3351,7 @@ function detectHeadingLevel(node, tag) {
   if (!candidate) return 0;
   if (size != null) { if (size >= 17) return 2; if (size >= 15) return 3; if (size >= 13.5) return 4; }
   if (mso === 1) return 2; if (mso === 2) return 3; if (mso >= 3) return 4;
-  if (tag === 'h1') return 2; if (tag === 'h2') return 3; if (/^h[3-6]$/.test(tag)) return 4;
+  if (tag === 'h1' || tag === 'h2') return 2; if (tag === 'h3') return 3; if (/^h[4-6]$/.test(tag)) return 4;
   return 2;
 }
 function msoLevel(node) {

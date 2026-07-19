@@ -62,16 +62,19 @@ Key values:
 ## Dev loop
 
 ```bash
-# syntax check (the only "build")
-node --check <(sed -n '/<script>/,/<\/script>/p' index.html)   # or the /verify-conversion command
+# regression suite: loads the real index.html in jsdom, runs convertHTML() on
+# fixtures + contract assertions. DO THIS before every checkpoint.
+cd tests && npm install   # first time only (jsdom is test-only; app stays zero-dep)
+cd tests && npm test      # === node run.mjs ; exits non-zero on any failure
+cd tests && node run.mjs --update   # regenerate golden expected files (review the diff!)
 
-/verify-conversion   # run conversion fixtures headless (jsdom) and diff — DO THIS before checkpoints
-/checkpoint          # commit in the "Phase N step X.Y" style
+/verify-conversion   # same suite, via slash command (see .claude/commands)
+/checkpoint          # commit in the "Phase N step X.Y" style (runs verify first)
 /release             # syntax-check → copy to the distribution filename → optional commit+push
 ```
 
-There is **no test runner yet** — `/verify-conversion` bootstraps the fixtures pattern.
-Add a fixture (input Word-paste HTML + expected output) whenever you fix a conversion bug.
+Add a fixture (`tests/fixtures/<name>.input.html` + `.expected.html`) whenever you fix a
+conversion bug — your bug list is the test suite. Details: `tests/README.md`.
 
 ## Conventions
 

@@ -91,7 +91,7 @@ Each **individual commit message** is its own allowlist rule. And **four separat
 
 **Diagnosis.** For a tool whose *entire value is output fidelity*, the only automated safety net is "does the JS parse." Everything else is manual paste-and-look. That's why the git log is a long tail of regression fixes — *"reconvert collapsing Word Online content to plain text after edits,"* *"RTE Heading 2 converting to h3/Arial 16 instead of h2/Arial 18."* Those are exactly the bugs a fixture harness catches for free.
 
-**Fix (shipped).** `/verify-conversion` (`.claude/commands/verify-conversion.md`) + a fixtures pattern: check in real Word-paste HTML samples with their expected Salesforce output, run `convertHTML()` headless via jsdom, diff. The H2/H3 regression above becomes a one-line assertion instead of a support ticket.
+**Fix (shipped and running).** `/verify-conversion` plus a **working** regression suite under `tests/`: 10 real Word/Word-Online paste fixtures + 35 contract assertions, run headlessly against the real `convertHTML()` via jsdom. **45/45 pass**, and I proved it has teeth by injecting the exact historical bug (H2→16px) — the suite went red and pointed at the line, then I restored the file. The H2/H3 regression is now a one-line assertion, not a support ticket. (Building it surfaced a **stale contract**: the README says table headers have "no background fill," but the code fills them navy `#0A0E33` with white text and uses `0.5px` borders — I corrected the `salesforce-html` skill to match the code; the README still needs the same fix.)
 
 ### 2.6 The monolith itself
 
@@ -148,7 +148,8 @@ The meta-move: you clearly run many Claude Code sessions. Every asset in this br
 |---|---|---|
 | `CLAUDE.md` | Project memory: architecture map + invariants + dev loop | §2.4 — stop re-deriving the codebase |
 | `.claude/commands/release.md` | `/release` — check → copy to dist name → commit/push | §2.2 — kill the manual deploy |
-| `.claude/commands/verify-conversion.md` | `/verify-conversion` — fixtures + jsdom diff | §2.5 — regressions become assertions |
+| `.claude/commands/verify-conversion.md` | `/verify-conversion` — how to run the suite | §2.5 — regressions become assertions |
+| `tests/` (run.mjs, assertions.mjs, lib/, 10 fixtures) | **Working** regression suite, 45/45 pass | §2.5 — built out, not just a doc |
 | `.claude/commands/checkpoint.md` | `/checkpoint` — your "Phase N step X.Y" commit ritual, formalized | §2.6 — safe refactor steps |
 | `.claude/skills/salesforce-html/SKILL.md` | The Salesforce-Knowledge HTML output contract | §4.3 — portable, reused everywhere |
 | `.claude/hooks/check-syntax.sh` | Post-edit auto `node --check` on index.html | §2.5 — catch syntax breaks automatically |

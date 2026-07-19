@@ -1,37 +1,52 @@
 ---
-description: Run the Word→Salesforce conversion against checked-in fixtures headlessly (jsdom) and diff against expected output.
+description: Run the Word→Salesforce conversion regression suite (golden fixtures + contract assertions) headlessly via jsdom.
 ---
 
 # /verify-conversion
 
 Regression safety for the converter. The app's whole value is output fidelity, and the
 git history shows recurring fidelity regressions (e.g. "H2 converting to h3/Arial 16",
-"reconvert collapsing Word Online content to plain text"). This turns those into
-one-line assertions instead of support tickets.
+"reconvert collapsing Word Online content to plain text"). The suite turns those into
+assertions that fail loudly instead of shipping.
 
-## If fixtures do not exist yet (bootstrap)
+## Run it
 
-1. Create `tests/fixtures/`. Each fixture is a pair:
-   - `<name>.input.html` — a real Word / Word-Online paste sample (raw clipboard HTML)
-   - `<name>.expected.html` — the Salesforce HTML the converter should produce
-2. Seed at least these cases from real bugs in the git log:
-   - `heading-h2` — an H2 must emit **18px Arial bold**, not h3/16px
-   - `word-online-list` — Word Online list must survive a reconvert (not collapse to text)
-   - `native-word-list` — desktop Word nested list markers
-   - `callout-with-bullets` — a note/callout that absorbs its bullet list into the blockquote
-   - `table-basic` — 100% width, 1px borders, bold header row, no header fill
-   - `image` — becomes the literal `[Insert image here]` placeholder
-3. Write `tests/run.mjs`: load `index.html`'s inline script into a jsdom `window`, call
-   `convertHTML(input, false, [])` for each fixture, normalize whitespace, and diff the
-   result against `.expected.html`. Print PASS/FAIL per fixture and exit non-zero on any fail.
-   Check whether `jsdom` is available first (`require.resolve('jsdom')`); if not, tell the
-   user to `npm i -D jsdom` in a throwaway dir — do NOT add it to the repo (this stays
-   dependency-free at runtime; jsdom is test-only).
+```bash
+cd tests
+npm install    # first time only — installs jsdom (test-only; the app stays zero-dependency)
+node run.mjs   # or: npm test
+```
 
-## If fixtures exist
+The runner loads the **real** `index.html` into a jsdom window and calls the page's own
+`window.convertHTML()` — it exercises shipped code, not a copy. It reports two groups and
+exits non-zero if anything fails:
 
-Run `node tests/run.mjs`, then report the PASS/FAIL table. On failure, show the diff
-(expected vs. actual) for each failing fixture and propose the fix — but do not change
-`index.html` unless asked.
+- **Golden fixtures** — `tests/fixtures/<name>.input.html` (a real Word / Word-Online paste)
+  vs. `<name>.expected.html` (the Salesforce HTML it must produce), compared whitespace-insensitively.
+- **Contract assertions** (`tests/assertions.mjs`) — property checks that pin the specific
+  behaviours that regressed historically: H2 = 18px (never 16px/h3), Word/Word-Online lists
+  stay real lists, image → `[Insert image here]`, tables at 100% width with `0.5px` borders and
+  a navy `#0A0E33` header fill, `Note:`/`Warning:` callouts absorb their bullet lists, etc.
 
-Whenever a conversion bug is fixed, add a new fixture capturing it before closing out.
+## When output legitimately changes
+
+If a fixture fails because you *intended* to change the output, regenerate the golden files:
+
+```bash
+node run.mjs --update   # rewrites every *.expected.html from current output
+git diff tests/fixtures  # REVIEW the diff — confirm each change is intended before committing
+```
+
+Never `--update` to make a red suite green without reading the diff — that's how a regression
+gets frozen in as "expected."
+
+## Whenever you fix a conversion bug
+
+Add a fixture that captures it **before** closing the fix:
+
+1. Save the offending Word paste as `tests/fixtures/<name>.input.html`.
+2. Run `node run.mjs --update` and review the generated `<name>.expected.html`.
+3. If the bug has a crisp invariant (a size, a tag, "no X in output"), add a check to
+   `tests/assertions.mjs` too — assertions are whitespace/attribute-order proof and read as docs.
+
+Your bug list becomes your test suite. Run `/verify-conversion` before every `/checkpoint`.

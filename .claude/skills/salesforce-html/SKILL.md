@@ -12,7 +12,9 @@ output and any hand-edits on-contract.
 
 ## Global
 
-- **Font: `Arial, sans-serif`** everywhere. No other font families.
+- **Font: `Arial, sans-serif`** everywhere. Body text is **12px** (`SF_FONT =
+  font-family: Arial, sans-serif; font-size: 12px;`). Code is `'Courier New',
+  Consolas, monospace; font-size: 12px`. No other font families.
 - Styles are **inline** on the element (`style="…"`). Do not rely on `<style>` blocks or
   classes — Salesforce discards them.
 - No `<script>`, no `data-*`, no MSO/Word attributes, no `class` on output elements.
@@ -41,10 +43,15 @@ Preserve the heading *hierarchy* from the source — do not flatten H2/H3 into p
 
 ## Tables
 
-- `width:100%` by default (adjustable by hand before copying).
-- `1px solid` cell borders.
-- Header row: **bold text, no background fill.**
+Verified against `processTable()` in `index.html` (the README's "no background fill"
+description is stale — the code fills headers). Contract:
+
+- Table: `border-collapse:collapse; width:100%` (width adjustable by hand before copying).
+- All cells: `border:0.5px solid #808080; padding:4px; vertical-align:top;` + `SF_FONT`.
+- **Header cells** (`<th>` — first row, or any `<th>`, or a bold cell): add
+  `background:#0A0E33; color:#ffffff; font-weight:bold; text-align:center;` (navy fill, white bold text).
 - Preserve header rows, empty cells, uneven rows, nested and merged cells where possible.
+  Merged cells, uneven rows, and nested tables each raise a warning.
 
 ## Callouts / notes / warnings
 

@@ -8,48 +8,70 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #f5f8fc;
-    --surface: #ffffff;
-    --soft: #f8fbff;
-    --ice-blue: #dceeff;      /* soft blue */
-    --signal-blue: #4da3ff;   /* primary blue */
-    --dark-blue: #1f5f99;
+    --bg: #F4F7FB;
+    --surface: #FFFFFF;
+    --soft: #F8FAFD;
+    --code-surface: #F1F5FA;
+    --ice-blue: #EAF2FF;      /* soft blue */
+    --signal-blue: #3276E8;   /* primary blue */
+    --accent-hover: #2464CC;
+    --dark-blue: #2464CC;
+    --brand-navy: #101A40;
     --blue-black: #111827;    /* main text */
     --soft-white: #f8fbff;
     --cool-gray: #65758b;     /* muted text */
     --accent-red: #d94141;    /* danger */
+    --danger-border: #E5B5B9;
+    --danger-text: #C53A45;
     --success: #1f8a5b;
     --warn-bg: #fff7e6;
     --warn-text: #b7791f;
-    --border: #d8e4f2;
+    --border: #D7DFEA;
+    --border-strong: #BCC9D9;
+    --accent-border: #BFD4FA;
     --panel-width: 340px;
+    --shadow-header: 0 1px 4px rgba(16, 24, 40, 0.06);
+    --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 18px rgba(47, 78, 113, 0.05);
+    --shadow-active: 0 0 0 3px rgba(50, 118, 232, 0.12), 0 8px 20px rgba(47, 78, 113, 0.07);
   }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--blue-black); min-height: 100vh; display: flex; flex-direction: column; }
+  body {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--bg);
+    /* faint graph-paper grid, local CSS only — no external assets */
+    background-image:
+      linear-gradient(rgba(50, 118, 232, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(50, 118, 232, 0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--blue-black); min-height: 100vh; display: flex; flex-direction: column;
+  }
 
   .app-header { position: sticky; top: 0; z-index: 100; }
-  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border-strong); padding: 12px 24px; box-shadow: var(--shadow-header); position: relative; z-index: 2; }
   .header-inner { max-width: 1180px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 16px; }
   .header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-  .header-icon { width: 38px; height: 38px; background: #0A0E33; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; flex-shrink: 0; }
+  .header-icon { width: 40px; height: 40px; background: var(--brand-navy); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14), 0 1px 3px rgba(16,24,40,0.18); }
   .header-icon svg { fill: #fff; }
   .header-icon .hdr-ico-code { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .header-text h1 { font-size: 18px; font-weight: 700; color: var(--blue-black); line-height: 1.2; }
-  .header-text p  { font-size: 12px; color: var(--cool-gray); margin-top: 1px; }
+  .header-text h1 { font-size: 17px; font-weight: 700; color: var(--brand-navy); line-height: 1.2; }
+  .header-text p  { font-size: 12px; color: #4d5a70; margin-top: 1px; }
   .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-  /* Live status dot reflecting validation state */
-  .status-chip { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--cool-gray); }
-  .status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+  /* Live status dot reflecting validation state, styled as a compact pill */
+  .status-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--cool-gray); background: var(--soft); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px 4px 8px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+  .status-chip.ok   { background: #EAF8F0; border-color: #BFE7D0; }
   .status-chip.ok   .status-dot { background: var(--success); }
-  .status-chip.ok   .status-word { color: var(--success); }
+  .status-chip.ok   .status-word { color: #16794A; }
+  .status-chip.warn { background: var(--warn-bg); border-color: #f0dfb0; }
   .status-chip.warn .status-dot { background: var(--warn-text); }
   .status-chip.warn .status-word { color: var(--warn-text); }
+  .status-chip.err  { background: #fdf2f2; border-color: #f2c9c9; }
   .status-chip.err  .status-dot { background: var(--accent-red); }
   .status-chip.err  .status-word { color: var(--accent-red); }
-  /* Quiet help button: square card with an outlined ? circle inside */
+  /* Quiet help button: soft neutral circular button with an outlined ? inside */
   .hdr-divider { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
-  .help-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--cool-gray); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0; }
+  .help-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: var(--soft); color: var(--cool-gray); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0; }
   .help-btn .help-q { width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid currentColor; font-size: 11px; font-weight: 700; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
-  .help-btn:hover { background: var(--soft); color: var(--dark-blue); border-color: var(--signal-blue); }
+  .help-btn:hover { background: var(--ice-blue); color: var(--dark-blue); border-color: var(--signal-blue); }
   .help-anchor { position: relative; }
   .help-popover { position: absolute; top: calc(100% + 10px); right: 0; width: min(360px, 88vw); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 34px rgba(20,40,70,0.16); padding: 16px 18px; z-index: 300; font-size: 13px; color: var(--blue-black); line-height: 1.5; }
   .help-popover.hidden { display: none; }
@@ -61,11 +83,13 @@
   .help-popover .help-contact { color: var(--cool-gray); font-size: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
   .help-popover .help-contact a { color: var(--signal-blue); text-decoration: none; }
   /* Workflow band */
-  .workflow-band { background: var(--soft); border-bottom: 1px solid var(--border); padding: 8px 24px; }
+  .workflow-band { background: #ECF1F8; border-bottom: 1px solid var(--border); padding: 9px 24px; }
   .wf-inner { max-width: 1180px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .wf-step { display: inline-flex; align-items: center; gap: 7px; color: var(--cool-gray); font-size: 12px; font-weight: 500; }
-  .wf-num { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--cool-gray); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .wf-arrow { color: var(--cool-gray); opacity: 0.6; font-size: 13px; }
+  .wf-num { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--surface); color: var(--cool-gray); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .wf-line { width: 28px; height: 1px; background: var(--border-strong); flex-shrink: 0; }
+  .wf-step.step-active .wf-num { background: var(--signal-blue); color: #fff; border-color: var(--signal-blue); }
+  .wf-step.step-active .wf-label { color: var(--brand-navy); font-weight: 600; }
 
   .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
   .main-content { flex: 1; overflow-y: auto; padding: 20px 24px; min-width: 0; transition: margin-right 0.25s ease; }
@@ -73,7 +97,7 @@
   .main-inner { max-width: 1180px; margin: 0 auto; }
   .section-label { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
   .panel-box-header .step-tag { flex: 1; }
-  .step-tag { color: #0A0E33; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .step-tag { color: var(--brand-navy); font-weight: 650; font-size: 12px; letter-spacing: 0.01em; }
   .btn-ico { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
   .hdr-ico { width: 20px; height: 20px; fill: currentColor; }
   /* Expand-to-modal buttons */
@@ -82,7 +106,7 @@
   .expand-btn svg { width: 16px; height: 16px; fill: currentColor; }
   .paste-box { position: relative; }
   /* Rich-text toolbar above the paste field */
-  .rte-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 5px 6px; background: #fafcff; border: 1.5px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; }
+  .rte-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 5px 6px; background: var(--soft); border: 1.5px solid var(--border-strong); border-bottom: 1px solid var(--border); border-radius: 10px 10px 0 0; }
   .rte-group { display: flex; align-items: center; gap: 2px; }
   .rte-sep { width: 1px; align-self: stretch; background: var(--border); margin: 2px 4px; }
   .rte-btn { min-width: 28px; height: 28px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; background: #fff; border: 1px solid transparent; border-radius: 5px; cursor: pointer; color: #333333; font-size: 13px; line-height: 1; }
@@ -135,12 +159,12 @@
      white-space), or the modal highlight boxes drift off the characters.
      (.modal-edit supplies font-size 13px / line-height 1.6; the global reset
      zeroes the textarea padding, so the mirror inner uses padding 0 too.) */
-  textarea.modal-edit { font-family: 'SF Mono', Menlo, Consolas, monospace; white-space: pre; tab-size: 8; position: relative; z-index: 1; background: transparent; }
+  textarea.modal-edit { font-family: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace; white-space: pre; tab-size: 8; position: relative; z-index: 1; background: transparent; }
   /* Modal highlight mirror: same overlay pattern as the docked #htmlMirror —
      outer box fixed, inner layer translated to follow the textarea scroll. */
   .modal-edit-stack { position: relative; width: 100%; height: 100%; }
   .modal-mirror { position: absolute; inset: 0; z-index: 0; margin: 0; border: none; overflow: hidden; background: transparent; color: transparent; pointer-events: none; }
-  .modal-mirror .mirror-inner { position: absolute; top: 0; left: 0; padding: 0; white-space: pre; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6; tab-size: 8; will-change: transform; }
+  .modal-mirror .mirror-inner { position: absolute; top: 0; left: 0; padding: 0; white-space: pre; font-family: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6; tab-size: 8; will-change: transform; }
   .modal-edit ol { padding-left: 24px; margin: 2px 0; list-style-type: decimal; }
   .modal-edit ul { padding-left: 24px; margin: 2px 0; list-style-type: disc; }
   .modal-edit ol ol { list-style-type: lower-alpha; }
@@ -155,14 +179,25 @@
 
   /* PASTE AREA - editable rendered preview */
   .paste-section { margin-bottom: 16px; }
-  .paste-box { border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; }
-  .paste-box-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #fafcff; border-bottom: 1px solid var(--border); gap: 8px; }
+  .paste-box { border: 1px solid var(--border-strong); border-radius: 10px; background: #fff; overflow: hidden; box-shadow: var(--shadow-card); transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+  .paste-box.has-toolbar:focus-within { border-color: var(--signal-blue); box-shadow: var(--shadow-active); }
+  .paste-box-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--soft); border-bottom: 1px solid var(--border); gap: 8px; }
   .paste-box-toolbar span { font-size: 11px; color: var(--cool-gray); }
   .paste-clear-btn { font-size: 11px; color: var(--accent-red); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
   .paste-clear-btn:hover { background: #fff0f0; }
   #pasteRender { min-height: 160px; max-height: 280px; overflow-y: auto; padding: 14px 16px;
     font-family: Arial, sans-serif; font-size: 12px; line-height: 1.6; color: var(--blue-black); }
-  #pasteRender.empty::before { content: 'Paste your Word draft here (Ctrl+V)'; color: var(--cool-gray); font-style: italic; }
+  #pasteRender.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
+  #pasteRender.empty::before {
+    content: '';
+    width: 30px; height: 30px; flex-shrink: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233276E8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 2v6h6'/%3E%3Cline x1='8' y1='13' x2='16' y2='13'/%3E%3Cline x1='8' y1='17' x2='13' y2='17'/%3E%3C/svg%3E") no-repeat center / contain;
+    opacity: 0.55;
+  }
+  #pasteRender.empty::after {
+    content: 'Paste a Word document here\A Formatting, tables, headings, lists, and links will be preserved where supported.';
+    white-space: pre-line; color: var(--cool-gray); font-style: normal; font-size: 12px; line-height: 1.5; max-width: 340px;
+  }
   /* Render Word list styles faithfully inside the paste preview */
   #pasteRender ol { padding-left: 24px; margin: 2px 0; list-style-type: decimal; }
   #pasteRender ul { padding-left: 24px; margin: 2px 0; list-style-type: disc; }
@@ -182,19 +217,20 @@
   #pasteRender td, #pasteRender th { border: 0.5px solid #aaa; padding: 3px 6px; vertical-align: top; }
   #pasteRender a { color: var(--signal-blue); }
   #pasteRender pre { background: #f4f6f8; padding: 8px; font-size: 11px; border-radius: 4px; overflow-x: auto; }
-  /* Make the paste area focusable so it can catch paste events */
-  #pasteRender:focus { outline: 2px solid var(--signal-blue); outline-offset: -2px; border-radius: 8px; }
+  /* Make the paste area focusable so it can catch paste events; the focus ring
+     lives on .paste-box (:focus-within) so only one ring shows, not two. */
+  #pasteRender:focus { outline: none; }
   .paste-hint { font-size: 11px; color: var(--cool-gray); margin-top: 5px; }
 
   /* BUTTONS */
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; align-items: center; }
-  button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; white-space: nowrap; }
-  .btn-primary   { background: var(--signal-blue); color: #fff; border-color: var(--signal-blue); }
-  .btn-primary:hover   { background: #3a8ee0; border-color: #3a8ee0; }
-  .btn-secondary { background: #fff; color: var(--blue-black); border-color: var(--border); }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 26px; align-items: center; }
+  button { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .btn-primary   { background: var(--signal-blue); color: #fff; border-color: var(--signal-blue); box-shadow: 0 2px 5px rgba(50, 118, 232, 0.22); }
+  .btn-primary:hover   { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: 0 3px 8px rgba(50, 118, 232, 0.3); }
+  .btn-secondary { background: #fff; color: var(--brand-navy); border-color: var(--border-strong); }
   .btn-secondary:hover { border-color: var(--signal-blue); color: var(--signal-blue); }
-  .btn-danger    { background: #fff; color: var(--accent-red); border-color: #f0c0c0; }
-  .btn-danger:hover    { background: #fff0f0; }
+  .btn-danger    { background: transparent; color: var(--cool-gray); border-color: transparent; }
+  .btn-danger:hover    { background: #fdf2f2; color: var(--danger-text); border-color: var(--danger-border); }
   .btn-code      { background: var(--blue-black); color: #fff; border-color: var(--blue-black); }
   .btn-code:hover      { background: #1e2d42; }
   #copyStatus { display: none; }
@@ -203,18 +239,23 @@
   /* OUTPUT GRID */
   .output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 900px) { .output-grid { grid-template-columns: 1fr; } }
-  .panel-box { border: 1px solid var(--border); border-radius: 10px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+  .panel-box { border: 1px solid var(--border); border-radius: 10px; background: var(--soft); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow-card); }
   .panel-box-header { padding: 8px 12px; background: var(--soft); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
-  .panel-box-header .panel-kind { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cool-gray); }
+  .panel-box-header .panel-kind { margin-left: auto; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--cool-gray); background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; }
 
   /* Clean HTML = code surface with a left line-number gutter */
-  .code-panel { background: #eef3fa; }
-  .code-panel .panel-box-header { background: #e7eef8; }
-  .code-wrap { flex: 1; display: flex; min-height: 280px; max-height: 480px; overflow: hidden; background: #eef3fa; }
-  .code-gutter { flex-shrink: 0; padding: 12px 8px 12px 10px; text-align: right; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; color: #93a3b8; background: #e4ebf4; border-right: 1px solid var(--border); user-select: none; overflow: hidden; min-width: 34px; white-space: pre; }
+  .code-panel { background: var(--code-surface); }
+  .code-panel .panel-box-header { background: #E7EEF7; }
+  .code-panel .panel-box-header .panel-kind { color: var(--brand-navy); border-color: var(--border-strong); }
+  .code-wrap { flex: 1; display: flex; min-height: 280px; max-height: 480px; overflow: hidden; background: var(--code-surface); }
+  .code-gutter { flex-shrink: 0; padding: 12px 8px 12px 10px; text-align: right; font-family: 'IBM Plex Mono', 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; color: #718096; background: #E8EEF5; border-right: 1px solid var(--border-strong); user-select: none; overflow: hidden; min-width: 34px; white-space: pre; }
 
-  #previewArea { flex: 1; min-height: 280px; max-height: 480px; overflow-y: auto; padding: 14px 16px; font-size: 12px; line-height: 1.6; font-family: Arial, sans-serif; background: #fff; }
-  #previewArea:empty::before { content: 'Preview will appear here after conversion.'; color: var(--cool-gray); font-style: italic; font-size: 12px; }
+  /* Preview panel body = neutral shell (panel-box bg) framing a white "paper" sheet */
+  .preview-panel { background: #EEF2F6; }
+  #previewArea { flex: 1; min-height: 280px; max-height: 480px; overflow-y: auto; padding: 16px 18px; font-size: 12px; line-height: 1.6; font-family: Arial, sans-serif;
+    background: #fff; margin: 12px; border: 1px solid #DDE3EA; border-radius: 6px; box-shadow: 0 2px 8px rgba(16, 24, 40, 0.05); }
+  #previewArea:empty { display: flex; align-items: center; justify-content: center; }
+  #previewArea:empty::before { content: 'The Salesforce-ready preview will appear here after conversion.'; color: var(--cool-gray); font-style: normal; font-size: 12px; text-align: center; max-width: 260px; }
   #previewArea h2 { font-size: 18px; font-weight: bold; margin: 10px 0 5px; font-family: Arial, sans-serif; }
   #previewArea h3 { font-size: 16px; font-weight: bold; margin: 8px 0 4px; font-family: Arial, sans-serif; }
   #previewArea h4 { font-size: 14px; font-weight: bold; margin: 6px 0 3px; font-family: Arial, sans-serif; }
@@ -235,14 +276,14 @@
   #previewArea blockquote { border-left: 3px solid var(--signal-blue); margin: 6px 0; padding: 6px 12px; background: #f5f9ff; border-radius: 0 4px 4px 0; font-size: 12px; }
 
   /* Overlay stack: textarea on top, highlight mirror underneath (same box). */
-  .code-editor-stack { position: relative; flex: 1; min-width: 0; display: flex; background: #eef3fa; }
+  .code-editor-stack { position: relative; flex: 1; min-width: 0; display: flex; background: var(--code-surface); }
   /* PAIRED TEXT METRICS — #htmlOutput and #htmlMirror MUST stay in sync.
      The mirror sits exactly under the textarea; highlight spans only align if
      font family/size, line-height, padding, tab-size and white-space are
      IDENTICAL on both. Change them here, never separately.
      (Converter output can contain literal tabs inside code blocks, hence the
      explicit tab-size; 8 is the browser default for textarea and pre.) */
-  #htmlOutput { font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; padding: 12px 12px; white-space: pre; tab-size: 8; }
+  #htmlOutput { font-family: 'IBM Plex Mono', 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; padding: 12px 12px; white-space: pre; tab-size: 8; }
   /* Mirror metrics MUST match #htmlOutput; padding is applied on .mirror-inner
      (which is what translates), never on #htmlMirror, to avoid double padding. */
   /* Textarea on top, transparent background so mirror highlights show through. */
@@ -252,7 +293,7 @@
      translated to follow the textarea's scroll (mirror scrollTop would be
      clamped to 0 by overflow:hidden, so transform is used instead). */
   #htmlMirror { position: absolute; inset: 0; z-index: 0; margin: 0; border: none; overflow: hidden; background: transparent; color: transparent; pointer-events: none; }
-  #htmlMirror .mirror-inner { position: absolute; top: 0; left: 0; padding: 12px 12px; white-space: pre; font-family: 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; tab-size: 8; will-change: transform; }
+  #htmlMirror .mirror-inner { position: absolute; top: 0; left: 0; padding: 12px 12px; white-space: pre; font-family: 'IBM Plex Mono', 'Consolas','Courier New',monospace; font-size: 12px; line-height: 1.6; tab-size: 8; will-change: transform; }
   #htmlMirror .tag-hl, .modal-mirror .tag-hl { border-radius: 2px; background: rgba(77,163,255,0.22); box-shadow: inset 0 0 0 1px rgba(77,163,255,0.55); }
   #htmlMirror .tag-hl-miss, .modal-mirror .tag-hl-miss { border-radius: 2px; background: rgba(229,72,77,0.16); box-shadow: inset 0 0 0 1px rgba(229,72,77,0.65); }
   #htmlMirror .tag-hl-link, .modal-mirror .tag-hl-link { border-radius: 2px; background: rgba(46,182,125,0.20); box-shadow: inset 0 0 0 1px rgba(46,182,125,0.6); }
@@ -383,11 +424,11 @@
 </header>
 <div class="workflow-band">
   <div class="wf-inner">
-  <span class="wf-step"><span class="wf-num">1</span> Paste draft</span>
-  <span class="wf-arrow">&rarr;</span>
-  <span class="wf-step"><span class="wf-num">2</span> Review HTML</span>
-  <span class="wf-arrow">&rarr;</span>
-  <span class="wf-step"><span class="wf-num">3</span> Copy to Salesforce</span>
+  <span class="wf-step step-active"><span class="wf-num">1</span> <span class="wf-label">Paste draft</span></span>
+  <span class="wf-line" aria-hidden="true"></span>
+  <span class="wf-step"><span class="wf-num">2</span> <span class="wf-label">Review HTML</span></span>
+  <span class="wf-line" aria-hidden="true"></span>
+  <span class="wf-step"><span class="wf-num">3</span> <span class="wf-label">Copy to Salesforce</span></span>
   </div>
 </div>
 </div>
@@ -472,17 +513,17 @@
 
     <div class="output-grid">
       <div class="panel-box code-panel">
-        <div class="panel-box-header"><span class="step-tag">Clean HTML</span><span class="panel-kind">code</span><button class="expand-btn" id="expandHtml" title="Open in larger window" aria-label="Expand HTML output"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
+        <div class="panel-box-header"><span class="step-tag">Clean HTML</span><span class="panel-kind">HTML</span><button class="expand-btn" id="expandHtml" title="Open in larger window" aria-label="Expand HTML output"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
         <div class="code-wrap">
           <div class="code-gutter" id="codeGutter">1</div>
           <div class="code-editor-stack">
-            <textarea id="htmlOutput" spellcheck="false" placeholder="Converted HTML will appear here. You can edit before copying."></textarea>
+            <textarea id="htmlOutput" spellcheck="false" placeholder="Your cleaned HTML will appear here. You can review and edit it before copying."></textarea>
             <pre id="htmlMirror" aria-hidden="true"></pre>
           </div>
         </div>
       </div>
-      <div class="panel-box">
-        <div class="panel-box-header"><span class="step-tag">Live Preview</span><span class="panel-kind">document</span><button class="expand-btn" id="expandPreview" title="Open in larger window" aria-label="Expand preview"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
+      <div class="panel-box preview-panel">
+        <div class="panel-box-header"><span class="step-tag">Live Preview</span><span class="panel-kind">Doc</span><button class="expand-btn" id="expandPreview" title="Open in larger window" aria-label="Expand preview"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z"/></svg></button></div>
         <div id="previewArea"></div>
       </div>
     </div>

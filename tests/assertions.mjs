@@ -92,6 +92,22 @@ export const assertions = [
     ],
   },
   {
+    // Regression: a Word Online full-document paste wraps its OutlineElements in
+    // an outer SCXW div. The flatten step used to promote the table's
+    // OutlineElement as a plain paragraph outline, keeping only the first <p> and
+    // collapsing the whole table to its first cell's text ("Field").
+    fixture: 'word-online-table',
+    checks: [
+      { name: 'table survives the SCXW flatten step', test: has(/<table\b/) },
+      { name: 'did not collapse to the first cell', test: not(/<p[^>]*><strong>Field<\/strong><\/p>/) },
+      { name: 'all three rows survive', test: (h) => (h.match(/<tr\b/g) || []).length === 3 },
+      { name: 'all six cells survive', test: (h) => (h.match(/<t[dh]\b/g) || []).length === 6 },
+      { name: 'last cell content survives', test: has(/Active or Inactive/) },
+      { name: 'header row uses <th>', test: has(/<th\b/) },
+      { name: 'surrounding paragraphs preserved', test: (h) => /The record exposes/.test(h) && /Contact your administrator/.test(h) },
+    ],
+  },
+  {
     fixture: 'callout-warning',
     checks: [
       { name: 'renders a blockquote', test: has(/<blockquote\b/) },

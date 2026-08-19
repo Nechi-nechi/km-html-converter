@@ -1,0 +1,13 @@
+{
+  "name": "km-html-converter-tests",
+  "private": true,
+  "type": "module",
+  "description": "Test-only harness for the converter. jsdom is a devDependency here so the app itself (index.html) stays zero-dependency.",
+  "scripts": {
+    "test": "node run.mjs",
+    "update": "node run.mjs --update"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.0"
+  }
+}

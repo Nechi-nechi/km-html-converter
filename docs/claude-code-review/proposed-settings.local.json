@@ -1,0 +1,20 @@
+{
+  "_comment": "PROPOSED replacement for .claude/settings.local.json. Two changes: (1) broaden the brittle exact-match rules into patterns so you stop getting a fresh prompt for every new commit message / node command; (2) this file should be GITIGNORED, not committed — it is local-machine state and the old one even hardcoded C:/Users/nechi paths. Review, then copy the 'permissions' block over your real settings.local.json and add settings.local.json to .gitignore.",
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git commit -q *)",
+      "Bash(git push *)",
+      "Bash(git config *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(node -e *)",
+      "Bash(node --check *)",
+      "Bash(npm ls *)",
+      "Bash(wc -l *)",
+      "Bash(cp *)"
+    ]
+  }
+}

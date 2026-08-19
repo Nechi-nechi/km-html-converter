@@ -2633,10 +2633,16 @@ function isWordOnlineOuterDiv(node) {
 }
 
 // An OutlineElement that is NOT a list item (heading, paragraph, note).
+// Excludes OutlineElements holding a table (Word Online wraps tables in
+// OutlineElement > TableContainer > table): promoting those would keep only
+// the first cell's paragraph and drop the table, so they must be cloned
+// whole and left to the normal table conversion path.
 function isWordOnlineNonListOutline(node) {
   if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
   const cls = node.getAttribute('class') || '';
-  return /OutlineElement/i.test(cls) && !node.querySelector('li[data-aria-level]');
+  return /OutlineElement/i.test(cls) &&
+    !node.querySelector('li[data-aria-level]') &&
+    !node.querySelector('table');
 }
 
 // Pull list-type info from the <li>'s parent <ol>/<ul>.

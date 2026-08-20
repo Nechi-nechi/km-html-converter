@@ -1,2 +1,6 @@
 # Local-only notes / scratch (never pushed)
 GIT-NOTES.local.md
+
+# Claude Code local machine state: permission allowlist with hardcoded
+# C:/Users paths. Local to this machine, not project config.
+.claude/settings.local.json

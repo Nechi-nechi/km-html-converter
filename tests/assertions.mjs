@@ -8,6 +8,7 @@
 
 const has = (re) => (html) => re.test(html);
 const not = (re) => (html) => !re.test(html);
+const calloutFont = /<blockquote\b[^>]*style="font-family:\s*Arial, sans-serif;\s*font-size:\s*12px;"/;
 
 export const assertions = [
   {
@@ -70,9 +71,10 @@ export const assertions = [
     fixture: 'callout-with-bullets',
     checks: [
       { name: 'renders a blockquote', test: has(/<blockquote\b/) },
+      { name: 'Note blockquote carries Arial 12px', test: has(calloutFont) },
       { name: 'bold "Note:" label', test: has(/<strong>Note:<\/strong>/) },
       // The bullets must be absorbed INSIDE the blockquote, not left as a sibling.
-      { name: 'list lives inside the blockquote', test: has(/<blockquote>[\s\S]*<ul[\s\S]*<\/ul>[\s\S]*<\/blockquote>/) },
+      { name: 'list lives inside the blockquote', test: has(/<blockquote\b[^>]*>[\s\S]*<ul[\s\S]*<\/ul>[\s\S]*<\/blockquote>/) },
     ],
   },
   {
@@ -111,7 +113,50 @@ export const assertions = [
     fixture: 'callout-warning',
     checks: [
       { name: 'renders a blockquote', test: has(/<blockquote\b/) },
+      { name: 'Warning blockquote carries Arial 12px', test: has(calloutFont) },
       { name: 'Warning label is red', test: has(/<strong style="color:#c00000;">Warning:<\/strong>/) },
+    ],
+  },
+  {
+    fixture: 'callout-important',
+    checks: [
+      { name: 'Important blockquote carries Arial 12px', test: has(calloutFont) },
+      { name: 'label and body retain bold markup', test: has(/<strong>Important:<\/strong>\s*<strong>Keep a copy<\/strong>/) },
+      { name: 'Word font overrides are removed', test: not(/Times New Roman|Calibri|20px|16pt|MsoNormal/) },
+    ],
+  },
+  {
+    fixture: 'blockquote-ordinary',
+    checks: [
+      { name: 'ordinary blockquote wrapper remains unstyled', test: has(/^<blockquote><p/) },
+    ],
+  },
+  {
+    fixture: 'mixed-document',
+    checks: [
+      { name: 'paragraphs and sections stay in order', test: has(/Overview[\s\S]*Alpha[\s\S]*First[\s\S]*Between lists[\s\S]*Third[\s\S]*Field[\s\S]*Last paragraph/) },
+      { name: 'nested and interrupted lists remain real lists', test: has(/<ol\b[\s\S]*<ul\b[\s\S]*<\/ul>[\s\S]*<\/ol>[\s\S]*Between lists[\s\S]*<ul\b/) },
+      { name: 'merged and blank cells survive', test: has(/colspan="2"[\s\S]*<td[^>]*>&nbsp;<\/td>/) },
+      { name: 'safe link survives inside a cell', test: has(/<a href="https:\/\/example\.com\/help">Guide<\/a>/) },
+      { name: 'merged cell warning is shown', test: (_h, w) => w.some((x) => /Merged cells/.test(x.title)) },
+    ],
+  },
+  {
+    fixture: 'special-characters',
+    checks: [
+      { name: 'special characters are preserved without double escaping', test: (h) => /A &amp; B &lt; C &gt; D/.test(h) && /café, ©, ™, 한국어/.test(h) && !/&amp;amp;/.test(h) },
+    ],
+  },
+  {
+    fixture: 'whitespace',
+    checks: [
+      { name: 'empty paragraphs collapse without losing neighbors', test: (h, w) => (h.match(/<p\b/g) || []).length === 2 && /First[\s\S]*Second/.test(h) && w.some((x) => /Empty paragraphs collapsed/.test(x.title)) },
+    ],
+  },
+  {
+    fixture: 'unsafe-output',
+    checks: [
+      { name: 'unsafe tags, handlers, and links stay out of Salesforce HTML', test: (h, w) => !/<script|onclick|javascript:/i.test(h) && /Safe text link/.test(h) && w.some((x) => /Link protocol stripped/.test(x.title)) },
     ],
   },
 ];

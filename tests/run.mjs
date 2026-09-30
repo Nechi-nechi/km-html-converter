@@ -70,6 +70,60 @@ for (const spec of assertions) {
   }
 }
 
+// Plain text uses buildNote(), while rich HTML uses buildNoteFromNode().
+const plainCallouts = c.convert('Note: first\nImportant: second\nWarning: third', { useFallback: true }).html;
+const plainBlocks = [...plainCallouts.matchAll(/<blockquote\b[^>]*>[\s\S]*?<\/blockquote>/g)].map((m) => m[0]);
+const plainOk = plainBlocks.length === 3 && plainBlocks.every((block) =>
+  /^<blockquote style="font-family: Arial, sans-serif; font-size: 12px;">/.test(block)
+) && /<strong style="color:#c00000;">Warning:<\/strong>/.test(plainBlocks[2]);
+if (plainOk) { pass++; console.log('  ✓ plain-text callouts: all three carry Arial 12px'); }
+else { fail++; console.log('  ✗ plain-text callouts: Arial 12px'); failures.push(['plain-text callouts', plainCallouts]); }
+
+const headingsOnce = c.convert('<h2>Overview</h2><h3>Details</h3><h4>Step</h4>').html;
+const headingsTwice = c.convert(headingsOnce).html;
+if (normalize(headingsOnce) === normalize(headingsTwice)) { pass++; console.log('  ✓ heading levels survive reconversion'); }
+else { fail++; console.log('  ✗ heading levels survive reconversion'); failures.push(['heading reconversion', headingsTwice]); }
+
+const unsafe = '<p onclick="alert(1)">Click <a href="java&#x73;cript:alert(2)">here</a></p><iframe srcdoc="x"></iframe><img src="x" onerror="alert(3)">';
+const cleanedPaste = c.window.cleanPastedHtml(unsafe);
+const pasteSafe = !/onclick|onerror|javascript:|iframe|srcdoc/i.test(cleanedPaste) && /Click <a>here<\/a>/.test(cleanedPaste);
+if (pasteSafe) { pass++; console.log('  ✓ paste preview removes executable markup'); }
+else { fail++; console.log('  ✗ paste preview removes executable markup'); failures.push(['unsafe paste preview', cleanedPaste]); }
+
+const preview = c.window.document.getElementById('previewArea');
+preview.innerHTML = '<p>Safe baseline</p>';
+c.window.applyHtmlToPreview(unsafe);
+const previewSafe = preview.textContent === 'Safe baseline' &&
+  c.window.validateEditedHtml(unsafe).some((issue) => issue.level === 'error' && issue.title === 'Unsafe HTML');
+if (previewSafe) { pass++; console.log('  ✓ edited unsafe HTML pauses live preview'); }
+else { fail++; console.log('  ✗ edited unsafe HTML pauses live preview'); failures.push(['unsafe edited preview', preview.innerHTML]); }
+
+const nestingIssues = c.window.validateEditedHtml('<p>First</p>\n<div><b>Second</div>');
+const lineOk = nestingIssues.some((issue) => issue.title === 'Improper nesting' && /line 2/.test(issue.msg));
+if (lineOk) { pass++; console.log('  ✓ HTML validation reports the correct source line'); }
+else { fail++; console.log('  ✗ HTML validation reports the correct source line'); failures.push(['validation line number', JSON.stringify(nestingIssues)]); }
+
+const doc = c.window.document;
+const paste = doc.getElementById('pasteRender');
+paste.innerHTML = '<p>Note: first</p><p>Important: second</p><p>Warning: third</p>';
+paste.dispatchEvent(new c.window.Event('input', { bubbles: true }));
+c.window.runConvert(false);
+const generated = doc.getElementById('htmlOutput').value;
+const previewCallouts = [...doc.querySelectorAll('#previewArea blockquote')];
+const previewOk = previewCallouts.length === 3 && previewCallouts.every((quote) =>
+  quote.style.fontFamily === 'Arial, sans-serif' && quote.style.fontSize === '12px'
+);
+let copied = null;
+Object.defineProperty(c.window.navigator, 'clipboard', { configurable: true, value: { writeText: async (text) => { copied = text; } } });
+doc.getElementById('btnCopy').click();
+await Promise.resolve();
+await Promise.resolve();
+const copyOk = copied === generated && doc.getElementById('btnCopy').dataset.copied === 'true';
+doc.getElementById('btnClearAll').click();
+const resetOk = !paste.innerHTML && !doc.getElementById('htmlOutput').value && !preview.innerHTML;
+if (previewOk && copyOk && resetOk) { pass++; console.log('  ✓ callout preview, clipboard copy, and reset stay in sync'); }
+else { fail++; console.log('  ✗ callout preview, clipboard copy, and reset stay in sync'); failures.push(['preview/copy/reset', generated]); }
+
 c.close();
 
 // ---- SUMMARY ----------------------------------------------------------------

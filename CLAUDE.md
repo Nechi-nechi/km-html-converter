@@ -80,5 +80,4 @@ conversion bug — your bug list is the test suite. Details: `tests/README.md`.
 
 - Preserve the existing inline section comments (`/* OUTPUT GRID */` etc.) — they're the map.
 - Commits follow `Phase N step X.Y: <what>` during refactors, or a plain imperative subject otherwise.
-- **`.claude/settings.local.json` is local-machine state — it should be gitignored, not committed.**
-  (Historically it was committed repeatedly; see `docs/claude-code-review/`.)
+- **`.claude/settings.local.json` is local-machine state and is gitignored.**

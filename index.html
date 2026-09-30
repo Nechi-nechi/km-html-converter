@@ -80,8 +80,6 @@
   .help-popover .help-step-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--ice-blue); color: var(--dark-blue); font-size: 12px; font-weight: 700; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
   .help-popover .help-step-title { font-size: 13px; font-weight: 700; color: var(--blue-black); line-height: 1.3; }
   .help-popover .help-step-desc { font-size: 12px; color: var(--cool-gray); line-height: 1.45; margin-top: 2px; }
-  .help-popover .help-contact { color: var(--cool-gray); font-size: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
-  .help-popover .help-contact a { color: var(--signal-blue); text-decoration: none; }
   /* Workflow band */
   .workflow-band { background: #ECF1F8; border-bottom: 1px solid var(--border); padding: 9px 24px; }
   .wf-inner { max-width: 1180px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -416,7 +414,6 @@
             <div class="help-step-desc">Copy the cleaned HTML and paste it into the Salesforce Source Code.</div>
           </div>
         </div>
-        <div class="help-contact">Need help or found an issue? Contact <a href="mailto:[removed]">[removed]</a>.</div>
       </div>
     </div>
   </div>
@@ -1172,6 +1169,7 @@ function cleanPastedHtml(html) {
 
   const temp = document.createElement('div');
   temp.innerHTML = clean;
+  inspectUnsafeMarkup(temp, true);
 
   buildPreviewWordOnlineLists(temp);   // Word Online / Office 365 web
   buildPreviewLists(temp);             // Desktop Word mso-list format
@@ -1182,6 +1180,34 @@ function cleanPastedHtml(html) {
     if (!el.querySelector('img, table, ul, ol, br') && !el.textContent.trim()) el.remove();
   });
   return temp.innerHTML.replace(/(?:\s*\n\s*){2,}/g, '\n').trim();
+}
+
+// Keep active markup out of the editable paste area and the HTML preview.
+// Generated Salesforce HTML never needs these elements or event handlers.
+const UNSAFE_PREVIEW_TAGS = new Set(['script','style','iframe','object','embed','svg','math','form','template','meta','link','base']);
+function inspectUnsafeMarkup(root, strip) {
+  let found = false;
+  root.querySelectorAll('*').forEach(el => {
+    if (UNSAFE_PREVIEW_TAGS.has(el.tagName.toLowerCase())) {
+      found = true;
+      if (strip) el.remove();
+      return;
+    }
+    Array.from(el.attributes).forEach(attr => {
+      const name = attr.name.toLowerCase();
+      const url = attr.value.replace(/[\x00-\x20\x7f]/g, '').toLowerCase();
+      const urlAttr = ['href','src','xlink:href','formaction'].includes(name);
+      const activeUrl = /^(javascript:|vbscript:)/.test(url) ||
+        ((name === 'href' || name === 'xlink:href' || name === 'formaction') && /^data:/.test(url)) ||
+        (name === 'src' && /^data:text\/html/.test(url));
+      if (/^on[a-z]+$/.test(name) ||
+          (urlAttr && activeUrl)) {
+        found = true;
+        if (strip) el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return found;
 }
 
 // Preview version of Word Online list rebuilding — same DOM-order logic.
@@ -3396,9 +3422,10 @@ function detectHeadingLevel(node, tag) {
   if (!textLen) return 0;
   const candidate = isNative || mso > 0 || (size != null && size >= 13.5 && textLen <= 140);
   if (!candidate) return 0;
+  // Native heading tags carry the level, including on a second conversion.
+  if (tag === 'h1' || tag === 'h2') return 2; if (tag === 'h3') return 3; if (/^h[4-6]$/.test(tag)) return 4;
   if (size != null) { if (size >= 17) return 2; if (size >= 15) return 3; if (size >= 13.5) return 4; }
   if (mso === 1) return 2; if (mso === 2) return 3; if (mso >= 3) return 4;
-  if (tag === 'h1' || tag === 'h2') return 2; if (tag === 'h3') return 3; if (/^h[4-6]$/.test(tag)) return 4;
   return 2;
 }
 function msoLevel(node) {
@@ -3434,7 +3461,7 @@ function buildNote(raw) {
   for (const d of defs) {
     if (d.re.test(t)) {
       const rest = t.slice(d.label.length).trim();
-      return `<blockquote>${d.rep}${rest ? ' ' + esc(rest) : ''}</blockquote>\n`;
+      return `<blockquote style="${SF_FONT}">${d.rep}${rest ? ' ' + esc(rest) : ''}</blockquote>\n`;
     }
   }
   return null;
@@ -3457,7 +3484,7 @@ function buildNoteFromNode(node, raw, warnings) {
       .replace(new RegExp(`^\\s*<(?:strong|b)[^>]*>\\s*${labelEsc.replace(':','\\:')}\\s*</(?:strong|b)>\\s*`, 'i'), '')
       .replace(new RegExp(`^\\s*${labelEsc.replace(':','\\:')}\\s*`, 'i'), '')
       .trim();
-    return `<blockquote>${d.rep}${rest ? ' ' + normalizeNbsp(rest) : ''}</blockquote>\n`;
+    return `<blockquote style="${SF_FONT}">${d.rep}${rest ? ' ' + normalizeNbsp(rest) : ''}</blockquote>\n`;
   }
   return null;
 }
@@ -3802,8 +3829,23 @@ function validateEditedHtml(html) {
   const issues = [];
   if (!html || !html.trim()) return issues;
   const { tags, malformed, unclosedQuote } = scanTags(html);
-  // 1-based line number for a character offset, for user-facing messages.
-  const lineAt = (off) => { let n = 1; for (let k = 0; k < off && k < html.length; k++) if (html[k] === '\n') n++; return n; };
+  const mightBeUnsafe = tags.some(t => t.name && (
+    UNSAFE_PREVIEW_TAGS.has(t.name) || /\bon[a-z]+\s*=/i.test(t.raw) ||
+    (/\b(?:href|src|formaction|xlink:href)\s*=/i.test(t.raw) && /javascript|vbscript|data:|&|[\r\n\t]/i.test(t.raw))
+  ));
+  if (mightBeUnsafe) {
+    const inert = document.createElement('template');
+    inert.innerHTML = html;
+    if (inspectUnsafeMarkup(inert.content, false)) {
+      issues.push({ level: 'error', title: 'Unsafe HTML', msg: 'Remove scripts, embeds, event handlers, or unsafe URLs before previewing or copying.' });
+    }
+  }
+  // Tags arrive in source order, so advance the line cursor only once.
+  let lineCursor = 0, lineNumber = 1;
+  const lineAt = (off) => {
+    while (lineCursor < off && lineCursor < html.length) if (html[lineCursor++] === '\n') lineNumber++;
+    return lineNumber;
+  };
   const stack = [];   // entries: { name, line }
   for (const t of tags) {
     if (t.kind === 'other') continue;   // comments/doctype/PI: no checks, as before

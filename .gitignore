@@ -4,3 +4,24 @@ GIT-NOTES.local.md
 # Claude Code local machine state: permission allowlist with hardcoded
 # C:/Users paths. Local to this machine, not project config.
 .claude/settings.local.json
+**/*.local.json
+
+# Private review notes and internal application screenshots
+docs/claude-code-review/
+screenshots/salesforce-roundtrip.png
+.private/
+
+# Generated standalone distribution copy
+km-paste-to-html-converter.html
+
+# Local dependencies, test coverage, and machine-specific files
+node_modules/
+coverage/
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

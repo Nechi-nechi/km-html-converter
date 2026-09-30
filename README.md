@@ -75,9 +75,6 @@ No framework, build tool, package manager, or backend is required.
 ### Converted output
 ![Converted output](screenshots/converted-output.png)
 
-### Salesforce round-trip
-![Salesforce round-trip](screenshots/salesforce-roundtrip.png)
-
 ### Paste area
 ![Paste area](screenshots/paste-area.png)
 

@@ -45,8 +45,17 @@ tests/
 | `code-block` | multi-line monospace paragraphs → one `<pre><code>` |
 | `callout-with-bullets` | `Note:` blockquote that **absorbs** its bullet list |
 | `callout-warning` | `Warning:` blockquote with the red label |
+| `callout-important` | `Important:` blockquote with Word font overrides and bold body text |
+| `blockquote-ordinary` | Ordinary quotation blockquote remains separate from callout styling |
+| `mixed-document` | Headings, inline text, nested and interrupted lists, merged and blank table cells, links, and content order |
+| `special-characters` | Entity handling and Unicode preservation |
+| `whitespace` | Empty paragraph cleanup without dropping surrounding text |
+| `unsafe-output` | Unsafe attributes, links, and scripts stay out of Salesforce HTML |
 | `image` | `<img>` → `[Insert image here]` placeholder + warning |
 | `inline-formatting` | `<b>`/`<i>` → `<strong>`/`<em>`, safe `https` link preserved |
+
+The runner also checks plain-text callouts, heading reconversion, unsafe preview
+markup, clipboard copy, and workspace reset without adding fixtures for UI state.
 
 ## Adding / updating
 

@@ -158,6 +158,7 @@
      (.modal-edit supplies font-size 13px / line-height 1.6; the global reset
      zeroes the textarea padding, so the mirror inner uses padding 0 too.) */
   textarea.modal-edit { font-family: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace; white-space: pre; tab-size: 8; position: relative; z-index: 1; background: transparent; }
+  .modal-edit[contenteditable] pre { white-space: pre-wrap; overflow-wrap: anywhere; }
   /* Modal highlight mirror: same overlay pattern as the docked #htmlMirror —
      outer box fixed, inner layer translated to follow the textarea scroll. */
   .modal-edit-stack { position: relative; width: 100%; height: 100%; }
@@ -214,7 +215,7 @@
   #pasteRender table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; }
   #pasteRender td, #pasteRender th { border: 0.5px solid #aaa; padding: 3px 6px; vertical-align: top; }
   #pasteRender a { color: var(--signal-blue); }
-  #pasteRender pre { background: #f4f6f8; padding: 8px; font-size: 11px; border-radius: 4px; overflow-x: auto; }
+  #pasteRender pre { background: #f4f6f8; padding: 8px; font-size: 11px; border-radius: 4px; white-space: pre-wrap; overflow-wrap: anywhere; }
   /* Make the paste area focusable so it can catch paste events; the focus ring
      lives on .paste-box (:focus-within) so only one ring shows, not two. */
   #pasteRender:focus { outline: none; }
@@ -268,7 +269,7 @@
   #previewArea th { border: 0.5px solid #808080; font-weight: bold; padding: 4px; text-align: center; font-size: 12px; background: #0A0E33; color: #fff; }
   #previewArea td { border: 0.5px solid #808080; padding: 4px; }
   #previewArea a  { color: var(--signal-blue); }
-  #previewArea pre { background: #f4f6f8; border-radius: 4px; padding: 10px 12px; font-size: 12px; overflow-x: auto; margin: 6px 0; }
+  #previewArea pre { background: #f4f6f8; border-radius: 4px; padding: 10px 12px; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; margin: 6px 0; }
   #previewArea code { font-family: 'Consolas','Courier New',monospace; font-size: 12px; }
   #previewArea hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
   #previewArea blockquote { border-left: 3px solid var(--signal-blue); margin: 6px 0; padding: 6px 12px; background: #f5f9ff; border-radius: 0 4px 4px 0; font-size: 12px; }
@@ -579,7 +580,7 @@
 const BOLD_TAG   = 'strong';
 const ITALIC_TAG = 'em';
 const SF_FONT    = 'font-family: Arial, sans-serif; font-size: 12px;';
-const CODE_FONT  = "font-family: 'Courier New', Consolas, monospace; font-size: 12px;";
+const CODE_FONT  = "font-family:'Courier New',Consolas,monospace;font-size:12px;white-space:normal;overflow-wrap:anywhere";
 
 /* ============================================================================
    STATE
@@ -1563,8 +1564,8 @@ function trimPreviewHTML(html) {
 /* ============================================================================
    MARK SELECTION AS CODE
    ============================================================================ */
-const CODE_BLOCK_STYLE = 'background:#f8fafc;border:1px solid #d8e0ea;border-radius:10px;padding:14px;margin:6px 0;width:100%;box-sizing:border-box;overflow-x:auto;font-family:\'Courier New\',Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre;color:#2d3748;';
-const INLINE_CODE_STYLE = 'font-family:\'Courier New\',Consolas,monospace;font-size:12px;background:#eef1f5;border-radius:4px;padding:1px 4px;color:#2d3748;';
+const CODE_BLOCK_STYLE = 'background:#f8fafc;border:1px solid #d8e0ea;border-radius:10px;padding:14px;margin:6px 0;width:100%;box-sizing:border-box;font-family:\'Courier New\',Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;color:#2d3748;';
+const INLINE_CODE_STYLE = 'font-family:\'Courier New\',Consolas,monospace;font-size:12px;background:#eef1f5;border-radius:4px;padding:1px 4px;color:#2d3748;white-space:normal;overflow-wrap:anywhere;';
 
 function markSelectionAsCode() {
   const editor = activePasteEditor;
@@ -2416,7 +2417,7 @@ function convertHTML(source, useFallback, warnings) {
   }
 
   removePageBreaks(body);
-  collapseEmptyParagraphs(body, warnings);
+  markInlineCodeRuns(body);               // retain Word fonts before list/outline cloning
   wrapLooseInlineContent(body);           // bare sentences -> real paragraphs
   groupWordOnlineLists(body, warnings);   // ← Word Online / Office 365 web
   unwrapTableContainers(body);            // keep Word sections out of paragraph heuristics
@@ -2425,12 +2426,14 @@ function convertHTML(source, useFallback, warnings) {
   groupManualLists(body, warnings);
   groupJsonBlocks(body, warnings);
   groupCodeParagraphs(body, warnings);
+  collapseEmptyParagraphs(body, warnings);
   groupNoteBlocks(body);                  // callout + its list(s) -> one blockquote
   normalizeListMarkers(body);   // unify ol(1/a/i) & ul(disc/circle/square) by per-type nesting
 
   return finalizeHr(processChildren(body, warnings))
-    .replace(/^[ \t]+$/gm, '')   // lines that are only spaces/tabs
-    .replace(/\n{3,}/g, '\n\n')
+    .split(/(<pre\b[\s\S]*?<\/pre>)/gi)
+    .map(part => /^<pre\b/i.test(part) ? part : part.replace(/^[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n'))
+    .join('')
     .trim();
 }
 
@@ -3087,96 +3090,161 @@ function replaceWithSentinel(run, html, body) {
 }
 
 /* ============================================================================
-   JSON BLOCK PRE-PASS
+   JSON / MARKUP BLOCK PRE-PASS
    ============================================================================ */
 function groupJsonBlocks(body, warnings) {
-  const children = Array.from(body.childNodes);
-  let i = 0, warned = false;
-  while (i < children.length) {
-    const node = children[i];
-    if (node.nodeType !== Node.ELEMENT_NODE || isSentinel(node)) { i++; continue; }
-    const tag = node.tagName.toLowerCase();
-    if (tag !== 'p' && tag !== 'div') { i++; continue; }
-    const t = node.textContent.trim();
-    if (!(/^[{\[]/.test(t)) || balanceOf(t) <= 0) { i++; continue; }
-
-    let balance = balanceOf(t);
-    const run = [node], lines = [t.replace(/\u00a0/g,' ')];
-    let j = i + 1;
-    while (j < children.length && balance > 0) {
-      const next = children[j];
-      if (next.nodeType === Node.ELEMENT_NODE && !isSentinel(next)) {
-        const nt = next.tagName.toLowerCase();
-        if (nt === 'p' || nt === 'div') {
-          run.push(next);
-          lines.push(next.textContent.replace(/\u00a0/g,' ').replace(/\s+$/,''));
-          balance += balanceOf(next.textContent);
-          j++; continue;
+  let warned = false;
+  const warn = () => {
+    if (!warned) warnings.push({ level:'info', title:'Code block detected', msg:'Standalone JSON or markup converted to a code block.' });
+    warned = true;
+  };
+  codeContainers(body).forEach(root => {
+    if (!body.contains(root)) return;
+    // Lists and cells may contain a snippet directly, without a paragraph.
+    if (/^(li|td|th)$/i.test(root.tagName) && !root.querySelector('p,div,table,ul,ol,pre,blockquote')) {
+      const text = getTextWithTabs(root).replace(/\u00a0/g, ' ');
+      if (isJsonLike(text) || isMarkupLike(text) || isSingleMarkupTag(text)) {
+        root.innerHTML = codeBlock(text);
+        warn();
+        return;
+      }
+    }
+    const children = Array.from(root.childNodes);
+    for (let i = 0; i < children.length; i++) {
+      const node = children[i];
+      if (!isCodeParagraph(node)) continue;
+      const first = getTextWithTabs(node).replace(/\u00a0/g, ' ');
+      if (!/^\s*(?:\{\s*(?:"|\}|$)|\[|<(?:[A-Za-z_!?]|\/[A-Za-z_]))/.test(first)) continue;
+      const run = [], lines = [];
+      let matched = false;
+      for (let j = i; j < children.length; j++) {
+        const next = children[j];
+        if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) continue;
+        if (!isCodeParagraph(next)) break;
+        run.push(next);
+        lines.push(getTextWithTabs(next).replace(/\u00a0/g, ' '));
+        const text = lines.join('\n');
+        if (isJsonLike(text) || isMarkupLike(text)) {
+          replaceCodeRun(run, text);
+          i = j;
+          matched = true;
+          break;
         }
-      } else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) { j++; continue; }
-      break;
+        // Stop at the end of this candidate, including invalid examples.
+        // Delimiters inside quoted JSON strings do not end the candidate.
+        if (/^\s*[{\[]/.test(first) ? jsonDepth(text) <= 0 : markupDepth(text) < 0) break;
+      }
+      // A lone opening/closing tag is also a useful standalone code example.
+      if (!matched && isSingleMarkupTag(first)) {
+        replaceCodeRun([node], first);
+        matched = true;
+      }
+      if (matched) warn();
     }
-    if (run.length >= 2 && balance <= 0) {
-      const sentinel = body.ownerDocument.createElement('div');
-      sentinel.setAttribute('data-pre-code','true');
-      sentinel.textContent = cleanCodeText(lines.join('\n'));
-      run[0].parentNode.insertBefore(sentinel, run[0]);
-      run.forEach(el => { try { el.parentNode.removeChild(el); } catch(e){} });
-      if (!warned) { warnings.push({ level:'info', title:'Code block detected', msg:'Multi-line JSON converted to a code block.' }); warned=true; }
-      i = j; continue;
-    }
-    i++;
-  }
+  });
 }
-function balanceOf(text) {
-  let b = 0;
-  for (const ch of text) { if (ch==='{' || ch==='[') b++; else if (ch==='}' || ch===']') b--; }
-  return b;
+
+function codeContainers(body) {
+  return [body, ...body.querySelectorAll('div,blockquote,li,td,th')].reverse()
+    .filter(el => !el.closest('pre,code,[data-pre-code],[data-code-block]'));
+}
+function isCodeParagraph(node) {
+  return node.nodeType === Node.ELEMENT_NODE && /^(p|div)$/i.test(node.tagName) &&
+    !isSentinel(node) && !node.querySelector('p,div,table,ul,ol,pre,blockquote,h1,h2,h3,h4,h5,h6');
+}
+function replaceCodeRun(run, text) {
+  const holder = run[0].ownerDocument.createElement('div');
+  holder.innerHTML = codeBlock(text);
+  run[0].before(holder.firstElementChild);
+  run.forEach(el => el.remove());
+}
+
+function isMonospaceText(node) {
+  for (let el = node.parentElement; el; el = el.parentElement) {
+    if (el.tagName === 'CODE' || el.tagName === 'PRE') return true;
+    const family = (el.style && el.style.fontFamily) || el.getAttribute('face');
+    if (family) return /(?:courier|consolas|lucida console|monospace)/i.test(family);
+  }
+  return false;
+}
+function markInlineCodeRuns(body) {
+  const doc = body.ownerDocument;
+  const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+  const texts = [];
+  while (walker.nextNode()) texts.push(walker.currentNode);
+  texts.forEach(node => {
+    if (!node.textContent.trim() || node.parentElement.closest('pre,code,[data-code-block],[data-pre-code]')) return;
+    const text = node.textContent;
+    const matches = isMonospaceText(node)
+      ? [{ index: 0, 0: text }]
+      : Array.from(text.matchAll(/\{[A-Za-z_][\w.-]*\}|<\/?[A-Za-z_][\w:.-]*\s*\/?>/g));
+    if (!matches.length) return;
+    const frag = doc.createDocumentFragment();
+    let end = 0;
+    matches.forEach(match => {
+      frag.append(text.slice(end, match.index));
+      const code = doc.createElement('code');
+      code.setAttribute('style', CODE_FONT);
+      code.textContent = match[0];
+      frag.appendChild(code);
+      end = match.index + match[0].length;
+    });
+    frag.append(text.slice(end));
+    node.replaceWith(frag);
+  });
 }
 
 /* ============================================================================
-   MONOSPACE / TAB CODE PRE-PASS
+   MONOSPACE CODE PRE-PASS
    ============================================================================ */
 function groupCodeParagraphs(body, warnings) {
-  const children = Array.from(body.childNodes);
-  let i = 0, warned = false;
-  while (i < children.length) {
-    const node = children[i];
-    if (node.nodeType === Node.ELEMENT_NODE && !isSentinel(node)) {
-      const tag = node.tagName.toLowerCase();
-      if ((tag === 'p' || tag === 'div') && isCodeLike(node)) {
-        const group = [node];
-        let j = i + 1;
-        while (j < children.length) {
-          const next = children[j];
-          if (next.nodeType === Node.ELEMENT_NODE && !isSentinel(next)) {
-            const nt = next.tagName.toLowerCase();
-            if ((nt === 'p' || nt === 'div') && isCodeLike(next)) { group.push(next); j++; }
-            else if (!next.textContent.trim()) j++;
-            else break;
-          } else if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) j++;
-          else break;
-        }
-        const sentinel = body.ownerDocument.createElement('div');
-        sentinel.setAttribute('data-pre-code','true');
-        sentinel.textContent = cleanCodeText(group.map(getTextWithTabs).join('\n'));
-        group[0].parentNode.insertBefore(sentinel, group[0]);
-        group.forEach(el => { try { el.parentNode.removeChild(el); } catch(e){} });
-        if (!warned) { warnings.push({ level:'info', title:'Code block detected', msg:'Monospace or tab-indented content converted to a code block.' }); warned=true; }
-        i = j; continue;
-      }
+  let warned = false;
+  const warn = () => {
+    if (!warned) warnings.push({ level:'info', title:'Code block detected', msg:'Monospace snippet converted to a code block.' });
+    warned = true;
+  };
+  codeContainers(body).forEach(root => {
+    if (!body.contains(root)) return;
+    if (/^(li|td|th)$/i.test(root.tagName) && !root.querySelector('p,div,table,ul,ol,pre,blockquote') && isCodeLike(root)) {
+      root.innerHTML = codeBlock(getTextWithTabs(root).replace(/\u00a0/g, ' '));
+      warn();
+      return;
     }
-    i++;
-  }
+    const children = Array.from(root.childNodes);
+    for (let i = 0; i < children.length; i++) {
+      const node = children[i];
+      if (!isCodeParagraph(node) || !isCodeLike(node)) continue;
+      const group = [node], gaps = [];
+      let last = i;
+      for (let j = i + 1; j < children.length; j++) {
+        const next = children[j];
+        if (next.nodeType === Node.TEXT_NODE && !next.textContent.trim()) continue;
+        if (!isCodeParagraph(next)) break;
+        if (!next.textContent.trim()) { gaps.push(next); continue; }
+        if (!isCodeLike(next)) break;
+        group.push(...gaps.splice(0), next);
+        last = j;
+      }
+      replaceCodeRun(group, group.map(getTextWithTabs).join('\n').replace(/\u00a0/g, ' '));
+      warn();
+      i = last;
+    }
+  });
 }
 function isCodeLike(node) {
-  if (node.tagName.toLowerCase() === 'pre') return true;
-  const style = (node.getAttribute('style') || '').toLowerCase();
-  if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test(style)) return true;
-  for (const span of node.querySelectorAll('span')) {
-    if (/font-family:[^;]*(courier|consolas|lucida console|monospace)/i.test((span.getAttribute('style') || '').toLowerCase())) return true;
+  // A single identifier remains inline. Every visible text run must be
+  // monospace before a whole paragraph can become a code block.
+  const text = getTextWithTabs(node).trim();
+  if (!text || /^[\w./:-]+$/.test(text)) return false;
+  const walker = node.ownerDocument.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+  let found = false;
+  while (walker.nextNode()) {
+    const part = walker.currentNode;
+    if (!part.textContent.trim()) continue;
+    found = true;
+    if (!isMonospaceText(part)) return false;
   }
-  return false;
+  return found;
 }
 function getTextWithTabs(node) {
   let t = '';
@@ -3243,6 +3311,7 @@ function processNode(node, warnings) {
   }
 
   if (tag === 'p' || tag === 'div') {
+    if (tag === 'div' && node.querySelector('p,div,table,ul,ol,pre,blockquote,h1,h2,h3,h4,h5,h6')) return processChildren(node, warnings);
     const raw = cleanText(node.textContent);
 
     // Note/Warning/Important detection: try DOM-aware version first so inline
@@ -3253,9 +3322,10 @@ function processNode(node, warnings) {
     const lvl = detectHeadingLevel(node, tag);
     if (lvl && raw) return headingHtml(lvl, raw);
 
-    if (isJsonLike(raw) || isHttpLike(raw)) {
-      warnings.push({ level:'info', title:'Code block detected', msg:'JSON or HTTP line converted to a code block.' });
-      return codeBlock(node.textContent.trim());
+    const codeText = getTextWithTabs(node).replace(/\u00a0/g, ' ');
+    if (isJsonLike(codeText) || isMarkupLike(codeText) || isHttpLike(codeText)) {
+      warnings.push({ level:'info', title:'Code block detected', msg:'Standalone code converted to a code block.' });
+      return codeBlock(codeText);
     }
 
     const inner = processChildren(node, warnings).trim();
@@ -3547,7 +3617,20 @@ function processTableCell(cell, warnings) {
   const raw = (cell.textContent || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
   if (!raw) return '';
   if (/^(Y|N|N\/A|Yes|No|\d+(\.\d+)?)$/i.test(raw)) return esc(raw);
-  return Array.from(cell.childNodes).map(ch => processTableCellNode(ch, warnings).trim()).filter(Boolean).join('<br>');
+  // Keep adjacent text and inline code on the same line. Separate only the
+  // source's paragraph boundaries, rather than every inline child node.
+  const chunks = [];
+  let inline = '';
+  const flush = () => { if (inline.trim()) chunks.push(inline.trim()); inline = ''; };
+  Array.from(cell.childNodes).forEach(ch => {
+    if (ch.nodeType === Node.ELEMENT_NODE && /^(p|div|h[1-6]|pre|ul|ol|table)$/i.test(ch.tagName)) {
+      flush();
+      const block = processTableCellNode(ch, warnings).trim();
+      if (block) chunks.push(block);
+    } else inline += processTableCellNode(ch, warnings);
+  });
+  flush();
+  return chunks.join('<br>');
 }
 function processTableCellNode(node, warnings) {
   if (node.nodeType === Node.TEXT_NODE) return esc((node.textContent||'').replace(/\u00a0/g,' ').replace(/[ \t\r\n]+/g,' '));
@@ -3652,42 +3735,63 @@ function convertPlainText(text, warnings) {
   const doc = document.implementation.createHTMLDocument('');
   const body = doc.body;
   text.split(/\r?\n/).forEach(line => {
-    if (!line.trim()) return;
     const p = doc.createElement('p');
     p.textContent = line;
     body.appendChild(p);
   });
-  groupManualLists(body, warnings || []);
-  groupNoteBlocks(body);   // callout + its list(s) -> one blockquote
-  let out = '';
-  Array.from(body.childNodes).forEach(node => {
-    if (isSentinel(node)) {
-      out += node.innerHTML + '\n';
-      return;
-    }
-    if (node.nodeType === Node.ELEMENT_NODE && node.getAttribute('data-note-block') === 'true') {
-      const label = node.firstElementChild;
-      const note = label ? buildNote(cleanText(label.textContent)) : null;
-      let rest = '';
-      Array.from(node.children).forEach(ch => { if (ch !== label && isSentinel(ch)) rest += ch.innerHTML + '\n'; });
-      rest = rest.trim();
-      if (note) { out += rest ? note.replace(/<\/blockquote>\s*$/, '\n' + rest + '\n</blockquote>\n') : note; return; }
-    }
-    const t = cleanText(node.textContent);
-    if (!t) return;
-    out += buildNote(t) || `<p style="${SF_FONT}">${esc(t)}</p>\n`;
-  });
-  return finalizeHr(out.trim());
+  return convertHTML(body.innerHTML, false, warnings || []);
 }
 
 /* ============================================================================
    HELPERS
    ============================================================================ */
 function codeBlock(text) {
-  const preStyle = "background:#f8fafc;border:1px solid #d8e0ea;border-radius:10px;padding:14px;width:100%;box-sizing:border-box;overflow-x:auto;white-space:pre;margin:6px 0;";
+  const preStyle = "background:#f8fafc;border:1px solid #d8e0ea;border-radius:10px;padding:14px;width:100%;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0;";
   return `<pre style="${preStyle}"><code style="font-family: 'Courier New', Consolas, monospace; font-size: 12px; line-height: 1.5; color: #2d3748;">${escCode(text)}</code></pre>\n`;
 }
-function isJsonLike(t) { t=t.trim(); return (t.startsWith('{')||t.startsWith('['))&&(t.endsWith('}')||t.endsWith(']'))&&t.includes(':'); }
+function isJsonLike(text) {
+  if (!/^\s*[{\[]/.test(text)) return false;
+  try { const value = JSON.parse(text); return value !== null && typeof value === 'object'; }
+  catch (_) { return false; }
+}
+function jsonDepth(text) {
+  const stack = [];
+  let quoted = false, escaped = false;
+  for (const ch of text) {
+    if (quoted) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') quoted = false;
+    } else if (ch === '"') quoted = true;
+    else if (ch === '{' || ch === '[') stack.push(ch);
+    else if (ch === '}' || ch === ']') {
+      if (stack.pop() !== (ch === '}' ? '{' : '[')) return -1;
+    }
+  }
+  return stack.length;
+}
+function markupDepth(text) {
+  const stack = [];
+  const tags = /<!--[\s\S]*?-->|<\?[\s\S]*?\?>|<![^>]*>|<\/?([A-Za-z_][\w:.-]*)(?:\s+(?:"[^"]*"|'[^']*'|[^'">])*)?\s*\/?>/g;
+  let end = 0, found = false;
+  for (const match of text.matchAll(tags)) {
+    // Text outside a root tag is prose, not a standalone markup snippet.
+    if (!stack.length && text.slice(end, match.index).trim()) return -1;
+    if (/[<>]/.test(text.slice(end, match.index))) return -1;
+    found = true;
+    const token = match[0], name = (match[1] || '').toLowerCase();
+    if (token.startsWith('</')) { if (stack.pop() !== name) return -1; }
+    else if (name && !/\/>$/.test(token) && !/^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/.test(name)) stack.push(name);
+    end = match.index + token.length;
+  }
+  const tail = text.slice(end);
+  // Word can paste a tag and its attributes as separate paragraphs.
+  if (/^\s*<(?:[A-Za-z_!?]|\/[A-Za-z_])/.test(tail)) return stack.length + 1;
+  if (!found || (!stack.length && tail.trim()) || /[<>]/.test(tail)) return -1;
+  return stack.length;
+}
+function isMarkupLike(text) { return /^\s*</.test(text) && markupDepth(text) === 0; }
+function isSingleMarkupTag(text) { return /^\s*<\/?[A-Za-z_][\w:.-]*(?:\s+(?:"[^"]*"|'[^']*'|[^'">])*)?\s*\/?>\s*$/.test(text); }
 function isHttpLike(t) { return /^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\s+https?:\/\//im.test(t); }
 function hasBlock(html) { return /<(p|div|h2|h3|h4|ul|ol|li|table|pre|blockquote|hr)\b/i.test(html); }
 function getPlainText(node) {
@@ -3698,7 +3802,7 @@ function getPlainText(node) {
   });
   return t;
 }
-function cleanCodeText(t) { return (t||'').replace(/\u00a0/g,' ').replace(/[ \t]+$/gm,'').replace(/\n{3,}/g,'\n\n').replace(/^\n+|\n+$/g,''); }
+function cleanCodeText(t) { return (t||'').replace(/\u00a0/g,' '); }
 function cleanText(t)     { return (t||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim(); }
 function normalizeNbsp(s) { return s.replace(/&nbsp;/g,' ').replace(/\u00a0/g,' ').replace(/ {2,}/g,' '); }
 function esc(s)     { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

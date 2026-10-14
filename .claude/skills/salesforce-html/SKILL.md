@@ -34,6 +34,15 @@ Preserve the heading *hierarchy* from the source — do not flatten H2/H3 into p
 - Body text: Arial, readable line spacing. Preserve bold/italic/underline as inline tags.
 - Links: keep `href`; flag `javascript:`/unsafe schemes as a warning rather than emitting them.
 
+## Code
+
+- Monospace words within prose become inline `<code>`; keep surrounding prose in its paragraph.
+- Standalone JSON objects/arrays and XML/HTML examples become `<pre><code>`, including
+  normal-font input. Full monospace snippets also become blocks; single identifiers stay inline.
+- Preserve code text, indentation and line breaks. Blocks carry
+  `white-space:pre-wrap;overflow-wrap:anywhere`; inline code carries `overflow-wrap:anywhere`.
+- Apply the same rules inside lists and table cells. Keep markup examples escaped as text.
+
 ## Lists
 
 - Emit clean `<ul>`/`<ol>` with correct nesting and marker types.

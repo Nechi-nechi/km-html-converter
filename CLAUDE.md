@@ -60,6 +60,9 @@ Key values:
   duplication and vertical alignment to keep generated HTML compact.
 - Images: never converted — replaced with the literal placeholder `[Insert image here]`
 - Callouts/notes → blockquote structure (bullet lists get absorbed into the blockquote)
+- Code: mixed-font sentences retain inline `<code>` boundaries. Standalone JSON,
+  markup and full monospace snippets use `<pre><code>`. Preserve code whitespace;
+  emit `white-space:pre-wrap;overflow-wrap:anywhere` on blocks and wrapping on inline code.
 
 ## Dev loop
 

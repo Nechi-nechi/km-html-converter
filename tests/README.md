@@ -45,6 +45,10 @@ tests/
 | `word-table-page-layout` | Word page-layout styles on tables, rows, cells and paragraphs preserve content; explicit page-break markers are removed |
 | `word-table-section` | Word section and formatting divs preserve tables containing monospace text and large header fonts |
 | `code-block` | multi-line monospace paragraphs → one `<pre><code>` |
+| `code-inline-word` | Mixed Word fonts, single identifiers, placeholders, formatting and font overrides stay inline |
+| `code-structured` | Normal-font JSON/arrays, quoted braces, XML and HTML become standalone code blocks |
+| `code-containers` | Inline and block code inside native/Word lists and tables |
+| `code-preserve-spacing` | Code indentation, multiple blank lines, long values and explicit blocks |
 | `callout-with-bullets` | `Note:` blockquote that **absorbs** its bullet list |
 | `callout-warning` | `Warning:` blockquote with the red label |
 | `callout-important` | `Important:` blockquote with Word font overrides and bold body text |
@@ -61,6 +65,8 @@ markup, clipboard copy, and workspace reset without adding fixtures for UI state
 It also checks table paste, edit and replacement through the Convert button,
 preview and clipboard synchronization, Word Online headings beside tables,
 and wrapped nested tables with merged and empty cells.
+Code checks compare exact text and whitespace, reconversion, plain-text fallback,
+wrapping styles and the edited paste/preview/clipboard flow.
 
 ## Adding / updating
 

@@ -15,7 +15,7 @@ export const assertions = [
     fixture,
     checks: [
       { name: 'preserves the table and all three rows', test: h => (h.match(/<table\b/g) || []).length === 1 && (h.match(/<tr\b/g) || []).length === 3 },
-      { name: 'preserves all six cells and the last cell text', test: h => (h.match(/<t[dh]\b/g) || []).length === 6 && /ITEM_COUNT does not match\./.test(h) },
+      { name: 'preserves all six cells and the last cell text', test: h => (h.match(/<t[dh]\b/g) || []).length === 6 && /ITEM_COUNT does not match\./.test(h.replace(/<[^>]+>/g, '')) },
       { name: 'preserves surrounding paragraph order', test: has(/Before the table\.[\s\S]*<table\b[\s\S]*<\/table>[\s\S]*After the table\./) },
       { name: 'keeps cell fonts from flattening the table to a heading or code block', test: not(/<h[1-6]\b|<pre\b/) },
       { name: 'keeps the table font and header colors', test: h => /<table[^>]*width:100%[^>]*font-family:Arial,sans-serif[^>]*font-size:12px/.test(h) && /<th[^>]*background:#0A0E33[^>]*color:#fff/.test(h) },

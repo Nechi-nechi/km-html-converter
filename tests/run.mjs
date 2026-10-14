@@ -70,7 +70,7 @@ for (const spec of assertions) {
   }
 }
 
-// Plain text uses buildNote(), while rich HTML uses buildNoteFromNode().
+// Plain-text and rich-HTML paths both preserve the callout contract.
 const plainCallouts = c.convert('Note: first\nImportant: second\nWarning: third', { useFallback: true }).html;
 const plainBlocks = [...plainCallouts.matchAll(/<blockquote\b[^>]*>[\s\S]*?<\/blockquote>/g)].map((m) => m[0]);
 const plainOk = plainBlocks.length === 3 && plainBlocks.every((block) =>
@@ -179,6 +179,98 @@ else { fail++; failures.push(['Word Online heading beside table', onlineHtml]); 
 const nestedHtml = c.convert('<div><table><tr><td colspan="2">Group</td></tr><tr><td rowspan="2"><div><table><tr><td>Nested</td></tr></table></div></td><td></td></tr><tr><td>Last</td></tr></table></div>').html;
 if ((nestedHtml.match(/<table\b/g) || []).length === 2 && /colspan="2"/.test(nestedHtml) && /rowspan="2"/.test(nestedHtml) && /&nbsp;/.test(nestedHtml) && /Nested[\s\S]*Last/.test(nestedHtml)) { pass++; console.log('  ✓ wrapped nested tables, merged cells and empty cells survive'); }
 else { fail++; failures.push(['wrapped nested table', nestedHtml]); }
+
+// These assertions inspect the DOM and exact text. Golden normalization alone
+// cannot catch accidental whitespace changes inside code or paragraph promotion.
+function codeCheck(name, ok, detail) {
+  if (ok) { pass++; console.log(`  ✓ ${name}`); }
+  else { fail++; failures.push([name, String(detail)]); }
+}
+const parse = html => new c.window.DOMParser().parseFromString(html, 'text/html').body;
+const inlineHtml = c.convert(read('code-inline-word', 'input')).html;
+const inline = parse(inlineHtml);
+codeCheck('mixed Word fonts become inline code only',
+  inline.querySelectorAll('pre').length === 0 && inline.querySelectorAll('p').length === 5 &&
+  [...inline.querySelectorAll('code')].map(el => el.textContent).join('|') ===
+    'UPDATE_DOCUMENT|FORCE_UPDATE|ITEM_COUNT|record_id|{customer_id}|<field>|SINGLE_IDENTIFIER|one_token', inlineHtml);
+codeCheck('inline code retains punctuation, bold, links and font overrides',
+  inline.querySelector('p').textContent === 'Send the document using UPDATE_DOCUMENT, or FORCE_UPDATE for a forced update. Monitor the queue.' &&
+  inline.querySelector('strong code')?.textContent === 'ITEM_COUNT' &&
+  inline.querySelector('a code')?.textContent === 'record_id' && inline.textContent.includes('Keep amounts < 100.'), inlineHtml);
+
+const structuredHtml = c.convert(read('code-structured', 'input')).html;
+const structured = parse(structuredHtml);
+const structuredBlocks = [...structured.querySelectorAll('pre')];
+codeCheck('normal-font JSON, arrays and markup become separate code blocks',
+  structuredBlocks.length === 6 && JSON.parse(structuredBlocks[0].textContent).nested.value === 'a } brace and a "quote"' &&
+  structuredBlocks[0].textContent.includes('  },\n\n\n  "enabled"') &&
+  structuredBlocks[1].textContent === '[1, 2, 3]' &&
+  structuredBlocks[2].textContent === '<config>\n  <item name="sample" />\n</config>' &&
+  structuredBlocks[3].textContent === '<div><br>Text</div>' &&
+  structured.lastElementChild.textContent === 'Ordinary text after the examples.', structuredHtml);
+codeCheck('markup examples stay literal text', !structured.querySelector('config, item, field, opening-tag') &&
+  !structured.querySelector('pre br') && structuredBlocks[4]?.textContent === '<field />', structuredHtml);
+
+const containersHtml = c.convert(read('code-containers', 'input')).html;
+const containers = parse(containersHtml);
+codeCheck('code works in lists and cells without splitting sentences',
+  containers.querySelector('li').textContent === 'Use LIST_TOKEN here.' &&
+  containers.querySelectorAll('li pre').length === 2 &&
+  containers.querySelectorAll('td pre').length === 2 &&
+  [...containers.querySelectorAll('td')].some(td => td.innerHTML.includes('</code> here.') && !td.querySelector('br')) &&
+  [...containers.querySelectorAll('li code')].some(el => el.textContent === 'WORD_TOKEN') &&
+  [...containers.querySelectorAll('li code')].some(el => el.textContent === 'ONLINE_TOKEN') &&
+  !/data-|mso-/.test(containersHtml), containersHtml);
+
+const spacingHtml = c.convert(read('code-preserve-spacing', 'input')).html;
+const spacing = parse(spacingHtml);
+codeCheck('code indentation and multiple blank lines survive conversion',
+  spacing.querySelectorAll('pre').length === 2 && spacing.querySelector('pre').textContent.includes(';\n\n\n  return value;') &&
+  spacing.querySelectorAll('pre')[1].textContent === '  first line\n\n\n    fourth line\n  <sample />', spacingHtml);
+codeCheck('generated wrapping styles travel with copied code',
+  [...spacing.querySelectorAll('pre')].every(el => el.style.whiteSpace === 'pre-wrap' && el.style.overflowWrap === 'anywhere') &&
+  [...inline.querySelectorAll('code')].every(el => el.style.overflowWrap === 'anywhere') && !/overflow-x/.test(spacingHtml), spacingHtml);
+
+for (const name of ['code-inline-word', 'code-structured', 'code-containers', 'code-preserve-spacing']) {
+  const once = c.convert(read(name, 'input')).html;
+  const twice = c.convert(once).html;
+  // Word lists already drop redundant aria-level metadata on reconversion.
+  // Compare everything else byte-for-byte, including whitespace inside code.
+  const omitListMetadata = html => html.replace(/ aria-level="\d+"/g, '');
+  codeCheck(`${name}: reconversion preserves code and exact contents`, omitListMetadata(once) === omitListMetadata(twice), twice);
+}
+for (const text of ['{}', '[]', '[1,2]', '{\n  "value": "} {",\n\n\n  "ok": true\n}', '<root>\n  <item />\n</root>']) {
+  const html = c.convert(text, { useFallback: true }).html;
+  codeCheck('plain text recognizes standalone code and keeps spacing', parse(html).querySelector('pre')?.textContent === text, html);
+}
+const attributeLines = '<p>&lt;item</p><p>  name="sample"</p><p>  enabled="true" /&gt;</p><p>Following prose.</p>';
+const attributeHtml = c.convert(attributeLines).html;
+codeCheck('markup attributes split across Word paragraphs form one block',
+  parse(attributeHtml).querySelector('pre')?.textContent === '<item\n  name="sample"\n  enabled="true" />' &&
+  parse(attributeHtml).lastElementChild.textContent === 'Following prose.', attributeHtml);
+for (const text of ['Amount < 100 and total > 0.', 'Replace {customer_id} with your ID.', 'The <field> tag is required.', 'Use / or /> in this sentence.']) {
+  const html = c.convert(text, { useFallback: true }).html;
+  codeCheck('punctuation in prose keeps paragraph formatting', !parse(html).querySelector('pre') && parse(html).textContent.trim() === text, html);
+}
+
+// Real paste, edit, convert, preview and copy must agree on inline boundaries.
+doc.getElementById('btnClearAll').click();
+const codePaste = new c.window.Event('paste', { bubbles: true, cancelable: true });
+Object.defineProperty(codePaste, 'clipboardData', { value: {
+  getData: type => type === 'text/html' ? read('code-inline-word', 'input') : 'Plain fallback',
+} });
+paste.dispatchEvent(codePaste);
+paste.querySelector('p').append(' Checked.');
+paste.dispatchEvent(new c.window.Event('input', { bubbles: true }));
+doc.getElementById('btnConvert').click();
+copied = null;
+doc.getElementById('btnCopy').click();
+await Promise.resolve();
+await Promise.resolve();
+codeCheck('edited Word paste, preview and clipboard preserve inline code',
+  !preview.querySelector('pre') && preview.querySelectorAll('code').length === 8 &&
+  preview.querySelector('p').textContent.endsWith('Checked.') && copied === doc.getElementById('htmlOutput').value,
+  doc.getElementById('htmlOutput').value);
 
 c.close();
 

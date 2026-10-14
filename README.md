@@ -26,6 +26,12 @@ The generated HTML uses simple formatting intended for Salesforce Knowledge sour
 
 The tool preserves common table structures, including header rows, empty cells, uneven rows, nested tables, and merged cells where possible. Headers use centered bold white text on a navy background. Table width is set to 100% by default and can be adjusted by hand before copying. Arial 12px is defined once on each table. Cells retain compact inline borders and padding, with no repeated font declarations or vertical alignment.
 
+### Code snippets
+
+Courier, Consolas, or monospace words within a sentence become inline code. The surrounding text keeps its paragraph formatting. Standalone JSON objects and arrays, XML/HTML examples, and full monospace snippets become code blocks. Placeholders such as `{customer_id}` inside a sentence stay inline; ordinary comparisons such as `amount < 100` stay prose.
+
+Code wraps to the available display width, including long identifiers. Blocks preserve indentation and line breaks. The generated HTML carries these styles for preview and copying, including code in lists and tables.
+
 ### Image handling
 
 Images in the pasted content are not converted. Each image becomes an *[Insert image here]* placeholder in the output. The writer adds the actual image in Salesforce Knowledge after pasting the HTML.

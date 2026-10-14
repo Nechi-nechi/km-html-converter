@@ -42,6 +42,8 @@ tests/
 | `native-word-list` | desktop Word `mso-list` numbered list → clean `<ol>` |
 | `word-online-list` | Word Online `data-aria-level` list w/ interleaved-listid nested sublist |
 | `table` | 100% width, `0.5px` borders, navy `#0A0E33` bold header |
+| `word-table-page-layout` | Word page-layout styles on tables, rows, cells and paragraphs preserve content; explicit page-break markers are removed |
+| `word-table-section` | Word section and formatting divs preserve tables containing monospace text and large header fonts |
 | `code-block` | multi-line monospace paragraphs → one `<pre><code>` |
 | `callout-with-bullets` | `Note:` blockquote that **absorbs** its bullet list |
 | `callout-warning` | `Warning:` blockquote with the red label |
@@ -56,6 +58,9 @@ tests/
 
 The runner also checks plain-text callouts, heading reconversion, unsafe preview
 markup, clipboard copy, and workspace reset without adding fixtures for UI state.
+It also checks table paste, edit and replacement through the Convert button,
+preview and clipboard synchronization, Word Online headings beside tables,
+and wrapped nested tables with merged and empty cells.
 
 ## Adding / updating
 

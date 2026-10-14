@@ -124,6 +124,62 @@ const resetOk = !paste.innerHTML && !doc.getElementById('htmlOutput').value && !
 if (previewOk && copyOk && resetOk) { pass++; console.log('  ✓ callout preview, clipboard copy, and reset stay in sync'); }
 else { fail++; console.log('  ✗ callout preview, clipboard copy, and reset stay in sync'); failures.push(['preview/copy/reset', generated]); }
 
+// Exercise the same clipboard event and Convert button used by writers, with
+// previous output present so a silent failure cannot pass as fresh output.
+for (const name of ['word-table-page-layout', 'word-table-section']) {
+  for (const mode of ['fresh paste', 'edited paste', 'replace selection']) {
+    doc.getElementById('btnClearAll').click();
+    doc.getElementById('htmlOutput').value = '<p>Previous output</p>';
+    c.window.onHtmlChanged('<p>Previous output</p>');
+    if (mode === 'replace selection') {
+      paste.innerHTML = '<p>Previous input</p>';
+      const range = doc.createRange();
+      range.selectNodeContents(paste);
+      c.window.getSelection().removeAllRanges();
+      c.window.getSelection().addRange(range);
+    }
+    const event = new c.window.Event('paste', { bubbles: true, cancelable: true });
+    const source = read(name, 'input');
+    Object.defineProperty(event, 'clipboardData', { value: {
+      getData: type => type === 'text/html' ? source : 'Table text fallback',
+    } });
+    paste.dispatchEvent(event);
+    if (mode === 'edited paste') {
+      paste.querySelector('td').append(' revised');
+      paste.dispatchEvent(new c.window.Event('input', { bubbles: true }));
+    }
+    doc.getElementById('btnConvert').click();
+    const out = doc.getElementById('htmlOutput').value;
+    copied = null;
+    doc.getElementById('btnCopy').click();
+    await Promise.resolve();
+    await Promise.resolve();
+    const tableOk = /<table\b/.test(out) && !out.includes('Previous output') &&
+      doc.querySelectorAll('#previewArea tr').length === 3 &&
+      doc.querySelectorAll('#previewArea th, #previewArea td').length === 6 &&
+      preview.textContent.includes('ITEM_COUNT does not match.') && copied === out &&
+      (mode !== 'edited paste' || preview.textContent.includes('revised'));
+    if (tableOk) { pass++; console.log(`  ✓ ${name}: ${mode}, preview and copy`); }
+    else { fail++; console.log(`  ✗ ${name}: ${mode}, preview and copy`); failures.push([`${name}: ${mode}`, out]); }
+  }
+}
+
+const layoutHtml = c.convert(read('word-table-page-layout', 'input')).html;
+const layoutOk = layoutHtml.includes('Next page content.') && !/<br\b|page-break|mso-/i.test(layoutHtml);
+if (layoutOk) { pass++; console.log('  ✓ page layout removes break markers and retains paragraph content'); }
+else { fail++; failures.push(['page layout content', layoutHtml]); }
+
+// A heading beside a Word Online table must retain its accessibility heading
+// level when table containers are unwrapped after outline promotion.
+const onlineTable = '<div class="SCXW123"><div class="OutlineElement SCXW123"><p role="heading" aria-level="2">Overview</p></div><div class="OutlineElement SCXW123"><div class="TableContainer">' + read('table', 'input') + '</div></div></div>';
+const onlineHtml = c.convert(onlineTable).html;
+if (/<h2[^>]*font-size: 18px[^>]*>Overview<\/h2>[\s\S]*<table\b/.test(onlineHtml)) { pass++; console.log('  ✓ Word Online heading metadata survives beside a table'); }
+else { fail++; failures.push(['Word Online heading beside table', onlineHtml]); }
+
+const nestedHtml = c.convert('<div><table><tr><td colspan="2">Group</td></tr><tr><td rowspan="2"><div><table><tr><td>Nested</td></tr></table></div></td><td></td></tr><tr><td>Last</td></tr></table></div>').html;
+if ((nestedHtml.match(/<table\b/g) || []).length === 2 && /colspan="2"/.test(nestedHtml) && /rowspan="2"/.test(nestedHtml) && /&nbsp;/.test(nestedHtml) && /Nested[\s\S]*Last/.test(nestedHtml)) { pass++; console.log('  ✓ wrapped nested tables, merged cells and empty cells survive'); }
+else { fail++; failures.push(['wrapped nested table', nestedHtml]); }
+
 c.close();
 
 // ---- SUMMARY ----------------------------------------------------------------

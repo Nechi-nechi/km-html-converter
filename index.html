@@ -2419,6 +2419,7 @@ function convertHTML(source, useFallback, warnings) {
   collapseEmptyParagraphs(body, warnings);
   wrapLooseInlineContent(body);           // bare sentences -> real paragraphs
   groupWordOnlineLists(body, warnings);   // ← Word Online / Office 365 web
+  unwrapTableContainers(body);            // keep Word sections out of paragraph heuristics
   groupNativeWordLists(body, warnings);   // ← desktop Word mso-list format
   wrapLooseInlineContent(body);           // re-wrap anything the flattens left loose
   groupManualLists(body, warnings);
@@ -2466,7 +2467,19 @@ function removePageBreaks(body) {
   body.querySelectorAll('br[clear]').forEach(el => el.remove());
   body.querySelectorAll('[style]').forEach(el => {
     const s = el.getAttribute('style') || '';
-    if (s.includes('mso-special-character') || s.includes('page-break')) el.remove();
+    // Page-layout styles also occur on tables, rows and real paragraphs.
+    // Only a break marker is disposable; its surrounding content must survive.
+    if (s.includes('mso-special-character') || (el.tagName === 'BR' && s.includes('page-break'))) el.remove();
+  });
+}
+
+function unwrapTableContainers(body) {
+  // Word wraps tables and surrounding paragraphs in section/formatting divs.
+  // Process their children independently so a cell's font, code or list marker
+  // cannot make a paragraph heuristic flatten the entire table to text.
+  // Word Online outline promotion runs first to retain its heading metadata.
+  Array.from(body.querySelectorAll('div')).reverse().forEach(el => {
+    if (el.querySelector('table')) el.replaceWith(...Array.from(el.childNodes));
   });
 }
 

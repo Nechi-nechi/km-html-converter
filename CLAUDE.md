@@ -55,7 +55,9 @@ Key values:
 
 - Font: **Arial, sans-serif** throughout
 - **H2 → 18px bold**, **H3 → 16px bold** (a past bug shipped H2 as h3/16px — regression-test this)
-- Tables: `width:100%`, `1px solid` borders, header rows **bold, no background fill**
+- Tables: `width:100%`, shared Arial 12px on the table, `.5px solid gray` cell borders
+  and `4px` padding; headers use centered bold white text on navy. Omit cell font
+  duplication and vertical alignment to keep generated HTML compact.
 - Images: never converted — replaced with the literal placeholder `[Insert image here]`
 - Callouts/notes → blockquote structure (bullet lists get absorbed into the blockquote)
 

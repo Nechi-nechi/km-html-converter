@@ -43,13 +43,16 @@ Preserve the heading *hierarchy* from the source — do not flatten H2/H3 into p
 
 ## Tables
 
-Verified against `processTable()` in `index.html` (the README's "no background fill"
-description is stale — the code fills headers). Contract:
+Verified against `processTable()` in `index.html`. Keep table output compact:
 
-- Table: `border-collapse:collapse; width:100%` (width adjustable by hand before copying).
-- All cells: `border:0.5px solid #808080; padding:4px; vertical-align:top;` + `SF_FONT`.
+- Table: `border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:12px`
+  (width adjustable by hand before copying). Font properties inherit into cells.
+- All cells: `border:.5px solid gray;padding:4px`. Borders and padding stay on cells
+  because those properties do not inherit. `gray` equals `#808080`.
+- Omit redundant cell font declarations and vertical alignment. Omit the final
+  semicolon in each style attribute.
 - **Header cells** (`<th>` — first row, or any `<th>`, or a bold cell): add
-  `background:#0A0E33; color:#ffffff; font-weight:bold; text-align:center;` (navy fill, white bold text).
+  `background:#0A0E33;color:#fff;font-weight:700;text-align:center` (navy fill, white bold text).
 - Preserve header rows, empty cells, uneven rows, nested and merged cells where possible.
   Merged cells, uneven rows, and nested tables each raise a warning.
 

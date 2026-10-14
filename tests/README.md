@@ -41,7 +41,7 @@ tests/
 | `heading-mso` | a styled Word desktop paragraph promoted to `<h2>` |
 | `native-word-list` | desktop Word `mso-list` numbered list → clean `<ol>` |
 | `word-online-list` | Word Online `data-aria-level` list w/ interleaved-listid nested sublist |
-| `table` | 100% width, `0.5px` borders, navy `#0A0E33` bold header |
+| `table` | 100% width, shared Arial 12px, compact cell borders and padding, navy `#0A0E33` bold header, omitted vertical alignment |
 | `word-table-page-layout` | Word page-layout styles on tables, rows, cells and paragraphs preserve content; explicit page-break markers are removed |
 | `word-table-section` | Word section and formatting divs preserve tables containing monospace text and large header fonts |
 | `code-block` | multi-line monospace paragraphs → one `<pre><code>` |

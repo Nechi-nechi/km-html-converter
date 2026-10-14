@@ -18,7 +18,7 @@ export const assertions = [
       { name: 'preserves all six cells and the last cell text', test: h => (h.match(/<t[dh]\b/g) || []).length === 6 && /ITEM_COUNT does not match\./.test(h) },
       { name: 'preserves surrounding paragraph order', test: has(/Before the table\.[\s\S]*<table\b[\s\S]*<\/table>[\s\S]*After the table\./) },
       { name: 'keeps cell fonts from flattening the table to a heading or code block', test: not(/<h[1-6]\b|<pre\b/) },
-      { name: 'keeps the existing table styling', test: h => /<table[^>]*width:100%/.test(h) && /<th[^>]*background:#0A0E33[^>]*font-size: 12px/.test(h) },
+      { name: 'keeps the table font and header colors', test: h => /<table[^>]*width:100%[^>]*font-family:Arial,sans-serif[^>]*font-size:12px/.test(h) && /<th[^>]*background:#0A0E33[^>]*color:#fff/.test(h) },
     ],
   })),
   {
@@ -63,10 +63,13 @@ export const assertions = [
     fixture: 'table',
     checks: [
       { name: 'table is 100% width', test: has(/<table[^>]*width:\s*100%/) },
-      { name: 'cells have 0.5px borders', test: has(/border:\s*0\.5px solid/) },
+      { name: 'cells have 0.5px borders', test: has(/border:\s*(?:0)?\.5px solid/) },
       { name: 'header row uses <th>', test: has(/<th\b/) },
       { name: 'header has the navy fill (#0A0E33)', test: has(/<th[^>]*#0A0E33/i) },
-      { name: 'header text is bold', test: has(/<th[^>]*font-weight:\s*bold/) },
+      { name: 'header text is bold', test: has(/<th[^>]*font-weight:\s*(?:bold|700)/) },
+      { name: 'Arial 12px is defined once on the table', test: h => /<table[^>]*font-family:Arial,sans-serif;font-size:12px/.test(h) && (h.match(/font-family:/g) || []).length === 1 && (h.match(/font-size:/g) || []).length === 1 },
+      { name: 'cell borders and padding are preserved', test: h => (h.match(/<t[dh] style="border:\.5px solid gray;padding:4px/g) || []).length === 6 },
+      { name: 'omits cell font duplication and vertical alignment', test: not(/<t[dh][^>]*font-(?:family|size)|vertical-align/) },
     ],
   },
   {

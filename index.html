@@ -265,8 +265,8 @@
   #previewArea ul ul ul { list-style-type: square; }
   #previewArea li { font-size: 12px; margin: 1px 0; font-family: Arial, sans-serif; }
   #previewArea table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0; font-family: Arial, sans-serif; }
-  #previewArea th { border: 0.5px solid #808080; font-weight: bold; padding: 4px; vertical-align: top; text-align: center; font-size: 12px; background: #0A0E33; color: #fff; }
-  #previewArea td { border: 0.5px solid #808080; padding: 4px; vertical-align: top; }
+  #previewArea th { border: 0.5px solid #808080; font-weight: bold; padding: 4px; text-align: center; font-size: 12px; background: #0A0E33; color: #fff; }
+  #previewArea td { border: 0.5px solid #808080; padding: 4px; }
   #previewArea a  { color: var(--signal-blue); }
   #previewArea pre { background: #f4f6f8; border-radius: 4px; padding: 10px 12px; font-size: 12px; overflow-x: auto; margin: 6px 0; }
   #previewArea code { font-family: 'Consolas','Courier New',monospace; font-size: 12px; }
@@ -3532,14 +3532,15 @@ function processTable(tableNode, warnings) {
       const isHdr = ri === 0 || cell.tagName.toLowerCase() === 'th' || isBoldCell(cell);
       if (isHdr) {
         const hdrInner = cellInner.replace(/<\/?(?:strong|b)(?:\s[^>]*)?>/gi, '');
-        inner += `<th style="border:0.5px solid #808080;background:#0A0E33;color:#ffffff;font-weight:bold;padding:4px;vertical-align:top;text-align:center;${SF_FONT}"${attrs}>${hdrInner}</th>`;
+        inner += `<th style="border:.5px solid gray;padding:4px;background:#0A0E33;color:#fff;font-weight:700;text-align:center"${attrs}>${hdrInner}</th>`;
       }
-      else        inner += `<td style="border:0.5px solid #808080;padding:4px;vertical-align:top;${SF_FONT}"${attrs}>${cellInner}</td>`;
+      else        inner += `<td style="border:.5px solid gray;padding:4px"${attrs}>${cellInner}</td>`;
     });
     inner += '</tr>\n';
   });
   inner += '</tbody>\n';
-  return `<table style="border-collapse:collapse;width:100%;">\n${inner}</table>\n`;
+  // Font properties inherit into cells; borders and padding stay on each cell.
+  return `<table style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:12px">\n${inner}</table>\n`;
 }
 
 function processTableCell(cell, warnings) {

@@ -24,7 +24,7 @@ The generated HTML uses simple formatting intended for Salesforce Knowledge sour
 
 ### Table handling
 
-The tool preserves common table structures, including header rows, empty cells, uneven rows, nested tables, and merged cells where possible. Header rows are output with bold text and no background fill. Table width is set to 100% by default and can be adjusted by hand in the HTML output box before copying.
+The tool preserves common table structures, including header rows, empty cells, uneven rows, nested tables, and merged cells where possible. Headers use centered bold white text on a navy background. Table width is set to 100% by default and can be adjusted by hand before copying. Arial 12px is defined once on each table. Cells retain compact inline borders and padding, with no repeated font declarations or vertical alignment.
 
 ### Image handling
 
